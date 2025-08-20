@@ -1,0 +1,69 @@
+{
+  "PatientID": "PT-002",
+  "Name": "Emily Smith",
+  "Age": 17,
+  "Gender": "Female",
+  "Occupation": "High School Student / Soccer Player",
+  "InsuranceProvider": "Cigna",
+  "DateOfService": "2025-08-19",
+  "Subjective": {
+    "ChiefComplaint": "Left knee pain and instability after soccer injury.",
+    "HistoryOfPresentIllness": "Injury occurred 4 weeks ago during a soccer match: planted left foot and twisted to change direction, felt a 'pop' and immediate pain inside the left knee. Knee swelled that day and had difficulty walking for a week. Saw orthopedic MD: MRI confirmed a medial meniscus tear, no ACL tear. Ortho recommended a trial of physical therapy (no surgery at this time). Currently, patient reports intermittent sharp pain in medial knee with twisting or deep bending, and feelings of the knee 'giving way' occasionally.",
+    "PainLevel": "Current 2/10, up to 6/10 with certain movements (squatting or pivoting).",
+    "Symptoms": "Knee stiffness after prolonged sitting, mild swelling towards end of day if active. No locking, but does have catching sensation at times. Uses a knee brace with hinge during sports practice (currently not playing, just light drills).",
+    "PreviousTreatment": "Rest, ice, compression, elevation (RICE) initially. Took naproxen for 1 week post-injury. No prior PT.",
+    "PastMedicalHistory": "No prior injuries or surgeries. Generally healthy.",
+    "Medications": "None currently (occasional ibuprofen if knee is sore).",
+    "FunctionalStatus": "Walking with normal gait now, but avoids running. Cannot fully squat or kneel on left. Has not returned to soccer games, only light jogging and footwork drills with brace. Struggles with stairs when carrying heavy schoolbooks (pain ascending stairs).",
+    "PatientGoals": "Heal knee to avoid surgery. Return to playing competitive soccer at pre-injury level. Regain full strength and confidence in the knee, no giving-way episodes."
+  },
+  "Objective": {
+    "Observation": "Slight effusion in left knee (mild puffiness). No obvious muscle atrophy in thighs (left quad maybe slightly smaller than right by girth measurement 45cm vs 46cm).",
+    "Gait": "Antalgic gait initially post-injury, now normal walking pattern. Able to walk on heels and toes. Mild hesitation on left during jogging.",
+    "RangeOfMotion": {
+      "KneeFlexion": "Left: 130° active (tight end-feel, pain at extreme); Right: 140°",
+      "KneeExtension": "Left: lacks ~5° of full extension (5° flexion contracture), Right: 0° (full)."
+    },
+    "Strength": {
+      "LeftQuadriceps": "4-/5 (slight weakness, pain at end-range extension effort)",
+      "LeftHamstrings": "4+/5",
+      "LeftHipAbductors": "4+/5 (to assess dynamic knee stability)",
+      "LeftGastroc": "5/5",
+      "RightLEComparison": "Right quad 5/5, hamstrings 5/5 for baseline"
+    },
+    "SpecialTests": {
+      "McMurray": "Positive on left – pain and audible click at medial joint line on internal rotation of tibia.",
+      "ThessalyTest": "Positive at 20° knee bend – patient has medial joint line pain with weight-bearing twist on left leg.",
+      "Lachman": "Negative (firm end-feel, no ACL tear signs).",
+      "AnteriorDrawer": "Negative.",
+      "VarusValgusStress": "No laxity at 0° or 30° (MCL/LCL intact).",
+      "JointLineTenderness": "Medial joint line tender to palpation on left."
+    },
+    "Palpation": "Tender along medial joint line of left knee. Mild warmth compared to right. No tenderness over MCL or patellar tendon. Patellar mobility slightly reduced (mild medial-lateral glide restriction due to swelling).",
+    "Neurologic": "Sensation intact LLE. No numbness/tingling. Reflexes 2+ patellar and Achilles.",
+    "FunctionalTests": {
+      "SingleLegBalance": "Left: 10 seconds with some wobble; Right: 30+ seconds stable.",
+      "SquatTest": "Unable to perform full one-legged squat on left due to pain/instability; two-legged squat to 60° knee flexion is possible with mild pain.",
+      "StepDownTest": "Left: exhibits poor knee control (medial collapse) and pain stepping down 8-inch step."
+    }
+  },
+  "Assessment": {
+    "Diagnosis": "Tear of medial meniscus, left knee (ICD-10: S83.241A). Post-traumatic knee weakness and instability.",
+    "ClinicalImpression": "17-year-old athletic patient with left medial meniscus tear resulting in pain, mild effusion, quadriceps inhibition, and feelings of instability. Ligaments are intact (no ACL injury). Deficits noted in left knee ROM (slight extension loss), quadriceps strength, balance, and dynamic knee control (valgus tendency). Good potential for recovery with conservative management. Prognosis: Fair to good. If patient adheres to therapy, likely to return to sport; will monitor for any locking or worsening that might indicate need for surgical intervention. At this time, non-operative rehab is appropriate. Will also address neuromuscular control to prevent re-injury."
+  },
+  "Plan": {
+    "TreatmentPlan": "Initiate PT 2x/week for 8 weeks focusing on knee stabilization, ROM, and strength. Begin with reducing pain/swelling: RICE, gentle range-of-motion exercises (heel slides, bike with no resistance), patellar mobilizations. Progressive therapeutic exercise program: closed-chain strengthening (wall sits, leg press partial range) to improve quad without aggravating meniscus, open-chain quad extensions limited arc (0-45° initially to avoid excessive meniscus stress), hamstring strengthening. Neuromuscular re-education for dynamic stability: balance training on unstable surfaces (balance board, single-leg stands), neuromuscular electrical stimulation (NMES) to left quad if needed for activation. Gait and agility: practice proper cutting mechanics and increase running gradually in later stages. Manual therapy: soft tissue mobilization for quad/IT band, joint mobilization for extension (posterior tibial glide if needed to regain full extension). Modalities: ice after sessions for swelling, consider ultrasound around medial joint line if persistent pain. Home exercise program to include quad sets, straight leg raises, and mini-squats, progressing as tolerated. Will communicate with referring MD about progress; if no improvement or if knee locks, recommend follow-up with orthopedist.",
+    "ShortTermGoals": [
+      "Eliminate knee effusion and achieve full knee extension (0°) in 2 weeks.",
+      "Increase left quadriceps strength from 4-/5 to 4+/5 in 4 weeks (measured via single-leg squat depth and manual test).",
+      "Improve single-leg balance on left to 30 seconds without wobble in 4 weeks."
+    ],
+    "LongTermGoals": [
+      "Return to pain-free full range of motion in left knee (0–135°) in 6-8 weeks.",
+      "Restore left lower extremity strength to 5/5 and symmetric hop/squat performance in 8 weeks.",
+      "Demonstrate proper knee mechanics (no valgus collapse) on sport-specific drills (cutting, jumping) in 8 weeks.",
+      "Return to competitive soccer practice in 8 weeks and games by ~12 weeks, with clearance from MD."
+    ],
+    "FrequencyDuration": "2 sessions per week for 8 weeks (16 visits). Re-evaluate at week 4 and week 8 to assess progress. Will request authorization extension if needed based on status."
+  }
+}

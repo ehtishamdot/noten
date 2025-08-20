@@ -1,0 +1,65 @@
+{
+  "PatientID": "PT-001",
+  "Name": "John Doe",
+  "Age": 45,
+  "Gender": "Male",
+  "Occupation": "Carpenter",
+  "InsuranceProvider": "Aetna",
+  "DateOfService": "2025-08-19",
+  "Subjective": {
+    "ChiefComplaint": "Right shoulder pain and limited motion, insidious onset over past 3 months.",
+    "HistoryOfPresentIllness": "Patient reports gradually increasing right shoulder pain, worse with overhead activities at work (carpentry). No specific injury recalled. Pain began ~3 months ago, now worsening. Describes pain as a sharp pinch in the top of shoulder when lifting arm overhead, and an ache at rest. Difficulty with hammering above shoulder height and lifting objects overhead. Taking ibuprofen with some relief.",
+    "PainLevel": "6/10 at worst, 2/10 at rest",
+    "PainPattern": "Worse at end of work day, especially after repetitive overhead tasks. Night pain occasionally when lying on right side.",
+    "PriorInterventions": "Tried rest and over-the-counter NSAIDs; no formal therapy yet. Has been doing some self-prescribed stretching without much improvement.",
+    "PastMedicalHistory": "No significant past injuries to shoulder. Past medical history significant for hypertension (well-controlled). No prior surgeries.",
+    "Medications": "Lisinopril for HTN, ibuprofen as needed for shoulder pain",
+    "FunctionalStatus": "Independent in ADLs but avoids heavy overhead lifting. Difficulty with work tasks requiring prolonged overhead reaching or carrying >20 lbs above shoulder. Reports needing help at home with placing items on high shelves.",
+    "PatientGoals": "Reduce shoulder pain, regain full motion and strength to perform work tasks (overhead hammering, lifting) without difficulty. Avoid surgery and continue working as a carpenter."
+  },
+  "Objective": {
+    "Observation": "Moderate rounded shoulder posture, mild forward head. Right shoulder slightly lower than left. No muscle atrophy noted.",
+    "Palpation": "Tenderness at right subacromial area and anterior shoulder (biceps tendon region). No obvious swelling or deformity.",
+    "RangeOfMotion": {
+      "ShoulderFlexion": "Right: 130° active (with pain at end-range), Left: 170°",
+      "ShoulderAbduction": "Right: 120° active (painful arc 90-120°), Left: 170°",
+      "ShoulderExternalRotation": "Right: 60° (at 90° abduction), Left: 90°",
+      "ShoulderInternalRotation": "Right: T12 level behind back, Left: T8 level"
+    },
+    "Strength": {
+      "RightDeltoid": "4/5 (pain-limited)",
+      "RightSupraspinatus": "4/5 (pain and mild weakness on empty can test)",
+      "RightExternalRotators": "4/5",
+      "RightInternalRotators": "5/5",
+      "ScapularMuscles": "Lower trapezius 4/5, middle trapezius 4/5 on manual resistance; serratus anterior 4/5 with wall push-up test (mild winging observed)"
+    },
+    "SpecialTests": {
+      "HawkinsKennedy": "Positive on right (pain with internal rotation at 90° flexion)",
+      "Neer": "Positive on right (pain at end-range forward flexion)",
+      "EmptyCan": "Positive for pain/weakness (supraspinatus) on right",
+      "SpeedTest": "Mild pain in bicipital groove",
+      "DropArm": "Negative (no full tear suspected)"
+    },
+    "Neurologic": "Sensation intact in right upper extremity. Deep tendon reflexes 2+ at biceps/triceps. No radicular symptoms.",
+    "FunctionalTests": "Pain and difficulty with reaching overhead (could not fully hang drywall overhead during simulation). Unable to do pain-free push-up (due to shoulder)."
+  },
+  "Assessment": {
+    "Diagnosis": "Right Shoulder Impingement Syndrome (ICD-10: M75.4)",
+    "ClinicalImpression": "Findings consistent with subacromial impingement, likely due to repetitive overhead activities. Contributing factors: poor posture (forward shoulders), rotator cuff and scapular muscle weakness, and tight posterior shoulder capsule leading to altered mechanics. No signs of full rotator cuff tear (strength is mildly reduced but present). Prognosis is good for recovery with conservative management. Patient is motivated to return to full work duties."
+  },
+  "Plan": {
+    "TreatmentPlan": "Skilled PT 2-3x/week for 6 weeks. Emphasis on reducing inflammation and improving subacromial space, then strengthening. Plan includes: education on activity modification and posture; manual therapy (glenohumeral joint mobilizations Grade I-II for pain, posterior capsule stretches; soft tissue mobilization to pec minor and posterior shoulder); therapeutic exercises for rotator cuff strengthening (theraband external rotations, scaption exercises) and scapular stabilizer strengthening (lower trapezius, serratus anterior); stretching for posterior capsule and pectoralis muscles; neuromuscular re-ed for scapulohumeral rhythm (wall slides, scapular setting exercises); modalities PRN for pain (ice after sessions, consider IFC or ultrasound if pain severe). Will progressively introduce functional tasks simulating work (overhead lifting mechanics) as pain decreases.",
+    "ShortTermGoals": [
+      "Reduce right shoulder pain from 6/10 to 3/10 with overhead work in 3 weeks.",
+      "Improve right shoulder flexion AROM from 130° to at least 150° in 3 weeks.",
+      "Increase right shoulder abduction painless arc to 150° in 3-4 weeks."
+    ],
+    "LongTermGoals": [
+      "Restore full, pain-free AROM of right shoulder (170° flexion/abduction) in 6-8 weeks.",
+      "Improve right shoulder strength to 5/5 in rotator cuff and scapular muscles to enable overhead lifting of 20 lbs by 8 weeks.",
+      "Independently perform home exercise program for shoulder maintenance and posture correction by discharge.",
+      "Return to full work duties as a carpenter, including overhead tasks, without pain or compensations in 8 weeks."
+    ],
+    "FrequencyDuration": "3x/week for 6 weeks, then re-evaluate. Total ~18 visits authorized."
+  }
+}
