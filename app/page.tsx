@@ -21,13 +21,13 @@ const patients: Patient[] = [
     id: "emily-smith",
     name: "Emily Smith",
     initials: "ES",
-    description: "Female, 32 years old",
+    description: "Female, 17 years old",
   },
   {
     id: "maria-garcia",
     name: "Maria Garcia",
     initials: "MG",
-    description: "Female, 58 years old",
+    description: "Female, 60 years old",
   },
 ];
 

@@ -80,23 +80,18 @@ const researchContent = {
       ],
       "Aetna Insurance Billing & Documentation": [
         {
-          text: "Patient's plan likely has a 60-day limit for PT per condition, but limit may be tighter depending on plan. The PT plan is 6 weeks (~42 days) which fits under the 60-day limit.",
-          actionItem:
-            "Provide patient's Policy ID with Aetna on the 'Plan Details' page to look up their limit",
-        },
-        {
-          text: "Document measurable progress within this period to avoid denial of coverage.",
+          text: "Document measurable progress within this period to avoid denial of coverage.Emphasize improvements in ROM, strength, and function every 2-4 weeks",
           actionItem:
             "Upload session plans on the 'Patient Plan' page to receive a detailed description of what and how to document in each session, or auto-generate session plans from the same screen",
         },
-        "Emphasize improvements in ROM, strength, and function every 2-4 weeks",
+        "Patient's plan has a 60-day limit for PT per condition. The PT plan is 6 weeks (~42 days) which fits under the 60-day limit.",
         {
-          text: "Aetna expects detailed initial plan of care signed by PT and possibly referring provider. Some Aetna plans require physician approval of PT plan within 30 days.",
+          text: "Under John's plan, Aetna expects detailed initial plan of care signed by PT and referring provider within 30 days.",
           actionItem:
             "Enable provider communications to automatically handle and track email communications with the referring provider in-platform.",
         },
-        "Once goals are met or plateau reached, Aetna will not cover maintenance therapy.",
-        "Follows standard CPT coding rules. Make sure to spend at least 8 minutes on each code.",
+        "Set goals according to anticipated six-week improvement. Once goals are met or plateau reached, Aetna will not cover maintenance therapy.",
+        "Follows standard CPT coding rules. Make sure to spend at least 8 minutes on each code; Aetna will deny coverage for a code if less than 8 minutes is spent on it.",
         "Avoid billing investigational services (e.g., kinesiotaping for shoulder problems).",
         "Document all education and HEP instruction to support medical necessity",
         "Taper plan from 2x/week to 1x/week after 4 weeks of treatment, as Aetna typically expects tapering frequency as patient improves.",
@@ -459,6 +454,11 @@ export default function RecommendationPage() {
   const [patientInfo, setPatientInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("primary");
+  const [expandedSections, setExpandedSections] = useState<{
+    [key: string]: boolean;
+  }>({
+    "Condition & Treatment Overview": false, // Collapsed by default
+  });
 
   useEffect(() => {
     if (patientId && patientData[patientId as keyof typeof patientData]) {
@@ -780,17 +780,66 @@ export default function RecommendationPage() {
           {activeTab === "primary" ? (
             // Primary Insurance Content
             Object.entries(content.mainSections).map(
-              ([sectionTitle, sectionContent]) => (
-                <div
-                  key={sectionTitle}
-                  className="bg-white rounded-lg shadow-sm p-6"
-                >
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                    {sectionTitle}
-                  </h3>
-                  {renderBulletList(sectionContent)}
-                </div>
-              )
+              ([sectionTitle, sectionContent]) => {
+                const isCollapsible =
+                  sectionTitle === "Condition & Treatment Overview";
+                const isExpanded = isCollapsible
+                  ? expandedSections[sectionTitle] === true
+                  : true;
+
+                return (
+                  <div
+                    key={sectionTitle}
+                    className={`bg-white rounded-lg shadow-sm ${
+                      isCollapsible && !isExpanded ? "p-4" : "p-6"
+                    }`}
+                  >
+                    <h3
+                      className={`text-xl font-semibold text-gray-900 ${
+                        isExpanded ? "mb-4" : ""
+                      } flex items-center justify-between ${
+                        isCollapsible
+                          ? "cursor-pointer hover:text-gray-700"
+                          : ""
+                      }`}
+                      onClick={
+                        isCollapsible
+                          ? () =>
+                              setExpandedSections((prev) => ({
+                                ...prev,
+                                [sectionTitle]: !prev[sectionTitle],
+                              }))
+                          : undefined
+                      }
+                    >
+                      <span>{sectionTitle}</span>
+                      {isCollapsible && (
+                        <svg
+                          className={`w-5 h-5 text-gray-500 transition-transform ${
+                            expandedSections[sectionTitle] ? "rotate-180" : ""
+                          }`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      )}
+                    </h3>
+                    {isCollapsible && !isExpanded && (
+                      <p className="text-sm text-gray-500 mt-1">
+                        Click to view treatment details
+                      </p>
+                    )}
+                    {isExpanded && renderBulletList(sectionContent)}
+                  </div>
+                );
+              }
             )
           ) : (
             // Other Provider Considerations
@@ -820,25 +869,47 @@ export default function RecommendationPage() {
         {/* Action Buttons */}
         <div className="bg-white rounded-lg shadow-sm p-6 mt-8">
           <div className="flex justify-between items-center">
-            <button
-              onClick={handleBack}
-              className="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 transition-colors flex items-center"
-            >
-              <svg
-                className="w-5 h-5 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            <div className="flex space-x-4">
+              <button
+                onClick={handleBack}
+                className="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 transition-colors flex items-center"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-              Back
-            </button>
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+                Back
+              </button>
+
+              <button
+                onClick={() => router.push("/")}
+                className="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 transition-colors flex items-center"
+              >
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a2 2 0 002 2h10a2 2 0 002-2V10M9 21h6"
+                  />
+                </svg>
+                Return Home
+              </button>
+            </div>
 
             <div className="flex space-x-4">
               <button
@@ -861,25 +932,47 @@ export default function RecommendationPage() {
                 Print Recommendation
               </button>
 
-              <button
-                onClick={handleFinish}
-                className="px-6 py-3 bg-primary-600 text-white font-medium rounded-md hover:bg-primary-700 transition-colors flex items-center"
-              >
-                Complete Assessment
-                <svg
-                  className="w-5 h-5 ml-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              {patientId === "john-doe" ? (
+                <button
+                  onClick={() => router.push(`/week1plan/${patientId}`)}
+                  className="px-6 py-3 bg-primary-600 text-white font-medium rounded-md hover:bg-primary-700 transition-colors flex items-center"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </button>
+                  Continue to Week 1 Plan
+                  <svg
+                    className="w-5 h-5 ml-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
+              ) : (
+                <button
+                  onClick={handleFinish}
+                  className="px-6 py-3 bg-primary-600 text-white font-medium rounded-md hover:bg-primary-700 transition-colors flex items-center"
+                >
+                  Complete Assessment
+                  <svg
+                    className="w-5 h-5 ml-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </button>
+              )}
             </div>
           </div>
         </div>
