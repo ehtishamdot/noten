@@ -104,7 +104,7 @@ export default function IntakeForm() {
 
     // Simulate processing time
     setTimeout(() => {
-      router.push(`/recommendation/${patientId}`);
+      router.push(`/treatment/${patientId}`);
     }, 1500);
   };
 
@@ -124,10 +124,10 @@ export default function IntakeForm() {
             <div className="flex flex-col items-center">
               <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-200 border-t-primary-600 mb-4"></div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Processing Insurance Information
+                Creating Treatment Plan
               </h3>
               <p className="text-sm text-gray-600 text-center">
-                Analyzing coverage requirements for {insuranceProvider}...
+                Generating comprehensive treatment plan based on assessment...
               </p>
             </div>
           </div>
@@ -272,9 +272,9 @@ export default function IntakeForm() {
                 </div>
               </div>
 
-              {/* Render remaining sections (Subjective, Objective, Assessment, Plan) */}
+              {/* Render remaining sections (Subjective, Objective, Assessment) */}
               {Object.entries(formData).map(([key, value]) => {
-                // Skip already rendered fields and InsuranceProvider
+                // Skip already rendered fields, InsuranceProvider, and Plan
                 if (
                   [
                     "PatientID",
@@ -284,6 +284,7 @@ export default function IntakeForm() {
                     "Occupation",
                     "DateOfService",
                     "InsuranceProvider",
+                    "Plan",
                   ].includes(key)
                 ) {
                   return null;
@@ -319,7 +320,7 @@ export default function IntakeForm() {
                 >
                   {isProcessing
                     ? "Processing..."
-                    : "Continue to Recommendation"}
+                    : "Continue to Treatment Plan"}
                   <svg
                     className="w-5 h-5 ml-2"
                     fill="none"

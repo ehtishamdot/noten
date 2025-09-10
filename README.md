@@ -1,6 +1,6 @@
-# PTPN Billing Demo
+# NextGenPT Demo
 
-A modern patient intake and billing demonstration application built with Next.js.
+A modern physical therapy workflow application built with Next.js.
 
 ## Features
 
