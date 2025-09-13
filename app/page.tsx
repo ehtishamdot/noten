@@ -1,96 +1,107 @@
 "use client";
 
-import React from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-
-interface Patient {
-  id: string;
-  name: string;
-  initials: string;
-  description: string;
-}
-
-const patients: Patient[] = [
-  {
-    id: "john-doe",
-    name: "John Doe",
-    initials: "JD",
-    description: "Male, 45 years old",
-  },
-  {
-    id: "emily-smith",
-    name: "Emily Smith",
-    initials: "ES",
-    description: "Female, 17 years old",
-  },
-  {
-    id: "maria-garcia",
-    name: "Maria Garcia",
-    initials: "MG",
-    description: "Female, 60 years old",
-  },
-];
 
 export default function Home() {
   const router = useRouter();
+  const [selectedApp, setSelectedApp] = useState<string | null>(null);
+
+  const apps = [
+    {
+      id: "coverage-confirmation",
+      title: "Coverage Confirmation",
+      description:
+        "Validates a patient's insurance coverage and returns full details of coverage",
+      icon: "🔍",
+      color: "bg-blue-500",
+      hoverColor: "hover:bg-blue-600",
+      borderColor: "border-blue-200",
+      hoverBorderColor: "hover:border-blue-300",
+      textColor: "text-blue-600",
+      bgColor: "bg-blue-100",
+    },
+    {
+      id: "plan-generation",
+      title: "Plan Generation",
+      description:
+        "Creates a complete, editable treatment plan according to a patient's described condition",
+      icon: "📋",
+      color: "bg-green-500",
+      hoverColor: "hover:bg-green-600",
+      borderColor: "border-green-200",
+      hoverBorderColor: "hover:border-green-300",
+      textColor: "text-green-600",
+      bgColor: "bg-green-100",
+    },
+  ];
+
+  const handleAppSelect = (appId: string) => {
+    if (appId === "plan-generation") {
+      // Navigate to the existing patient selection for plan generation
+      router.push("/patient-selection");
+    } else if (appId === "coverage-confirmation") {
+      // Navigate to the coverage confirmation app
+      router.push("/coverage-confirmation");
+    }
+  };
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8">
       <div className="w-full max-w-4xl">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            NextGenPT Demo
-          </h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">NextGenPT</h1>
           <div className="w-24 h-1 bg-primary-500 mx-auto mb-8"></div>
           <p className="text-xl text-gray-600">
-            Choose a Patient to begin intake
+            Select an app from the list below
           </p>
         </div>
 
-        {/* Patient Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {patients.map((patient) => (
-            <button
-              key={patient.id}
-              className="patient-card text-left group"
-              onClick={() => {
-                router.push(`/intake/${patient.id}`);
-              }}
+        {/* App Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {apps.map((app) => (
+            <div
+              key={app.id}
+              onClick={() => handleAppSelect(app.id)}
+              className={`bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer border ${app.borderColor} ${app.hoverBorderColor} transform hover:-translate-y-1`}
             >
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center font-semibold text-lg group-hover:bg-primary-200 transition-colors">
-                  {patient.initials}
-                </div>
-                <div className="ml-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {patient.name}
-                  </h3>
-                  <p className="text-sm text-gray-500">{patient.description}</p>
-                </div>
-              </div>
-              <div className="flex items-center text-primary-600 text-sm font-medium">
-                <span>Select Patient</span>
-                <svg
-                  className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              <div className="p-8">
+                {/* App Icon */}
+                <div
+                  className={`w-20 h-20 ${app.bgColor} rounded-full flex items-center justify-center text-3xl mx-auto mb-6`}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
+                  {app.icon}
+                </div>
+
+                {/* App Info */}
+                <div className="text-center">
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+                    {app.title}
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed mb-6">
+                    {app.description}
+                  </p>
+                </div>
+
+                {/* Action Indicator */}
+                <div className="text-center">
+                  <span
+                    className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${app.bgColor} ${app.textColor}`}
+                  >
+                    Launch App →
+                  </span>
+                </div>
               </div>
-            </button>
+            </div>
           ))}
         </div>
 
         {/* Footer */}
-        <div className="mt-12 text-center text-sm text-gray-500">
-          <p>Click on a patient card to begin the intake process</p>
+        <div className="text-center mt-12">
+          <p className="text-sm text-gray-500">
+            Choose an application to begin your physical therapy workflow
+          </p>
         </div>
       </div>
     </main>

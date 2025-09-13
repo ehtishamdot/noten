@@ -6,7 +6,7 @@ export const patientData = {
     "Gender": "Male",
     "Occupation": "Carpenter",
     "InsuranceProvider": "Aetna",
-    "DateOfService": "2025-08-19",
+    "PlanStartDate": "2025-08-19",
     "Subjective": {
       "ChiefComplaint": "Right shoulder pain and limited motion, insidious onset over past 3 months.",
       "HistoryOfPresentIllness": "Patient reports gradually increasing right shoulder pain, worse with overhead activities at work (carpentry). No specific injury recalled. Pain began ~3 months ago, now worsening. Describes pain as a sharp pinch in the top of shoulder when lifting arm overhead, and an ache at rest. Difficulty with hammering above shoulder height and lifting objects overhead. Taking ibuprofen with some relief.",
@@ -71,7 +71,7 @@ export const patientData = {
     "Gender": "Female",
     "Occupation": "High School Student / Soccer Player",
     "InsuranceProvider": "Cigna",
-    "DateOfService": "2025-08-19",
+    "PlanStartDate": "2025-08-19",
     "Subjective": {
       "ChiefComplaint": "Left knee pain and instability after soccer injury.",
       "HistoryOfPresentIllness": "Injury occurred 4 weeks ago during a soccer match: planted left foot and twisted to change direction, felt a 'pop' and immediate pain inside the left knee. Knee swelled that day and had difficulty walking for a week. Saw orthopedic MD: MRI confirmed a medial meniscus tear, no ACL tear. Ortho recommended a trial of physical therapy (no surgery at this time). Currently, patient reports intermittent sharp pain in medial knee with twisting or deep bending, and feelings of the knee 'giving way' occasionally.",
@@ -140,7 +140,7 @@ export const patientData = {
     "Gender": "Female",
     "Occupation": "Retired (Former homemaker)",
     "InsuranceProvider": "Medi-Cal",
-    "DateOfService": "2025-08-19",
+    "PlanStartDate": "2025-08-19",
     "Subjective": {
       "ChiefComplaint": "Chronic low back pain with recent increase in intensity, affecting mobility.",
       "HistoryOfPresentIllness": "Patient has a 10-year history of low back pain, related to degenerative disc disease (per past MRI showing L4-L5 disc bulge). Pain has worsened over past 3 months after an episode of lifting a heavy box at home. Reports constant dull ache in lower back (lumbar area) with intermittent sharp pains radiating slightly into right buttock (no below-knee radiation). No new numbness or weakness noted, but states balance feels off and she has stumbled a few times. Has not been to PT in several years. Primary care physician referred to PT to prevent decline and avoid possible need for surgery. Pain is limiting her in walking and household chores.",

@@ -157,11 +157,11 @@ export default function IntakeForm() {
                 </svg>
                 Back to Patient Selection
               </button>
-              <div className="text-sm text-gray-500">Complete Intake Form</div>
+              <div className="text-sm text-gray-500">Input Patient Information</div>
             </div>
 
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Patient Intake Form
+              Treatment Plan Generation
             </h1>
             <div className="w-20 h-1 bg-primary-500 mb-4"></div>
 
@@ -188,12 +188,11 @@ export default function IntakeForm() {
             <form onSubmit={(e) => e.preventDefault()}>
               {/* Render Patient Details first */}
               {[
-                "PatientID",
                 "Name",
                 "Age",
                 "Gender",
                 "Occupation",
-                "DateOfService",
+                "PlanStartDate",
               ].map((field) => {
                 if (formData[field] !== undefined && formData[field] !== null) {
                   let fieldType: "text" | "number" | "textarea" | "array" =
@@ -277,12 +276,11 @@ export default function IntakeForm() {
                 // Skip already rendered fields, InsuranceProvider, and Plan
                 if (
                   [
-                    "PatientID",
                     "Name",
                     "Age",
                     "Gender",
                     "Occupation",
-                    "DateOfService",
+                    "PlanStartDate",
                     "InsuranceProvider",
                     "Plan",
                   ].includes(key)
