@@ -17,10 +17,20 @@ export default function IntakeForm() {
   const [memberId, setMemberId] = useState("");
   const [processingMemberId, setProcessingMemberId] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [showAutoFillDropdown, setShowAutoFillDropdown] = useState(false);
 
   useEffect(() => {
     if (patientId && patientData[patientId as keyof typeof patientData]) {
-      setFormData(patientData[patientId as keyof typeof patientData]);
+      const originalData = patientData[patientId as keyof typeof patientData];
+
+      // Start with basic patient info but empty injury fields
+      setFormData({
+        Name: originalData.Name,
+        Age: "", // Start empty
+        PlanStartDate: originalData.PlanStartDate,
+        patientInjury: "", // Start empty
+        injuryDescription: "", // Start empty
+      });
 
       // Auto-populate insurance info
       const patientInsurance = generateInsuranceInfo(patientId);
@@ -166,6 +176,38 @@ export default function IntakeForm() {
     }
   };
 
+  const handleAutoFillPatient = (demoPatientId: string) => {
+    const demoPatients = {
+      "john-doe": {
+        patientInjury: "Right shoulder pain",
+        injuryDescription:
+          "Gradual onset right shoulder pain over 3 months, worse with overhead activities at work (carpentry). Sharp pinch at top of shoulder when lifting arm overhead, ache at rest. Difficulty with hammering above shoulder height.",
+        Age: 45,
+      },
+      "emily-smith": {
+        patientInjury: "Left knee pain and instability",
+        injuryDescription:
+          "Soccer injury 4 weeks ago: planted left foot and twisted, felt 'pop' with immediate pain. MRI confirmed medial meniscus tear. Intermittent sharp pain with twisting, occasional knee giving way.",
+        Age: 17,
+      },
+      "maria-garcia": {
+        patientInjury: "Chronic low back pain",
+        injuryDescription:
+          "10-year history of low back pain from degenerative disc disease, worsened after lifting heavy box. Constant dull ache with sharp pains into right buttock. Balance feels off, has stumbled recently.",
+        Age: 60,
+      },
+    };
+
+    const demoData = demoPatients[demoPatientId as keyof typeof demoPatients];
+    if (demoData) {
+      setFormData({
+        ...formData,
+        ...demoData,
+      });
+    }
+    setShowAutoFillDropdown(false);
+  };
+
   const handleNext = () => {
     setIsProcessing(true);
 
@@ -278,6 +320,81 @@ export default function IntakeForm() {
 
           {/* Form Content */}
           <div className="bg-white rounded-lg shadow-sm p-6">
+            {/* Auto-fill Demo Cases */}
+            <div className="flex justify-end mb-4">
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowAutoFillDropdown(!showAutoFillDropdown)}
+                  className="text-sm text-gray-500 hover:text-gray-700 flex items-center px-3 py-2 rounded-md hover:bg-gray-50 transition-colors"
+                >
+                  <svg
+                    className="w-4 h-4 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 10V3L4 14h7v7l9-11h-7z"
+                    />
+                  </svg>
+                  Quick fill demo case
+                </button>
+
+                {/* Demo Cases Dropdown */}
+                {showAutoFillDropdown && (
+                  <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-300 rounded-lg shadow-lg z-20">
+                    <div className="p-2">
+                      <div className="text-xs font-medium text-gray-500 mb-2 px-2">
+                        Select a demo case:
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleAutoFillPatient("john-doe")}
+                        className="w-full text-left px-3 py-3 hover:bg-blue-50 rounded-md transition-colors"
+                      >
+                        <div className="font-medium text-gray-900 text-sm mb-1">
+                          John Doe - Right Shoulder Pain
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          45yo carpenter, overhead work injury, impingement
+                          syndrome
+                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleAutoFillPatient("emily-smith")}
+                        className="w-full text-left px-3 py-3 hover:bg-blue-50 rounded-md transition-colors"
+                      >
+                        <div className="font-medium text-gray-900 text-sm mb-1">
+                          Emily Smith - Left Knee Injury
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          17yo soccer player, meniscal tear, sports injury
+                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleAutoFillPatient("maria-garcia")}
+                        className="w-full text-left px-3 py-3 hover:bg-blue-50 rounded-md transition-colors"
+                      >
+                        <div className="font-medium text-gray-900 text-sm mb-1">
+                          Maria Garcia - Chronic Low Back Pain
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          60yo retiree, degenerative disc disease, balance
+                          issues
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
             <form onSubmit={(e) => e.preventDefault()}>
               {/* Basic Patient Info */}
               <div className="space-y-6">
