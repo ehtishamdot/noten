@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function NoteNinjas() {
@@ -22,6 +22,35 @@ export default function NoteNinjas() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showAutoFillDropdown, setShowAutoFillDropdown] = useState(false);
   const [inputMode, setInputMode] = useState<"simple" | "detailed">("simple");
+
+  // Load form data from sessionStorage on component mount
+  useEffect(() => {
+    const storedFormData = sessionStorage.getItem("note-ninjas-form-data");
+    const storedInputMode = sessionStorage.getItem("note-ninjas-input-mode");
+
+    if (storedFormData) {
+      try {
+        const parsedData = JSON.parse(storedFormData);
+        setFormData(parsedData);
+      } catch (error) {
+        console.error("Error parsing stored form data:", error);
+      }
+    }
+
+    if (storedInputMode) {
+      setInputMode(storedInputMode as "simple" | "detailed");
+    }
+  }, []);
+
+  // Save form data to sessionStorage whenever it changes
+  useEffect(() => {
+    sessionStorage.setItem("note-ninjas-form-data", JSON.stringify(formData));
+  }, [formData]);
+
+  // Save input mode to sessionStorage whenever it changes
+  useEffect(() => {
+    sessionStorage.setItem("note-ninjas-input-mode", inputMode);
+  }, [inputMode]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
@@ -64,13 +93,14 @@ export default function NoteNinjas() {
     // Validate based on input mode
     let isValid = false;
     if (inputMode === "simple") {
-      isValid = formData.patientCondition && formData.desiredOutcome;
+      isValid = !!(formData.patientCondition && formData.desiredOutcome);
     } else {
-      isValid =
+      isValid = !!(
         formData.age &&
         formData.diagnosis &&
         formData.severity &&
-        formData.desiredOutcome;
+        formData.desiredOutcome
+      );
     }
 
     if (isValid) {
@@ -118,39 +148,16 @@ export default function NoteNinjas() {
     <main className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-3xl mx-auto px-4">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <button
-              onClick={() => router.push("/")}
-              className="text-gray-600 hover:text-gray-900 flex items-center"
-            >
-              <svg
-                className="w-5 h-5 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-              Back to Apps
-            </button>
-          </div>
-
+        <div className="bg-purple-50 rounded-lg shadow-sm p-4 mb-6 border border-purple-100">
           <div className="text-center">
-            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
-              🥷
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <span className="text-2xl">🥷</span>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Note Ninjas App
+              </h1>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Note Ninjas
-            </h1>
-            <div className="w-20 h-1 bg-purple-500 mx-auto mb-4"></div>
-            <p className="text-gray-600">
-              Every physical therapist's brainstorming partner
+            <p className="text-gray-700 text-sm">
+              The Brainstorming Partner for PTs and OTs
             </p>
           </div>
         </div>
@@ -223,33 +230,29 @@ export default function NoteNinjas() {
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 Patient Condition Input Mode
               </label>
-              <div className="flex gap-4">
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="inputMode"
-                    value="simple"
-                    checked={inputMode === "simple"}
-                    onChange={(e) =>
-                      setInputMode(e.target.value as "simple" | "detailed")
-                    }
-                    className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Simple</span>
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="inputMode"
-                    value="detailed"
-                    checked={inputMode === "detailed"}
-                    onChange={(e) =>
-                      setInputMode(e.target.value as "simple" | "detailed")
-                    }
-                    className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Detailed</span>
-                </label>
+              <div className="inline-flex bg-purple-100 rounded-lg p-1 border border-purple-200">
+                <button
+                  type="button"
+                  onClick={() => setInputMode("simple")}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                    inputMode === "simple"
+                      ? "bg-purple-600 text-white shadow-sm"
+                      : "text-purple-600 hover:bg-purple-50"
+                  }`}
+                >
+                  Simple
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInputMode("detailed")}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                    inputMode === "detailed"
+                      ? "bg-purple-600 text-white shadow-sm"
+                      : "text-purple-600 hover:bg-purple-50"
+                  }`}
+                >
+                  Detailed
+                </button>
               </div>
             </div>
 

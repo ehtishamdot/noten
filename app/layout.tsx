@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "NextGenPT Demo",
-  description: "A modern physical therapy workflow application",
+  title: "Note Ninjas",
+  description: "Every physical therapist's brainstorming partner",
 };
 
 export default function RootLayout({
