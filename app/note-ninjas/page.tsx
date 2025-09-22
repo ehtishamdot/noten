@@ -1,0 +1,561 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+export default function NoteNinjas() {
+  const router = useRouter();
+  const [formData, setFormData] = useState({
+    patientCondition: "",
+    desiredOutcome: "",
+    treatmentProgression: "",
+    // Detailed mode fields
+    age: "",
+    gender: "",
+    diagnosis: "",
+    comorbidities: "",
+    severity: "",
+    dateOfOnset: "",
+    priorLevelOfFunction: "",
+    workLifeRequirements: "",
+  });
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showAutoFillDropdown, setShowAutoFillDropdown] = useState(false);
+  const [inputMode, setInputMode] = useState<"simple" | "detailed">("simple");
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData({ ...formData, [field]: value });
+  };
+
+  const handleAutoFill = () => {
+    if (inputMode === "simple") {
+      setFormData({
+        ...formData,
+        patientCondition: "21 year old female with torn rotator cuff",
+        desiredOutcome:
+          "increase right shoulder abduction painless arc to 150° in 3-4 weeks",
+        treatmentProgression:
+          "progressed from 130° to 135° in week 1 with resistance band exercises, but progress stalled",
+      });
+    } else {
+      setFormData({
+        ...formData,
+        age: "21",
+        gender: "Female",
+        diagnosis: "Torn rotator cuff",
+        comorbidities: "None reported",
+        severity: "Moderate - affecting daily activities",
+        dateOfOnset: "3 months ago",
+        priorLevelOfFunction: "Full overhead function for work and sports",
+        workLifeRequirements:
+          "Overhead lifting required for job, recreational volleyball player",
+        desiredOutcome:
+          "increase right shoulder abduction painless arc to 150° in 3-4 weeks",
+        treatmentProgression:
+          "progressed from 130° to 135° in week 1 with resistance band exercises, but progress stalled",
+      });
+    }
+    setShowAutoFillDropdown(false);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Validate based on input mode
+    let isValid = false;
+    if (inputMode === "simple") {
+      isValid = formData.patientCondition && formData.desiredOutcome;
+    } else {
+      isValid =
+        formData.age &&
+        formData.diagnosis &&
+        formData.severity &&
+        formData.desiredOutcome;
+    }
+
+    if (isValid) {
+      setIsProcessing(true);
+
+      // Save case data for suggestions page
+      const caseData = {
+        ...formData,
+        inputMode,
+        // Create combined condition string for detailed mode
+        patientCondition:
+          inputMode === "detailed"
+            ? `${formData.age} year old ${
+                formData.gender?.toLowerCase() || "patient"
+              } with ${formData.diagnosis}${
+                formData.comorbidities
+                  ? `, comorbidities: ${formData.comorbidities}`
+                  : ""
+              }, severity: ${formData.severity}${
+                formData.dateOfOnset ? `, onset: ${formData.dateOfOnset}` : ""
+              }${
+                formData.priorLevelOfFunction
+                  ? `, prior function: ${formData.priorLevelOfFunction}`
+                  : ""
+              }${
+                formData.workLifeRequirements
+                  ? `, work/life needs: ${formData.workLifeRequirements}`
+                  : ""
+              }`
+            : formData.patientCondition,
+      };
+
+      sessionStorage.setItem("note-ninjas-case", JSON.stringify(caseData));
+
+      // Simulate processing time
+      setTimeout(() => {
+        router.push("/note-ninjas/suggestions");
+      }, 2000);
+    } else {
+      alert("Please fill in the required fields.");
+    }
+  };
+
+  return (
+    <main className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-3xl mx-auto px-4">
+        {/* Header */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={() => router.push("/")}
+              className="text-gray-600 hover:text-gray-900 flex items-center"
+            >
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+              Back to Apps
+            </button>
+          </div>
+
+          <div className="text-center">
+            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
+              🥷
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Note Ninjas
+            </h1>
+            <div className="w-20 h-1 bg-purple-500 mx-auto mb-4"></div>
+            <p className="text-gray-600">
+              Every physical therapist's brainstorming partner
+            </p>
+          </div>
+        </div>
+
+        {/* Form */}
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          {/* Auto-fill Button */}
+          <div className="flex justify-end mb-4">
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowAutoFillDropdown(!showAutoFillDropdown)}
+                className="text-sm text-gray-500 hover:text-gray-700 flex items-center px-3 py-2 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                <svg
+                  className="w-4 h-4 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+                Quick fill demo case
+              </button>
+
+              {/* Auto-fill Dropdown */}
+              {showAutoFillDropdown && (
+                <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-300 rounded-lg shadow-lg z-20">
+                  <div className="p-2">
+                    <div className="text-xs font-medium text-gray-500 mb-2 px-2">
+                      Fill with example case:
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleAutoFill}
+                      className="w-full text-left px-3 py-3 hover:bg-purple-50 rounded-md transition-colors"
+                    >
+                      <div className="font-medium text-gray-900 text-sm mb-1">
+                        Shoulder Impingement Case
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        21yo female with rotator cuff tear, stalled progress
+                        example
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              Share Your Case Details
+            </h2>
+            <p className="text-gray-600">
+              Provide information about your patient and treatment goals for
+              personalized brainstorming suggestions.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Input Mode Toggle */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Patient Condition Input Mode
+              </label>
+              <div className="flex gap-4">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="inputMode"
+                    value="simple"
+                    checked={inputMode === "simple"}
+                    onChange={(e) =>
+                      setInputMode(e.target.value as "simple" | "detailed")
+                    }
+                    className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Simple</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="inputMode"
+                    value="detailed"
+                    checked={inputMode === "detailed"}
+                    onChange={(e) =>
+                      setInputMode(e.target.value as "simple" | "detailed")
+                    }
+                    className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Detailed</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Patient Condition - Simple Mode */}
+            {inputMode === "simple" && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Patient Condition and Details *
+                </label>
+                <textarea
+                  value={formData.patientCondition}
+                  onChange={(e) =>
+                    handleInputChange("patientCondition", e.target.value)
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                  rows={3}
+                  placeholder="21 year old female with torn rotator cuff"
+                  required
+                />
+                <p className="mt-2 text-sm text-gray-500">
+                  Include age, gender, diagnosis, and relevant details about the
+                  condition
+                </p>
+              </div>
+            )}
+
+            {/* Patient Condition - Detailed Mode */}
+            {inputMode === "detailed" && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Patient Details
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Age */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Age *
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.age}
+                      onChange={(e) => handleInputChange("age", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                      placeholder="21"
+                      min="1"
+                      max="120"
+                      required
+                    />
+                  </div>
+
+                  {/* Gender */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Gender
+                    </label>
+                    <select
+                      value={formData.gender}
+                      onChange={(e) =>
+                        handleInputChange("gender", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                    >
+                      <option value="">Select gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Diagnosis */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Primary Diagnosis *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.diagnosis}
+                    onChange={(e) =>
+                      handleInputChange("diagnosis", e.target.value)
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                    placeholder="Torn rotator cuff"
+                    required
+                  />
+                </div>
+
+                {/* Comorbidities */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Co-morbidities (comma-separated)
+                  </label>
+                  <textarea
+                    value={formData.comorbidities}
+                    onChange={(e) =>
+                      handleInputChange("comorbidities", e.target.value)
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                    rows={2}
+                    placeholder="Diabetes, hypertension, previous surgeries, etc."
+                  />
+                  <p className="mt-1 text-sm text-gray-500">
+                    List any relevant medical conditions or previous injuries
+                  </p>
+                </div>
+
+                {/* Severity */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Severity/Functional Impact *
+                  </label>
+                  <select
+                    value={formData.severity}
+                    onChange={(e) =>
+                      handleInputChange("severity", e.target.value)
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                    required
+                  >
+                    <option value="">Select severity level</option>
+                    <option value="Mild - minimal impact on daily activities">
+                      Mild - minimal impact on daily activities
+                    </option>
+                    <option value="Moderate - affecting daily activities">
+                      Moderate - affecting daily activities
+                    </option>
+                    <option value="Severe - significantly limiting function">
+                      Severe - significantly limiting function
+                    </option>
+                    <option value="Complete loss of function">
+                      Complete loss of function
+                    </option>
+                  </select>
+                </div>
+
+                {/* Date of Onset */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Date of Onset
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.dateOfOnset}
+                    onChange={(e) =>
+                      handleInputChange("dateOfOnset", e.target.value)
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                    placeholder="3 months ago"
+                  />
+                  <p className="mt-1 text-sm text-gray-500">
+                    When did the condition/injury begin?
+                  </p>
+                </div>
+
+                {/* Prior Level of Function */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Prior Level of Function
+                  </label>
+                  <textarea
+                    value={formData.priorLevelOfFunction}
+                    onChange={(e) =>
+                      handleInputChange("priorLevelOfFunction", e.target.value)
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                    rows={2}
+                    placeholder="Full overhead function for work and sports"
+                  />
+                  <p className="mt-1 text-sm text-gray-500">
+                    What was the patient's function like before this condition?
+                  </p>
+                </div>
+
+                {/* Work/Life Requirements */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Work/Life Requirements
+                  </label>
+                  <textarea
+                    value={formData.workLifeRequirements}
+                    onChange={(e) =>
+                      handleInputChange("workLifeRequirements", e.target.value)
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                    rows={2}
+                    placeholder="Overhead lifting required for job, recreational volleyball player"
+                  />
+                  <p className="mt-1 text-sm text-gray-500">
+                    What activities does the patient need to return to?
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Desired Outcome */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Desired Outcome *
+              </label>
+              <textarea
+                value={formData.desiredOutcome}
+                onChange={(e) =>
+                  handleInputChange("desiredOutcome", e.target.value)
+                }
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                rows={3}
+                placeholder="increase right shoulder abduction painless arc to 150° in 3-4 weeks"
+                required
+              />
+              <p className="mt-2 text-sm text-gray-500">
+                Describe specific, measurable goals and desired timeframe
+              </p>
+            </div>
+
+            {/* Treatment Progression */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Current Treatment Progression (Optional)
+              </label>
+              <textarea
+                value={formData.treatmentProgression}
+                onChange={(e) =>
+                  handleInputChange("treatmentProgression", e.target.value)
+                }
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                rows={4}
+                placeholder="progressed from 130° to 135° in week 1 with resistance band exercises, but progress stalled"
+              />
+              <p className="mt-2 text-sm text-gray-500">
+                Include what's been tried, what worked, what didn't, and where
+                you're stuck
+              </p>
+            </div>
+
+            {/* Submit Button */}
+            <div className="pt-6 border-t border-gray-200">
+              <button
+                type="submit"
+                disabled={isProcessing}
+                className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+              >
+                {isProcessing ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
+                    Generating Suggestions...
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      className="w-5 h-5 mr-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                      />
+                    </svg>
+                    Get Brainstorming Suggestions
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Info Card */}
+        <div className="mt-6 bg-purple-50 border border-purple-200 rounded-lg p-6">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg
+                className="w-5 h-5 text-purple-600 mt-0.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-purple-900">
+                What Note Ninjas will help with:
+              </h3>
+              <div className="mt-2 text-sm text-purple-800">
+                <p className="mb-2">Get personalized suggestions for:</p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>Alternative treatment approaches when progress stalls</li>
+                  <li>Creative exercise modifications for challenging cases</li>
+                  <li>Documentation strategies for complex conditions</li>
+                  <li>Evidence-based interventions for specific goals</li>
+                  <li>Problem-solving for treatment plateaus</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}

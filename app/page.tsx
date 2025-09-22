@@ -34,6 +34,18 @@ export default function Home() {
       textColor: "text-green-600",
       bgColor: "bg-green-100",
     },
+    {
+      id: "note-ninjas",
+      title: "Note Ninjas",
+      description: "Every physical therapist's brainstorming partner",
+      icon: "🥷",
+      color: "bg-purple-500",
+      hoverColor: "hover:bg-purple-600",
+      borderColor: "border-purple-200",
+      hoverBorderColor: "hover:border-purple-300",
+      textColor: "text-purple-600",
+      bgColor: "bg-purple-100",
+    },
   ];
 
   const handleAppSelect = (appId: string) => {
@@ -43,6 +55,9 @@ export default function Home() {
     } else if (appId === "coverage-confirmation") {
       // Navigate to the coverage confirmation app
       router.push("/coverage-confirmation");
+    } else if (appId === "note-ninjas") {
+      // Navigate to the note ninjas app
+      router.push("/note-ninjas");
     }
   };
 
@@ -59,7 +74,7 @@ export default function Home() {
         </div>
 
         {/* App Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {apps.map((app) => (
             <div
               key={app.id}
