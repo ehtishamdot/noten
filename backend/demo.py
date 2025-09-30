@@ -19,7 +19,7 @@ from models.request_models import UserInput, RecommendationRequest
 
 async def test_document_processing():
     """Test document processing functionality"""
-    print("Testing document processing...")
+    print("Testing document processing")
     
     factory = DocumentProcessorFactory()
     
@@ -59,7 +59,7 @@ async def test_document_processing():
             print(f"Chunk {i+1}:")
             print(f"  Title: {chunk.title}")
             print(f"  Source: {chunk.source_type}")
-            print(f"  Content: {chunk.content[:100]}...")
+            print(f"  Content: {chunk.content[:100]}")
             print()
         
         return chunks
@@ -72,7 +72,7 @@ async def test_document_processing():
 
 def test_feedback_system():
     """Test feedback management"""
-    print("Testing feedback system...")
+    print("Testing feedback system")
     
     manager = FeedbackManager()
     
@@ -104,7 +104,7 @@ def test_feedback_system():
 
 def test_models():
     """Test Pydantic models"""
-    print("Testing models...")
+    print("Testing models")
     
     # Test UserInput
     user_input = UserInput(
@@ -151,7 +151,7 @@ async def main():
         chunks = await test_document_processing()
         print()
         
-        print("=== Demo completed successfully! ===")
+        print("=== Demo completed  ===")
         print("\nTo start the full server, run:")
         print("  python run.py")
         print("\nOr with uvicorn:")

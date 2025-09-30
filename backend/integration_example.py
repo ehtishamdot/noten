@@ -27,7 +27,7 @@ async def simulate_frontend_request():
     
     # Simulate the RAG system (without full document processing for demo)
     # In real app, this would be initialized with actual documents
-    print("Initializing RAG system...")
+    print("Initializing RAG system")
     print("(In production, this would process all documents)")
     print()
     
@@ -78,7 +78,7 @@ async def simulate_frontend_request():
     print()
     
     # Simulate recommendation generation
-    print("Generating recommendations...")
+    print("Generating recommendations")
     print("(In production, this would use the full RAG system)")
     
     # Mock response (in real app, this comes from RAG system)
@@ -109,7 +109,7 @@ async def simulate_frontend_request():
                                 "id": "therapeutic_exercises",
                                 "section": "rotator_cuff_strengthening",
                                 "page": None,
-                                "quote": "Isometric exercises provide early strengthening without compromising healing..."
+                                "quote": "Isometric exercises provide early strengthening without compromising healing"
                             }
                         ]
                     },
@@ -130,7 +130,7 @@ async def simulate_frontend_request():
                                 "id": "therapeutic_exercises",
                                 "section": "scapular_stabilization",
                                 "page": None,
-                                "quote": "Scapular stabilization is fundamental to rotator cuff function..."
+                                "quote": "Scapular stabilization is fundamental to rotator cuff function"
                             }
                         ]
                     }
@@ -157,7 +157,7 @@ async def simulate_frontend_request():
                                 "id": "functional_training",
                                 "section": "overhead_activities",
                                 "page": None,
-                                "quote": "Progressive overhead training restores functional range..."
+                                "quote": "Progressive overhead training restores functional range"
                             }
                         ]
                     }
@@ -173,7 +173,7 @@ async def simulate_frontend_request():
                         "type": "cpg",
                         "id": "rotator_cuff_guidelines",
                         "page": "p. 45",
-                        "quote": "Pain-free exercise progression is essential for healing..."
+                        "quote": "Pain-free exercise progression is essential for healing"
                     }
                 ]
             }
@@ -186,7 +186,7 @@ async def simulate_frontend_request():
     print()
     
     # Simulate user feedback
-    print("Simulating user feedback...")
+    print("Simulating user feedback")
     
     # Positive feedback
     feedback1 = feedback_manager.store_feedback(

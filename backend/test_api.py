@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-"""
 Simple API test to verify the RAG system works
 """
 
@@ -12,10 +10,10 @@ def test_api():
     
     base_url = "http://localhost:8000"
     
-    print("Testing Note Ninjas API...")
+    print("Testing Note Ninjas API")
     
     # Test health endpoint
-    print("\n1. Testing health endpoint...")
+    print("\n1. Testing health endpoint")
     try:
         response = requests.get(f"{base_url}/health")
         print(f"Status: {response.status_code}")
@@ -24,7 +22,7 @@ def test_api():
         print(f"Error: {e}")
     
     # Test sources endpoint
-    print("\n2. Testing sources endpoint...")
+    print("\n2. Testing sources endpoint")
     try:
         response = requests.get(f"{base_url}/sources")
         print(f"Status: {response.status_code}")
@@ -37,7 +35,7 @@ def test_api():
         print(f"Error: {e}")
     
     # Test recommendations endpoint
-    print("\n3. Testing recommendations endpoint...")
+    print("\n3. Testing recommendations endpoint")
     test_request = {
         "user_input": {
             "patient_condition": "21 year old female with torn rotator cuff",

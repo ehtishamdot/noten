@@ -15,10 +15,8 @@ import docx
 from docx import Document
 
 logger = logging.getLogger(__name__)
-
-
 class DocumentChunk:
-    """Represents a chunk of processed document"""
+
     
     def __init__(
         self,
@@ -39,12 +37,12 @@ class DocumentChunk:
         self.chunk_id = chunk_id or self._generate_chunk_id()
     
     def _generate_chunk_id(self) -> str:
-        """Generate unique chunk ID"""
+
         content_hash = hashlib.md5(self.content.encode()).hexdigest()[:8]
         return f"{self.source_id}_{content_hash}"
     
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary"""
+
         return {
             "content": self.content,
             "source_type": self.source_type,
@@ -54,52 +52,48 @@ class DocumentChunk:
             "page_ref": self.page_ref,
             "chunk_id": self.chunk_id
         }
-
-
 class DocumentProcessor(ABC):
-    """Abstract base class for document processors"""
+
     
     @abstractmethod
     def can_process(self, file_path: Path) -> bool:
-        """Check if this processor can handle the file"""
+
         pass
     
     @abstractmethod
     def process_file(self, file_path: Path) -> List[DocumentChunk]:
-        """Process a file and return chunks"""
+
         pass
-
-
 class PDFProcessor(DocumentProcessor):
-    """PDF document processor"""
+
     
     def __init__(self, chunk_size: int = 1000, chunk_overlap: int = 200):
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
     
     def can_process(self, file_path: Path) -> bool:
-        """Check if file is a PDF"""
+
         return file_path.suffix.lower() == '.pdf'
     
     def process_file(self, file_path: Path) -> List[DocumentChunk]:
-        """Process PDF file"""
+
         chunks = []
         
         try:
             with open(file_path, 'rb') as file:
                 pdf_reader = PyPDF2.PdfReader(file)
                 
-                # Extract text from all pages
+
                 full_text = ""
                 for page_num, page in enumerate(pdf_reader.pages):
                     page_text = page.extract_text()
                     if page_text:
                         full_text += f"\n[Page {page_num + 1}]\n{page_text}"
                 
-                # Split into chunks
+
                 text_chunks = self._split_text(full_text)
                 
-                # Create document chunks
+
                 for i, chunk_text in enumerate(text_chunks):
                     chunk = DocumentChunk(
                         content=chunk_text.strip(),
@@ -117,7 +111,7 @@ class PDFProcessor(DocumentProcessor):
         return chunks
     
     def _split_text(self, text: str) -> List[str]:
-        """Split text into overlapping chunks"""
+
         if len(text) <= self.chunk_size:
             return [text]
         
@@ -131,7 +125,7 @@ class PDFProcessor(DocumentProcessor):
                 chunks.append(text[start:])
                 break
             
-            # Try to break at sentence boundary
+
             chunk = text[start:end]
             last_period = chunk.rfind('.')
             last_newline = chunk.rfind('\n')
@@ -147,7 +141,7 @@ class PDFProcessor(DocumentProcessor):
         return chunks
     
     def _get_source_type(self, file_path: Path) -> str:
-        """Determine source type from file path"""
+
         if "NoteNinjas" in str(file_path):
             return "note_ninjas"
         elif "CPG" in str(file_path) or "Titled_CPGs" in str(file_path) or "Untitled_CPGs" in str(file_path):
@@ -156,15 +150,15 @@ class PDFProcessor(DocumentProcessor):
             return "textbook"
     
     def _get_source_id(self, file_path: Path) -> str:
-        """Generate source ID from file path"""
+
         return file_path.stem
     
     def _get_title(self, file_path: Path) -> str:
-        """Extract title from file path"""
+
         return file_path.stem.replace('_', ' ').replace('-', ' ')
     
     def _extract_headers(self, text: str) -> List[str]:
-        """Extract potential headers from text"""
+
         headers = []
         lines = text.split('\n')
         
@@ -180,40 +174,38 @@ class PDFProcessor(DocumentProcessor):
         return headers[:5]  # Limit to 5 headers
     
     def _extract_page_ref(self, text: str) -> Optional[str]:
-        """Extract page reference from text"""
+
         import re
         page_match = re.search(r'\[Page (\d+)\]', text)
         if page_match:
             return f"p. {page_match.group(1)}"
         return None
-
-
 class DOCXProcessor(DocumentProcessor):
-    """DOCX document processor"""
+
     
     def __init__(self, chunk_size: int = 1000, chunk_overlap: int = 200):
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
     
     def can_process(self, file_path: Path) -> bool:
-        """Check if file is a DOCX"""
+
         return file_path.suffix.lower() == '.docx'
     
     def process_file(self, file_path: Path) -> List[DocumentChunk]:
-        """Process DOCX file"""
+
         chunks = []
         
         try:
             doc = Document(file_path)
             
-            # Extract text and structure
+
             full_text = ""
             headers = []
             
             for paragraph in doc.paragraphs:
                 text = paragraph.text.strip()
                 if text:
-                    # Check if it's a header (bold or specific style)
+
                     if paragraph.style.name.startswith('Heading') or (
                         paragraph.runs and paragraph.runs[0].bold
                     ):
@@ -222,10 +214,10 @@ class DOCXProcessor(DocumentProcessor):
                     else:
                         full_text += f"{text}\n"
             
-            # Split into chunks
+
             text_chunks = self._split_text(full_text)
             
-            # Create document chunks
+
             for i, chunk_text in enumerate(text_chunks):
                 chunk = DocumentChunk(
                     content=chunk_text.strip(),
@@ -243,7 +235,7 @@ class DOCXProcessor(DocumentProcessor):
         return chunks
     
     def _split_text(self, text: str) -> List[str]:
-        """Split text into overlapping chunks"""
+
         if len(text) <= self.chunk_size:
             return [text]
         
@@ -257,7 +249,7 @@ class DOCXProcessor(DocumentProcessor):
                 chunks.append(text[start:])
                 break
             
-            # Try to break at paragraph boundary
+
             chunk = text[start:end]
             last_newline = chunk.rfind('\n')
             
@@ -270,7 +262,7 @@ class DOCXProcessor(DocumentProcessor):
         return chunks
     
     def _get_source_type(self, file_path: Path) -> str:
-        """Determine source type from file path"""
+
         if "NoteNinjas" in str(file_path):
             return "note_ninjas"
         elif "CPG" in str(file_path):
@@ -279,15 +271,15 @@ class DOCXProcessor(DocumentProcessor):
             return "textbook"
     
     def _get_source_id(self, file_path: Path) -> str:
-        """Generate source ID from file path"""
+
         return file_path.stem
     
     def _get_title(self, file_path: Path) -> str:
-        """Extract title from file path"""
+
         return file_path.stem.replace('_', ' ').replace('-', ' ')
     
     def _extract_headers_from_chunk(self, chunk_text: str, all_headers: List[str]) -> List[str]:
-        """Extract relevant headers for this chunk"""
+
         chunk_headers = []
         lines = chunk_text.split('\n')
         
@@ -297,31 +289,29 @@ class DOCXProcessor(DocumentProcessor):
                 chunk_headers.append(header)
         
         return chunk_headers[:5]
-
-
 class TXTProcessor(DocumentProcessor):
-    """TXT document processor"""
+
     
     def __init__(self, chunk_size: int = 1000, chunk_overlap: int = 200):
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
     
     def can_process(self, file_path: Path) -> bool:
-        """Check if file is a TXT"""
+
         return file_path.suffix.lower() == '.txt'
     
     def process_file(self, file_path: Path) -> List[DocumentChunk]:
-        """Process TXT file"""
+
         chunks = []
         
         try:
             with open(file_path, 'r', encoding='utf-8') as file:
                 text = file.read()
             
-            # Split into chunks
+
             text_chunks = self._split_text(text)
             
-            # Create document chunks
+
             for i, chunk_text in enumerate(text_chunks):
                 chunk = DocumentChunk(
                     content=chunk_text.strip(),
@@ -339,7 +329,7 @@ class TXTProcessor(DocumentProcessor):
         return chunks
     
     def _split_text(self, text: str) -> List[str]:
-        """Split text into overlapping chunks"""
+
         if len(text) <= self.chunk_size:
             return [text]
         
@@ -353,7 +343,7 @@ class TXTProcessor(DocumentProcessor):
                 chunks.append(text[start:])
                 break
             
-            # Try to break at sentence boundary
+
             chunk = text[start:end]
             last_period = chunk.rfind('.')
             
@@ -366,7 +356,7 @@ class TXTProcessor(DocumentProcessor):
         return chunks
     
     def _get_source_type(self, file_path: Path) -> str:
-        """Determine source type from file path"""
+
         if "NoteNinjas" in str(file_path):
             return "note_ninjas"
         elif "CPG" in str(file_path):
@@ -375,15 +365,15 @@ class TXTProcessor(DocumentProcessor):
             return "textbook"
     
     def _get_source_id(self, file_path: Path) -> str:
-        """Generate source ID from file path"""
+
         return file_path.stem
     
     def _get_title(self, file_path: Path) -> str:
-        """Extract title from file path"""
+
         return file_path.stem.replace('_', ' ').replace('-', ' ')
     
     def _extract_headers(self, text: str) -> List[str]:
-        """Extract potential headers from text"""
+
         headers = []
         lines = text.split('\n')
         
@@ -397,10 +387,8 @@ class TXTProcessor(DocumentProcessor):
                 headers.append(line)
                 
         return headers[:5]
-
-
 class DocumentProcessorFactory:
-    """Factory for creating document processors"""
+
     
     def __init__(self):
         self.processors = [
@@ -410,14 +398,14 @@ class DocumentProcessorFactory:
         ]
     
     def get_processor(self, file_path: Path) -> Optional[DocumentProcessor]:
-        """Get appropriate processor for file"""
+
         for processor in self.processors:
             if processor.can_process(file_path):
                 return processor
         return None
     
     def process_file(self, file_path: Path) -> List[DocumentChunk]:
-        """Process file with appropriate processor"""
+
         processor = self.get_processor(file_path)
         if processor:
             return processor.process_file(file_path)

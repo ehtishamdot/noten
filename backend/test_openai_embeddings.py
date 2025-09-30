@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-"""
 Test script to verify OpenAI embeddings integration
 This script tests the configuration and basic functionality without running the full system.
 """
@@ -65,7 +63,7 @@ async def test_config():
     try:
         from config import settings
         
-        logger.info("Testing configuration...")
+        logger.info("Testing configuration")
         logger.info(f"USE_OPENAI_EMBEDDINGS: {settings.USE_OPENAI_EMBEDDINGS}")
         logger.info(f"OPENAI_EMBEDDING_MODEL: {settings.OPENAI_EMBEDDING_MODEL}")
         logger.info(f"OPENAI_API_KEY set: {bool(settings.OPENAI_API_KEY)}")

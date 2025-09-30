@@ -27,13 +27,13 @@ logger = logging.getLogger(__name__)
 async def process_documents():
     """Process all documents and build the RAG system"""
     
-    logger.info("Starting document processing for Note Ninjas RAG system...")
+    logger.info("Starting document processing for Note Ninjas RAG system")
     
     # Initialize document processor
     processor_factory = DocumentProcessorFactory()
     
     # Process Note Ninjas documents
-    logger.info("Processing Note Ninjas documents...")
+    logger.info("Processing Note Ninjas documents")
     note_ninjas_path = Path(settings.NOTE_NINJAS_PATH)
     note_ninjas_chunks = []
     
@@ -58,7 +58,7 @@ async def process_documents():
     logger.info(f"Total Note Ninjas chunks: {len(note_ninjas_chunks)}")
     
     # Process CPG documents
-    logger.info("Processing CPG documents...")
+    logger.info("Processing CPG documents")
     cpg_chunks = []
     
     for cpg_path in settings.CPG_PATHS:
@@ -116,16 +116,16 @@ async def process_documents():
     logger.info(f"Saved chunks metadata to {metadata_file}")
     
     # Initialize and build retrieval system
-    logger.info("Building retrieval system...")
+    logger.info("Building retrieval system")
     retriever = Retriever(
         embedding_model=settings.EMBEDDING_MODEL,
         vector_store_path=settings.VECTOR_STORE_PATH
     )
     
-    logger.info("Initializing retriever with processed chunks...")
+    logger.info("Initializing retriever with processed chunks")
     retriever.initialize(all_chunks)
     
-    logger.info("Initializing reranker...")
+    logger.info("Initializing reranker")
     reranker = Reranker(
         model_name=settings.RERANK_MODEL,
         max_length=512
@@ -133,7 +133,7 @@ async def process_documents():
     reranker.initialize()
     
     # Test the system with a sample query
-    logger.info("Testing the RAG system...")
+    logger.info("Testing the RAG system")
     test_queries = [
         "rotator cuff tear treatment exercises",
         "CPT billing codes for therapeutic exercise",
@@ -156,7 +156,7 @@ async def process_documents():
                 top_result = reranked[0]
                 logger.info(f"  -> Top result: {top_result.chunk.title} (score: {top_result.combined_score:.3f})")
                 logger.info(f"     Source: {top_result.chunk.source_type} - {top_result.chunk.source_id}")
-                logger.info(f"     Content preview: {top_result.chunk.content[:100]}...")
+                logger.info("     Content preview: {top_result.chunk.content[:100]}")
             
         except Exception as e:
             logger.error(f"  -> Error testing query: {e}")
@@ -167,7 +167,7 @@ async def process_documents():
     logger.info(f"  Total chunks: {sources_info['total_chunks']}")
     logger.info(f"  Source counts: {sources_info['source_counts']}")
     
-    logger.info("Document processing completed successfully!")
+    logger.info("Document processing completed")
     logger.info(f"Vector store saved to: {settings.VECTOR_STORE_PATH}")
     logger.info(f"Chunks metadata saved to: {metadata_file}")
 

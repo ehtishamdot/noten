@@ -2,6 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { 
+  noteNinjasAPI, 
+  type RecommendationResponse,
+  type Subsection,
+  type Exercise,
+  type Alternative 
+} from "@/lib/api";
 
 interface Suggestion {
   id: string;
@@ -17,18 +24,26 @@ interface Suggestion {
 export default function BrainstormingSuggestions() {
   const router = useRouter();
   const [caseData, setCaseData] = useState<any>(null);
+  const [recommendations, setRecommendations] = useState<RecommendationResponse | null>(null);
   const [selectedSuggestion, setSelectedSuggestion] =
     useState<Suggestion | null>(null);
   const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [showExerciseModal, setShowExerciseModal] = useState(false);
   const [isCaseDetailsExpanded, setIsCaseDetailsExpanded] = useState(false);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
 
   useEffect(() => {
     // Get case data from sessionStorage
     const storedData = sessionStorage.getItem("note-ninjas-case");
     if (storedData) {
-      setCaseData(JSON.parse(storedData));
+      const parsed = JSON.parse(storedData);
+      setCaseData(parsed);
+      
+      // Check if we have real RAG recommendations
+      if (parsed.recommendations) {
+        setRecommendations(parsed.recommendations);
+      }
     } else {
       // Redirect back if no case data
       router.push("/note-ninjas");
@@ -144,6 +159,24 @@ export default function BrainstormingSuggestions() {
   const closeExerciseModal = () => {
     setShowExerciseModal(false);
     setSelectedExercise(null);
+  };
+
+  const handleFeedback = async (feedbackType: 'thumbs_up' | 'thumbs_down') => {
+    if (!caseData?.sessionId) return;
+    
+    try {
+      await noteNinjasAPI.submitFeedback({
+        session_id: caseData.sessionId,
+        recommendation_id: undefined,
+        feedback_type: feedbackType,
+        feedback_data: {
+          notes: `User feedback: ${feedbackType} for recommendations`
+        }
+      });
+      setFeedbackSubmitted(true);
+    } catch (error) {
+      console.error('Failed to submit feedback:', error);
+    }
   };
 
   // Exercise details database
@@ -732,7 +765,27 @@ export default function BrainstormingSuggestions() {
           )}
         </div>
 
+        {/* High-Level Recommendations */}
+        {recommendations && recommendations.high_level.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-xl font-semibold text-gray-900 text-center">
+              AI-Generated Recommendations
+            </h3>
+            <div className="w-16 h-1 bg-purple-500 mx-auto mt-2 mb-6"></div>
+            <div className="max-w-3xl mx-auto space-y-4">
+              {recommendations.high_level.map((recommendation, index) => (
+                <div key={index} className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <p className="text-gray-700 text-base leading-relaxed">
+                    {recommendation}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Treatment Approach Header */}
+        {(!recommendations || recommendations.high_level.length === 0) && (
         <div className="mb-6">
           <h3 className="text-xl font-semibold text-gray-900 text-center">
             Recommended Starting Point & Progression
@@ -751,6 +804,7 @@ export default function BrainstormingSuggestions() {
             </p>
           </div>
         </div>
+        )}
 
         {/* Techniques Section Title */}
         <div className="mb-6">
@@ -760,7 +814,188 @@ export default function BrainstormingSuggestions() {
           <div className="w-16 h-1 bg-purple-500 mx-auto mt-2 mb-6"></div>
         </div>
 
-        {/* Suggestion Cards */}
+        {/* RAG Subsection Cards */}
+        {recommendations && recommendations.subsections.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            {recommendations.subsections.map((subsection, index) => (
+              <div
+                key={index}
+                className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow border border-gray-200 hover:border-purple-300"
+              >
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  {subsection.title}
+                </h3>
+                <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                  {subsection.rationale}
+                </p>
+                
+                {/* Exercises */}
+                {subsection.exercises.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-gray-800 text-sm">Exercises:</h4>
+                    {subsection.exercises.map((exercise, exIndex) => (
+                      <div key={exIndex} className="bg-gray-50 rounded-lg p-3">
+                        {/* Exercise Title */}
+                        {exercise.title && (
+                          <h5 className="font-medium text-gray-800 text-sm mb-2">{exercise.title}</h5>
+                        )}
+                        
+                        <p className="text-gray-700 text-sm mb-2">{exercise.description}</p>
+                        
+                        {/* Cues */}
+                        {exercise.cues && exercise.cues.length > 0 && (
+                          <div className="mb-2">
+                            <span className="text-xs font-medium text-gray-600">Cues:</span>
+                            <ul className="text-xs text-gray-600 list-disc list-inside ml-2">
+                              {exercise.cues.map((cue, cueIndex) => (
+                                <li key={cueIndex}>{cue}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {/* Documentation */}
+                        {exercise.documentation && (
+                          <div className="mb-2">
+                            <span className="text-xs font-medium text-gray-600">Documentation:</span>
+                            <p className="text-xs text-gray-600 italic">{exercise.documentation}</p>
+                          </div>
+                        )}
+                        
+                        {/* CPT Code */}
+                        {exercise.cpt && (
+                          <div className="mb-2">
+                            <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
+                              CPT {exercise.cpt}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {/* Clinical Information Grid */}
+                        <div className="mt-4 space-y-3">
+                          {/* Rationale */}
+                          {exercise.rationale && (
+                            <div className="p-3 bg-blue-50 border-l-4 border-blue-400">
+                              <span className="text-xs font-medium text-blue-800">🧠 Rationale:</span>
+                              <p className="text-xs text-blue-700 mt-1">{exercise.rationale}</p>
+                            </div>
+                          )}
+
+                          {/* Contraindications */}
+                          {exercise.contraindications && (
+                            <div className="p-3 bg-red-50 border-l-4 border-red-400">
+                              <span className="text-xs font-medium text-red-800">⚠️ Contraindications:</span>
+                              <p className="text-xs text-red-700 mt-1">{exercise.contraindications}</p>
+                            </div>
+                          )}
+
+                          {/* Timeline Phase */}
+                          {exercise.timeline_phase && (
+                            <div className="p-3 bg-green-50 border-l-4 border-green-400">
+                              <span className="text-xs font-medium text-green-800">📅 Timeline:</span>
+                              <p className="text-xs text-green-700 mt-1">{exercise.timeline_phase}</p>
+                            </div>
+                          )}
+
+                          {/* Dosage Specifics */}
+                          {exercise.dosage_specifics && (
+                            <div className="p-3 bg-purple-50 border-l-4 border-purple-400">
+                              <span className="text-xs font-medium text-purple-800">💊 Dosage:</span>
+                              <p className="text-xs text-purple-700 mt-1">{exercise.dosage_specifics}</p>
+                            </div>
+                          )}
+
+                          {/* Expected Milestones */}
+                          {exercise.expected_milestones && (
+                            <div className="p-3 bg-indigo-50 border-l-4 border-indigo-400">
+                              <span className="text-xs font-medium text-indigo-800">🎯 Expected Outcomes:</span>
+                              <p className="text-xs text-indigo-700 mt-1">{exercise.expected_milestones}</p>
+                            </div>
+                          )}
+
+                          {/* Monitoring Measures */}
+                          {exercise.monitoring_measures && (
+                            <div className="p-3 bg-orange-50 border-l-4 border-orange-400">
+                              <span className="text-xs font-medium text-orange-800">📊 Monitoring:</span>
+                              <p className="text-xs text-orange-700 mt-1">{exercise.monitoring_measures}</p>
+                            </div>
+                          )}
+
+                          {/* Progression Options */}
+                          {exercise.progression_options && (
+                            <div className="p-3 bg-teal-50 border-l-4 border-teal-400">
+                              <span className="text-xs font-medium text-teal-800">📈 Progression:</span>
+                              <p className="text-xs text-teal-700 mt-1">{exercise.progression_options}</p>
+                            </div>
+                          )}
+
+                          {/* Home Program Integration */}
+                          {exercise.home_program_integration && (
+                            <div className="p-3 bg-pink-50 border-l-4 border-pink-400">
+                              <span className="text-xs font-medium text-pink-800">🏠 Home Program:</span>
+                              <p className="text-xs text-pink-700 mt-1">{exercise.home_program_integration}</p>
+                            </div>
+                          )}
+
+                          {/* Customization Notes */}
+                          {exercise.customization_notes && (
+                            <div className="p-3 bg-gray-50 border-l-4 border-gray-400">
+                              <span className="text-xs font-medium text-gray-800">🔧 Customization:</span>
+                              <p className="text-xs text-gray-700 mt-1">{exercise.customization_notes}</p>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Notes */}
+                        {exercise.notes && (
+                          <div className="mt-3 mb-2">
+                            <span className="text-xs font-medium text-gray-600">Notes:</span>
+                            <p className="text-xs text-gray-600">{exercise.notes}</p>
+                          </div>
+                        )}
+                        
+                        {/* Sources */}
+                        {exercise.sources.length > 0 && (
+                          <div className="mt-3 pt-2 border-t border-gray-200">
+                            <span className="text-xs font-medium text-gray-600">Sources:</span>
+                            <div className="mt-1 space-y-1">
+                              {exercise.sources.map((source, sourceIndex) => (
+                                <div key={sourceIndex} className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-medium capitalize">{source.type.replace('_', ' ')}</span>
+                                    {source.page && <span className="text-gray-500">Page {source.page}</span>}
+                                  </div>
+                                  {source.file_path && (
+                                    <div className="text-gray-500 mt-1">
+                                      📁 {source.file_path}
+                                    </div>
+                                  )}
+                                  {source.section && (
+                                    <div className="text-gray-500">
+                                      📖 {source.section}
+                                    </div>
+                                  )}
+                                  {source.quote && (
+                                    <div className="text-gray-600 mt-1 italic">
+                                      "{source.quote}"
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Fallback Suggestion Cards */}
+        {(!recommendations || recommendations.subsections.length === 0) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {suggestions.map((suggestion) => (
             <div
@@ -780,6 +1015,88 @@ export default function BrainstormingSuggestions() {
             </div>
           ))}
         </div>
+        )}
+
+        {/* Alternative Recommendations */}
+        {recommendations && recommendations.suggested_alternatives.length > 0 && (
+          <div className="mb-8">
+            <h3 className="text-xl font-semibold text-gray-900 text-center mb-6">
+              Alternative Approaches
+            </h3>
+            <div className="grid grid-cols-1 gap-4">
+              {recommendations.suggested_alternatives.map((alternative, index) => (
+                <div key={index} className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <h4 className="font-medium text-yellow-800 mb-2">
+                    When: {alternative.when}
+                  </h4>
+                  <p className="text-yellow-700 text-sm">
+                    Instead try: {alternative.instead_try}
+                  </p>
+                  {alternative.sources.length > 0 && (
+                    <div className="mt-2 text-xs text-yellow-600">
+                      Sources: {alternative.sources.map(s => s.type).join(', ')}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Confidence and Feedback Section */}
+        {recommendations && (
+          <div className="bg-gray-50 rounded-lg p-6 mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Recommendation Quality</h3>
+                <p className="text-sm text-gray-600">
+                  Confidence Level: <span className={`font-medium ${
+                    recommendations.confidence === 'high' ? 'text-green-600' :
+                    recommendations.confidence === 'medium' ? 'text-yellow-600' :
+                    'text-red-600'
+                  }`}>
+                    {recommendations.confidence.toUpperCase()}
+                  </span>
+                </p>
+              </div>
+              
+              {/* Feedback Buttons */}
+              {!feedbackSubmitted && caseData?.sessionId && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleFeedback('thumbs_up')}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.734a1 1 0 001.821.59l1.069-1.76a1 1 0 01.871-.48h2.239a2 2 0 002-2V8a2 2 0 00-2-2H8.5a2 2 0 00-2 2v2.333z"/>
+                    </svg>
+                    Helpful
+                  </button>
+                  <button
+                    onClick={() => handleFeedback('thumbs_down')}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M18 9.5a1.5 1.5 0 11-3 0v-6a1.5 1.5 0 013 0v6zM14 9.667v-5.734a1 1 0 00-1.821-.59l-1.069 1.76a1 1 0 01-.871.48H8a2 2 0 00-2 2v4a2 2 0 002 2h2.239a2 2 0 002 2v-2.333z"/>
+                    </svg>
+                    Not Helpful
+                  </button>
+                </div>
+              )}
+              
+              {feedbackSubmitted && (
+                <div className="text-green-600 text-sm font-medium">
+                  ✓ Feedback submitted
+                </div>
+              )}
+            </div>
+            
+            <p className="text-xs text-gray-500">
+              These recommendations are generated from your Note Ninjas knowledge base and clinical practice guidelines. 
+              Feedback helps improve the system for future recommendations.
+            </p>
+          </div>
+        )}
 
         {/* Exercise Modal */}
         {showExerciseModal && selectedExercise && (

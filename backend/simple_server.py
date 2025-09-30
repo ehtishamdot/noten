@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-"""
-Simple FastAPI server for testing without full RAG initialization
-"""
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -73,8 +70,8 @@ async def generate_recommendations(request: Dict[str, Any]):
     
     # Generate simple mock recommendations
     high_level = [
-        f"Based on your patient's condition: {patient_condition[:50]}...",
-        f"Focus on achieving: {desired_outcome[:50]}..."
+        f"Based on your patient's condition: {patient_condition[:50]}",
+        f"Focus on achieving: {desired_outcome[:50]}"
     ]
     
     subsections = [
@@ -113,7 +110,7 @@ async def submit_feedback(request: Dict[str, Any]):
     """Submit feedback"""
     return {
         "success": True,
-        "message": "Feedback received successfully",
+        "message": "Feedback received ",
         "feedback_id": "mock_feedback_123"
     }
 

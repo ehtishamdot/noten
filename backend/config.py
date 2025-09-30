@@ -6,19 +6,17 @@ import os
 from pathlib import Path
 from typing import List
 from pydantic_settings import BaseSettings
-
-
 class Settings(BaseSettings):
-    """Application settings"""
+
     
-    # Paths
+
     NOTE_NINJAS_PATH: str = "../NoteNinjas"
     TITLED_CPG_PATH: str = "../Titled_CPGs"
     UNTITLED_CPG_PATH: str = "../Untitled_CPGs"
     VECTOR_STORE_PATH: str = "./vector_store"
     CPG_PATHS: List[str] = []
     
-    # API Settings
+
     ALLOWED_ORIGINS: List[str] = [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
@@ -28,39 +26,35 @@ class Settings(BaseSettings):
         "http://127.0.0.1:3002"
     ]
     
-    # RAG Settings
+
     CHUNK_SIZE: int = 1000
     CHUNK_OVERLAP: int = 200
     TOP_K_RETRIEVAL: int = 50
     TOP_N_RERANK: int = 12
     SIMILARITY_THRESHOLD: float = 0.7
     
-    # Model Settings - OpenAI Embeddings
+
     USE_OPENAI_EMBEDDINGS: bool = True
     OPENAI_API_KEY: str = ""
     OPENAI_EMBEDDING_MODEL: str = "text-embedding-3-small"
     OPENAI_CHAT_MODEL: str = "gpt-4o-mini"
     
-    # Fallback: Sentence Transformers (if OpenAI fails)
+
     EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
     RERANK_MODEL: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
     
-    # Feedback Settings
+
     FEEDBACK_STORAGE_TYPE: str = "memory"  # memory, redis, database
     
-    # Logging
+
     LOG_LEVEL: str = "INFO"
     
     class Config:
         env_file = ".env"
         case_sensitive = True
-
-
 def get_cpg_paths() -> List[str]:
-    """Get list of CPG paths"""
+
     return ["../Titled_CPGs", "../Untitled_CPGs"]
 
-
-# Global settings instance
 settings = Settings()
 settings.CPG_PATHS = get_cpg_paths()

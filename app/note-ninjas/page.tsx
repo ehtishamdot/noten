@@ -2,6 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { 
+  noteNinjasAPI, 
+  generateSessionId, 
+  convertFormDataToAPI,
+  type RecommendationResponse 
+} from "@/lib/api";
 
 export default function NoteNinjas() {
   const router = useRouter();
@@ -22,6 +28,13 @@ export default function NoteNinjas() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showAutoFillDropdown, setShowAutoFillDropdown] = useState(false);
   const [inputMode, setInputMode] = useState<"simple" | "detailed">("simple");
+  const [apiStatus, setApiStatus] = useState<"checking" | "ready" | "error">("checking");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  // Check API status on component mount
+  useEffect(() => {
+    checkAPIStatus();
+  }, []);
 
   // Load form data from sessionStorage on component mount
   useEffect(() => {
@@ -41,6 +54,22 @@ export default function NoteNinjas() {
       setInputMode(storedInputMode as "simple" | "detailed");
     }
   }, []);
+
+  const checkAPIStatus = async () => {
+    try {
+      const health = await noteNinjasAPI.checkHealth();
+      if (health.rag_system_ready && health.feedback_system_ready) {
+        setApiStatus("ready");
+      } else {
+        setApiStatus("error");
+        setErrorMessage("RAG system is not fully ready");
+      }
+    } catch (error) {
+      setApiStatus("error");
+      setErrorMessage("Unable to connect to Note Ninjas API. Please ensure the backend server is running.");
+      console.error("API health check failed:", error);
+    }
+  };
 
   // Save form data to sessionStorage whenever it changes
   useEffect(() => {
@@ -87,7 +116,7 @@ export default function NoteNinjas() {
     setShowAutoFillDropdown(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validate based on input mode
@@ -103,13 +132,39 @@ export default function NoteNinjas() {
       );
     }
 
-    if (isValid) {
-      setIsProcessing(true);
+    if (!isValid) {
+      alert("Please fill in the required fields.");
+      return;
+    }
 
-      // Save case data for suggestions page
+    if (apiStatus !== "ready") {
+      alert("API is not ready. Please check the connection and try again.");
+      return;
+    }
+
+    setIsProcessing(true);
+    setErrorMessage("");
+
+    try {
+      // Generate session ID
+      const sessionId = generateSessionId();
+      
+      // Convert form data to API format
+      const { userInput, ragManifest } = convertFormDataToAPI(formData, inputMode);
+      
+      // Call the RAG API to generate recommendations
+      const recommendations = await noteNinjasAPI.generateRecommendations(
+        userInput,
+        ragManifest,
+        sessionId
+      );
+
+      // Save case data and recommendations for suggestions page
       const caseData = {
         ...formData,
         inputMode,
+        sessionId,
+        recommendations,
         // Create combined condition string for detailed mode
         patientCondition:
           inputMode === "detailed"
@@ -134,13 +189,15 @@ export default function NoteNinjas() {
       };
 
       sessionStorage.setItem("note-ninjas-case", JSON.stringify(caseData));
+      sessionStorage.setItem("note-ninjas-session", sessionId);
 
-      // Simulate processing time
-      setTimeout(() => {
-        router.push("/note-ninjas/suggestions");
-      }, 2000);
-    } else {
-      alert("Please fill in the required fields.");
+      // Navigate to suggestions page
+      router.push("/note-ninjas/suggestions");
+      
+    } catch (error) {
+      console.error("Failed to generate recommendations:", error);
+      setErrorMessage("Failed to generate recommendations. Please try again.");
+      setIsProcessing(false);
     }
   };
 
@@ -159,6 +216,34 @@ export default function NoteNinjas() {
             <p className="text-gray-700 text-sm">
               The Brainstorming Partner for PTs and OTs
             </p>
+            
+            {/* API Status Indicator */}
+            <div className="mt-3 flex justify-center">
+              <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                apiStatus === "ready" 
+                  ? "bg-green-100 text-green-800" 
+                  : apiStatus === "error"
+                  ? "bg-red-100 text-red-800"
+                  : "bg-yellow-100 text-yellow-800"
+              }`}>
+                <div className={`w-2 h-2 rounded-full mr-2 ${
+                  apiStatus === "ready" 
+                    ? "bg-green-500" 
+                    : apiStatus === "error"
+                    ? "bg-red-500"
+                    : "bg-yellow-500 animate-pulse"
+                }`}></div>
+                {apiStatus === "ready" && "RAG System Ready"}
+                {apiStatus === "error" && "API Connection Error"}
+                {apiStatus === "checking" && "Checking API..."}
+              </div>
+            </div>
+            
+            {apiStatus === "error" && errorMessage && (
+              <div className="mt-2 text-red-600 text-xs max-w-md mx-auto">
+                {errorMessage}
+              </div>
+            )}
           </div>
         </div>
 
@@ -488,17 +573,38 @@ export default function NoteNinjas() {
               </p>
             </div>
 
+            {/* Error Message */}
+            {errorMessage && (
+              <div className="pt-4 border-t border-gray-200">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-center">
+                    <svg className="w-5 h-5 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-red-700 text-sm">{errorMessage}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Submit Button */}
             <div className="pt-6 border-t border-gray-200">
               <button
                 type="submit"
-                disabled={isProcessing}
+                disabled={isProcessing || apiStatus !== "ready"}
                 className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
               >
                 {isProcessing ? (
                   <>
                     <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
-                    Generating Suggestions...
+                    Generating AI-Powered Suggestions...
+                  </>
+                ) : apiStatus !== "ready" ? (
+                  <>
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    API Not Ready
                   </>
                 ) : (
                   <>
@@ -515,7 +621,7 @@ export default function NoteNinjas() {
                         d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
                       />
                     </svg>
-                    Get Brainstorming Suggestions
+                    Get AI-Powered Brainstorming Suggestions
                   </>
                 )}
               </button>

@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-"""
 Full integration test for the Note Ninjas RAG system
 """
 
@@ -15,7 +13,7 @@ def test_full_integration():
     print("🧪 === Note Ninjas RAG System - Full Integration Test ===\n")
     
     # Test 1: Health Check
-    print("1️⃣ Testing Health Endpoint...")
+    print("1️⃣ Testing Health Endpoint")
     try:
         response = requests.get(f"{base_url}/health")
         if response.status_code == 200:
@@ -31,7 +29,7 @@ def test_full_integration():
         return False
     
     # Test 2: Sources Check
-    print("\n2️⃣ Testing Sources Endpoint...")
+    print("\n2️⃣ Testing Sources Endpoint")
     try:
         response = requests.get(f"{base_url}/sources")
         if response.status_code == 200:
@@ -49,7 +47,7 @@ def test_full_integration():
         return False
     
     # Test 3: Generate Recommendations
-    print("\n3️⃣ Testing Recommendation Generation...")
+    print("\n3️⃣ Testing Recommendation Generation")
     session_id = f"test_session_{int(time.time())}"
     
     recommendation_request = {
@@ -85,7 +83,7 @@ def test_full_integration():
             
             # Show first recommendation
             if rec_data['high_level']:
-                print(f"   First recommendation: {rec_data['high_level'][0][:100]}...")
+                print(f"   First recommendation: {rec_data['high_level'][0][:100]}")
             
             # Show subsections
             if rec_data['subsections']:
@@ -94,7 +92,7 @@ def test_full_integration():
                 print(f"   Exercises: {len(subsection['exercises'])}")
                 if subsection['exercises']:
                     exercise = subsection['exercises'][0]
-                    print(f"   First exercise: {exercise['description'][:80]}...")
+                    print(f"   First exercise: {exercise['description'][:80]}")
             
             # Show sources
             if rec_data['subsections'] and rec_data['subsections'][0]['exercises']:
@@ -112,7 +110,7 @@ def test_full_integration():
         return False
     
     # Test 4: Submit Feedback
-    print("\n4️⃣ Testing Feedback System...")
+    print("\n4️⃣ Testing Feedback System")
     feedback_request = {
         "session_id": session_id,
         "recommendation_id": None,
@@ -145,7 +143,7 @@ def test_full_integration():
         return False
     
     # Test 5: Get Session Feedback
-    print("\n5️⃣ Testing Feedback Retrieval...")
+    print("\n5️⃣ Testing Feedback Retrieval")
     try:
         response = requests.get(f"{base_url}/feedback/{session_id}")
         
@@ -166,7 +164,7 @@ def test_full_integration():
         return False
     
     # Test 6: Test Different Query Types
-    print("\n6️⃣ Testing Different Query Types...")
+    print("\n6️⃣ Testing Different Query Types")
     
     test_queries = [
         {

@@ -39,7 +39,7 @@ rag_initialized = False
 SYSTEM_PROMPT = """
 Role & Purpose
 
-You are an OT recommendation engine that must ground every recommendation in retrieved sources using Retrieval-Augmented Generation (RAG). You produce a structured plan (high-level recommendations → subsections → exercises). Each exercise must include: description, cues, documentation exemplar, CPT code, sources. When you are unsure or evidence is insufficient, say so explicitly and leave fields null as specified. Never fabricate facts, CPT codes, or citations.
+You are an OT recommendation engine that must ground every recommendation in retrieved sources using Retrieval-Augmented Generation (RAG). You produce a comprehensive, evidence-based treatment plan with detailed clinical support. Each recommendation must include: rationale/evidence, contraindications, progression options, dosage specifics, timeline, monitoring measures, home program integration, customization notes, and expected milestones.
 
 Hard Requirements
 1. RAG-Only: Do not invent knowledge. Use only content retrieved from the connected corpora.
@@ -47,12 +47,23 @@ Hard Requirements
    1. Note Ninjas (in NoteNinjas Folder) (primary, includes Documentation Banks, CPT/Billing, OTPF/terminology, internal notes)
    2. Clinical Practice Guidelines (in Titled_CPGs and Untitled_CPGs) (CPGs) (secondary; evidence, contraindications, levels/classes of recommendation)
    3. Textbooks/Other (tertiary; background, definitions)
-3. Citations: Every exercise must include at least one Note Ninjas citation; include CPG citations when relevant. Cite with a sources array (see schema).
+3. Citations: Every exercise must include at least one Note Ninjas citation; include CPG citations when relevant. Cite with detailed sources array including rationale/evidence.
 4. No Hallucinated CPTs: Only return CPT codes that appear in the retrieved Note Ninjas/CPT sources. If absent, return "cpt": null and add an explanatory note in "notes".
 5. Framework Awareness: Apply OTPF-4/OT reasoning when organizing content. Use it as a framework, not as a rigid rule; cite framework sources when used.
 6. Feedback-Aware: Accept user feedback (thumbs up/down, corrections, preferences) and reflect it in the next answer within the same session. If the feedback conflicts with sources, respect the feedback for formatting/preferences but do not violate clinical evidence or make unsafe claims.
 7. Clinical Guardrails: Provide clinician-facing decision support, not medical advice for laypersons. Flag safety issues and contraindications when surfaced by CPGs.
 8. Honesty Under Uncertainty: If retrieval is weak or conflicting, return "confidence": "low" and explain conflict succinctly in "notes".
+
+Enhanced Clinical Requirements
+9. Evidence-Based Rationale: Include specific rationale and evidence references for each recommendation.
+10. Safety First: Always include contraindications, precautions, and risk factors.
+11. Progressive Framework: Provide clear progression/regression options with decision criteria.
+12. Precise Dosage: Include specific volume, intensity, and frequency guidelines.
+13. Timeline Mapping: Map recommendations to specific weeks/phases with clear milestones.
+14. Objective Monitoring: Include assessment measures and tracking intervals.
+15. Home Integration: Address daily life integration, rest, and lifestyle considerations.
+16. Customization: Provide adaptation guidelines for patient-specific factors.
+17. Expected Outcomes: Include interim and final milestones with success criteria.
 
 Return only this JSON (no prose outside the JSON):
 
@@ -71,6 +82,15 @@ Return only this JSON (no prose outside the JSON):
           "cues": ["string", "string"],
           "documentation": "string (1–2 sentence exemplar; skilled interventions + patient response)",
           "cpt": "string | null",
+          "rationale": "string (evidence-based reasoning for this exercise)",
+          "contraindications": "string (when NOT to use this exercise, safety concerns)",
+          "progression_options": "string (how to progress: easier/harder versions, decision criteria)",
+          "dosage_specifics": "string (precise sets/reps/duration/frequency with weekly progression)",
+          "timeline_phase": "string (which week/phase this applies to, e.g., 'Week 1-2')",
+          "monitoring_measures": "string (what to assess and when, e.g., 'Pain scale 0-10, ROM measurement weekly')",
+          "home_program_integration": "string (daily life integration, rest, ergonomics, posture)",
+          "customization_notes": "string (how to adapt for patient-specific factors)",
+          "expected_milestones": "string (interim and final outcomes, e.g., 'Week 2: 140°, Week 3: 145°')",
           "notes": "string | null (uncertainty, contraindications, adaptations)",
           "sources": [
             {
@@ -114,7 +134,7 @@ async def lifespan(app: FastAPI):
     """Initialize and cleanup resources"""
     global openai_client, feedback_manager, rag_initialized
     
-    logger.info("Initializing Note Ninjas GPT backend...")
+    logger.info("Initializing Note Ninjas GPT backend")
     
     try:
         # Initialize OpenAI client
@@ -135,7 +155,7 @@ async def lifespan(app: FastAPI):
     yield
     
     # Cleanup
-    logger.info("Shutting down Note Ninjas backend...")
+    logger.info("Shutting down Note Ninjas backend")
 
 
 # Create FastAPI app
@@ -245,7 +265,7 @@ Do not leave file_path as null - always provide the complete file path.
         
         # Parse response
         response_data = response.choices[0].message.content
-        logger.info("GPT response received, parsing...")
+        logger.info("GPT response received, parsing")
         
         import json
         data = json.loads(response_data)
@@ -284,6 +304,15 @@ Do not leave file_path as null - always provide the complete file path.
                         cues=ex_data.get("cues", []),
                         documentation=ex_data.get("documentation"),
                         cpt=ex_data.get("cpt"),
+                        rationale=ex_data.get("rationale"),
+                        contraindications=ex_data.get("contraindications"),
+                        progression_options=ex_data.get("progression_options"),
+                        dosage_specifics=ex_data.get("dosage_specifics"),
+                        timeline_phase=ex_data.get("timeline_phase"),
+                        monitoring_measures=ex_data.get("monitoring_measures"),
+                        home_program_integration=ex_data.get("home_program_integration"),
+                        customization_notes=ex_data.get("customization_notes"),
+                        expected_milestones=ex_data.get("expected_milestones"),
                         notes=ex_data.get("notes"),
                         sources=sources
                     )
@@ -356,7 +385,7 @@ async def submit_feedback(request: FeedbackRequest):
         
         return FeedbackResponse(
             success=True,
-            message="Feedback received successfully",
+            message="Feedback received ",
             feedback_id=feedback_id
         )
         

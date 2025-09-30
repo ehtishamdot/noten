@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-"""
 Direct test of the RAG system without the server
 """
 
@@ -22,14 +20,14 @@ async def test_rag_direct():
     print("=== Direct RAG System Test ===")
     
     # Initialize RAG system
-    print("Initializing RAG system...")
+    print("Initializing RAG system")
     rag = RAGSystem(
         note_ninjas_path=settings.NOTE_NINJAS_PATH,
         cpg_paths=settings.CPG_PATHS,
         vector_store_path=settings.VECTOR_STORE_PATH
     )
     
-    print("Loading RAG system...")
+    print("Loading RAG system")
     await rag.initialize()
     print("✓ RAG system initialized!")
     
@@ -51,14 +49,14 @@ async def test_rag_direct():
         include_alternatives=True
     )
     
-    print("Generating recommendations...")
+    print("Generating recommendations")
     try:
         response = await rag.generate_recommendations(
             user_input=user_input,
             rag_manifest=rag_manifest
         )
         
-        print("✓ Recommendations generated successfully!")
+        print("✓ Recommendations generated ")
         print(f"High-level recommendations: {len(response.high_level)}")
         print(f"Subsections: {len(response.subsections)}")
         print(f"Alternatives: {len(response.suggested_alternatives)}")
@@ -75,8 +73,8 @@ async def test_rag_direct():
             print(f"Exercises: {len(subsection.exercises)}")
             if subsection.exercises:
                 exercise = subsection.exercises[0]
-                print(f"First exercise: {exercise.description[:100]}...")
-                print(f"Description: {exercise.description[:100]}...")
+                print(f"First exercise: {exercise.description[:100]}")
+                print(f"Description: {exercise.description[:100]}")
         
         return True
         

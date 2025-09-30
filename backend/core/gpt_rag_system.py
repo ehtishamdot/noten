@@ -1,11 +1,7 @@
-"""
-GPT-powered RAG system following the comprehensive Note Ninjas system prompt
-"""
 
 import logging
 from typing import List, Dict, Any, Optional
 import json
-import asyncio
 from openai import OpenAI
 
 from .document_processor import DocumentProcessorFactory, DocumentChunk
@@ -20,8 +16,6 @@ from models.response_models import (
 from config import settings
 
 logger = logging.getLogger(__name__)
-
-# System prompt from the requirements
 SYSTEM_PROMPT = """
 Role & Purpose
 
@@ -92,101 +86,63 @@ Prohibited Behaviors
 • No uncited claims, no invented CPTs, no generic health advice to patients.
 • Do not output anything outside the JSON object.
 """
-
-
 class GPTRAGSystem:
-    """GPT-powered RAG system for OT recommendations"""
-    
-    def __init__(
-        self,
-        note_ninjas_path: str,
-        cpg_paths: List[str],
-        vector_store_path: str
-    ):
+    def __init__(self, note_ninjas_path: str, cpg_paths: List[str], vector_store_path: str):
         self.note_ninjas_path = note_ninjas_path
         self.cpg_paths = cpg_paths
         self.vector_store_path = vector_store_path
         
-        # Initialize components
         self.document_processor = DocumentProcessorFactory()
         self.retriever = Retriever(vector_store_path=vector_store_path)
         self.reranker = Reranker()
         self.feedback_manager = FeedbackManager()
-        
-        # OpenAI client
         self.openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
-        
-        # Processed documents
         self.processed_documents: List[DocumentChunk] = []
-        
-        # System initialization status
         self.is_initialized = False
         
     async def initialize(self):
-        """Initialize the RAG system with document processing"""
-        logger.info("Initializing GPT RAG system...")
+        logger.info("Initializing RAG system")
         
         try:
-            # Process documents
             await self._process_documents()
-            
-            # Initialize retriever
             self.retriever.initialize(self.processed_documents)
-            
-            # Initialize reranker
             self.reranker.initialize()
-            
             self.is_initialized = True
-            logger.info("GPT RAG system initialized successfully!")
+            logger.info("RAG system initialized")
             
         except Exception as e:
-            logger.error(f"Failed to initialize RAG system: {e}")
+            logger.error(f"Failed to initialize: {e}")
             raise
     
     async def _process_documents(self):
-        """Process all documents in the corpus"""
-        logger.info("Processing documents...")
+        from pathlib import Path
         
         all_chunks = []
         
-        # Process Note Ninjas documents
-        from pathlib import Path
         note_ninjas_path = Path(self.note_ninjas_path)
-        logger.info(f"Processing Note Ninjas documents from {note_ninjas_path}")
-        
         note_ninjas_docs = []
         for file_path in note_ninjas_path.glob("*.docx"):
             try:
-                note_ninjas_docs.extend(
-                    self.document_processor.process_document(file_path, "note_ninjas")
-                )
+                note_ninjas_docs.extend(self.document_processor.process_file(file_path))
             except Exception as e:
-                logger.error(f"Error processing Note Ninjas document {file_path}: {e}")
+                logger.error(f"Error processing {file_path}: {e}")
         
-        logger.info(f"Processed {len(note_ninjas_docs)} Note Ninjas chunks")
         all_chunks.extend(note_ninjas_docs)
         
-        # Process CPG documents
         cpg_chunks_count = 0
         for cpg_path_str in self.cpg_paths:
             cpg_path = Path(cpg_path_str)
-            logger.info(f"Processing CPG documents from {cpg_path}")
-            
             cpg_docs = []
             for file_path in cpg_path.glob("*.pdf"):
                 try:
-                    cpg_docs.extend(
-                        self.document_processor.process_document(file_path, "cpg")
-                    )
+                    cpg_docs.extend(self.document_processor.process_file(file_path))
                 except Exception as e:
-                    logger.error(f"Error processing PDF {file_path}: {e}")
+                    logger.error(f"Error processing {file_path}: {e}")
             
             cpg_chunks_count += len(cpg_docs)
             all_chunks.extend(cpg_docs)
         
-        logger.info(f"Processed {cpg_chunks_count} CPG chunks")
-        logger.info(f"Total processed chunks: {len(all_chunks)}")
-        
+        logger.info(f"Processed {len(note_ninjas_docs)} Note Ninjas, {cpg_chunks_count} CPG chunks")
         self.processed_documents = all_chunks
     
     async def generate_recommendations(
@@ -196,66 +152,41 @@ class GPTRAGSystem:
         session_id: str,
         feedback_state: Optional[Dict[str, Any]] = None
     ) -> RecommendationResponse:
-        """Generate recommendations using GPT-4o Mini with RAG"""
-        
         if not self.is_initialized:
             raise RuntimeError("RAG system not initialized")
         
-        logger.info(f"Generating recommendations for session {session_id}")
-        
-        # Build query from user input
         query = self._build_query(user_input)
         
-        # Retrieve relevant documents
-        retrieval_results = self.retriever.retrieve(
+        retrieval_results = self.retriever.search(
             query=query,
-            top_k=rag_manifest.max_sources,
-            filters=rag_manifest.sources
+            top_k=rag_manifest.max_sources
         )
         
-        # Rerank results
         reranked_results = self.reranker.rerank(
             query=query,
             results=retrieval_results,
             top_n=min(rag_manifest.max_sources, 12)
         )
         
-        # Prepare context for GPT
         context = self._prepare_context(reranked_results, user_input, feedback_state)
-        
-        # Generate response using GPT-4o Mini
         response = await self._generate_gpt_response(context, user_input, rag_manifest)
-        
-        # Parse and validate response
-        parsed_response = self._parse_gpt_response(response)
-        
-        return parsed_response
+        return self._parse_gpt_response(response)
     
     def _build_query(self, user_input: UserInput) -> str:
-        """Build search query from user input"""
         query_parts = []
         
         if user_input.patient_condition:
             query_parts.append(user_input.patient_condition)
-        
         if user_input.desired_outcome:
             query_parts.append(user_input.desired_outcome)
-        
         if user_input.treatment_progression:
             query_parts.append(user_input.treatment_progression)
         
         return " ".join(query_parts)
     
-    def _prepare_context(
-        self,
-        retrieval_results: List[Any],
-        user_input: UserInput,
-        feedback_state: Optional[Dict[str, Any]]
-    ) -> str:
-        """Prepare context from retrieved documents"""
+    def _prepare_context(self, retrieval_results: List[Any], user_input: UserInput, feedback_state: Optional[Dict[str, Any]]) -> str:
         context_parts = []
         
-        # Add user input
         context_parts.append("USER INPUT:")
         context_parts.append(f"Patient Condition: {user_input.patient_condition}")
         context_parts.append(f"Desired Outcome: {user_input.desired_outcome}")
@@ -263,64 +194,85 @@ class GPTRAGSystem:
             context_parts.append(f"Treatment Progression: {user_input.treatment_progression}")
         context_parts.append(f"Input Mode: {user_input.input_mode}")
         
-        # Add feedback state if available
         if feedback_state:
             context_parts.append("\nUSER FEEDBACK:")
-            context_parts.append(json.dumps(feedback_state, indent=2))
+            if hasattr(feedback_state, '__dict__'):
+                feedback_dict = self._convert_feedback_state_to_dict(feedback_state)
+                context_parts.append(json.dumps(feedback_dict, indent=2))
+            else:
+                context_parts.append(json.dumps(feedback_state, indent=2))
         
-        # Add retrieved documents
         context_parts.append("\nRETRIEVED SOURCES:")
-        for i, result in enumerate(retrieval_results[:10]):  # Limit to top 10
+        for i, result in enumerate(retrieval_results[:10]):
             chunk = result.chunk
             context_parts.append(f"\nSource {i+1}:")
             context_parts.append(f"Type: {chunk.source_type}")
             context_parts.append(f"File: {chunk.source_id}")
-            if chunk.section:
-                context_parts.append(f"Section: {chunk.section}")
-            if chunk.page_number:
-                context_parts.append(f"Page: {chunk.page_number}")
-            context_parts.append(f"Content: {chunk.content[:500]}...")  # Truncate for context
+            if chunk.headers:
+                context_parts.append(f"Headers: {', '.join(chunk.headers)}")
+            if chunk.page_ref:
+                context_parts.append(f"Page: {chunk.page_ref}")
+            context_parts.append(f"Content: {chunk.content[:500]}")
         
         return "\n".join(context_parts)
     
-    async def _generate_gpt_response(
-        self,
-        context: str,
-        user_input: UserInput,
-        rag_manifest: RAGManifest
-    ) -> str:
-        """Generate response using GPT-4o Mini"""
+    def _convert_feedback_state_to_dict(self, feedback_state) -> Dict[str, Any]:
+        from datetime import datetime
+        from dataclasses import asdict
         
+        try:
+            if hasattr(feedback_state, '__dataclass_fields__'):
+                feedback_dict = asdict(feedback_state)
+                feedback_dict = self._convert_datetimes_to_strings(feedback_dict)
+                return feedback_dict
+            else:
+                return {
+                    'preferences': getattr(feedback_state, 'preferences', {}),
+                    'blocked_cpts': getattr(feedback_state, 'blocked_cpts', []),
+                    'blocked_exercises': getattr(feedback_state, 'blocked_exercises', []),
+                    'preferred_sources': getattr(feedback_state, 'preferred_sources', []),
+                    'session_id': getattr(feedback_state, 'session_id', ''),
+                    'feedback_entries_count': len(getattr(feedback_state, 'feedback_entries', []))
+                }
+        except Exception as e:
+            logger.warning(f"Could not convert feedback_state: {e}")
+            return {'feedback_available': True, 'conversion_error': str(e)}
+    
+    def _convert_datetimes_to_strings(self, obj):
+        from datetime import datetime
+        
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        elif isinstance(obj, dict):
+            return {key: self._convert_datetimes_to_strings(value) for key, value in obj.items()}
+        elif isinstance(obj, list):
+            return [self._convert_datetimes_to_strings(item) for item in obj]
+        else:
+            return obj
+    
+    async def _generate_gpt_response(self, context: str, user_input: UserInput, rag_manifest: RAGManifest) -> str:
         messages = [
             {"role": "system", "content": SYSTEM_PROMPT},
-            {
-                "role": "user",
-                "content": f"Based on the following context, generate OT recommendations:\n\n{context}"
-            }
+            {"role": "user", "content": f"Based on the following context, generate OT recommendations:\n\n{context}"}
         ]
         
         try:
             response = self.openai_client.chat.completions.create(
                 model=settings.OPENAI_CHAT_MODEL,
                 messages=messages,
-                temperature=0.1,  # Low temperature for consistency
+                temperature=0.1,
                 max_tokens=2000,
                 response_format={"type": "json_object"}
             )
-            
             return response.choices[0].message.content
-            
         except Exception as e:
             logger.error(f"Error generating GPT response: {e}")
-            # Return a fallback response
             return self._get_fallback_response(user_input)
     
     def _parse_gpt_response(self, response: str) -> RecommendationResponse:
-        """Parse GPT response into structured format"""
         try:
             data = json.loads(response)
             
-            # Parse subsections
             subsections = []
             for sub_data in data.get("subsections", []):
                 exercises = []
@@ -351,7 +303,6 @@ class GPTRAGSystem:
                 )
                 subsections.append(subsection)
             
-            # Parse alternatives
             alternatives = []
             for alt_data in data.get("suggested_alternatives", []):
                 sources = []
@@ -383,11 +334,8 @@ class GPTRAGSystem:
             return self._get_fallback_response()
     
     def _get_fallback_response(self, user_input: Optional[UserInput] = None) -> RecommendationResponse:
-        """Get fallback response when GPT fails"""
         return RecommendationResponse(
-            high_level=[
-                "Unable to generate specific recommendations at this time. Please try again or contact support."
-            ],
+            high_level=["Unable to generate recommendations. Please try again."],
             subsections=[],
             suggested_alternatives=[],
             confidence=ConfidenceLevel.LOW

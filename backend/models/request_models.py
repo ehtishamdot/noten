@@ -5,25 +5,19 @@ Request models for Note Ninjas API
 from pydantic import BaseModel, Field
 from typing import Dict, Any, Optional, List
 from enum import Enum
-
-
 class FeedbackType(str, Enum):
-    """Types of feedback"""
     THUMBS_UP = "thumbs_up"
     THUMBS_DOWN = "thumbs_down"
     CORRECTION = "correction"
     PREFERENCE = "preference"
     BLOCK = "block"
-
-
 class UserInput(BaseModel):
-    """User input for recommendations"""
     patient_condition: str = Field(..., description="Patient condition and details")
     desired_outcome: str = Field(..., description="Desired treatment outcome")
     treatment_progression: Optional[str] = Field(None, description="Current treatment progression")
     input_mode: str = Field("simple", description="Input mode: simple or detailed")
     
-    # Detailed fields
+
     age: Optional[str] = Field(None, description="Patient age")
     gender: Optional[str] = Field(None, description="Patient gender")
     diagnosis: Optional[str] = Field(None, description="Primary diagnosis")
@@ -32,10 +26,8 @@ class UserInput(BaseModel):
     date_of_onset: Optional[str] = Field(None, description="Date of onset")
     prior_level_of_function: Optional[str] = Field(None, description="Prior level of function")
     work_life_requirements: Optional[str] = Field(None, description="Work/life requirements")
-
-
 class RAGManifest(BaseModel):
-    """RAG manifest for routing and boosting sources"""
+
     sources: List[str] = Field(default_factory=lambda: ["note_ninjas", "cpg"], description="Source types to use")
     max_sources: int = Field(5, description="Maximum number of sources to retrieve")
     min_confidence: float = Field(0.7, description="Minimum confidence threshold")
@@ -64,19 +56,13 @@ class RAGManifest(BaseModel):
         default_factory=dict,
         description="Additional filters for retrieval"
     )
-
-
 class RecommendationRequest(BaseModel):
-    """Request for generating recommendations"""
     user_input: UserInput = Field(..., description="User input data")
     session_id: str = Field(..., description="Session identifier")
     rag_manifest: Optional[RAGManifest] = Field(None, description="RAG configuration")
     feedback_state: Optional[Dict[str, Any]] = Field(None, description="Current feedback state")
     max_exercises: Optional[int] = Field(8, description="Maximum number of exercises")
-
-
 class FeedbackRequest(BaseModel):
-    """Request for submitting feedback"""
     session_id: str = Field(..., description="Session identifier")
     recommendation_id: Optional[str] = Field(None, description="Specific recommendation ID")
     feedback_type: FeedbackType = Field(..., description="Type of feedback")

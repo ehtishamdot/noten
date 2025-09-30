@@ -13,15 +13,14 @@ from pathlib import Path
 import asyncio
 import openai
 from openai import OpenAI
+import hashlib
 
 from .document_processor import DocumentChunk
 from config import settings
 
 logger = logging.getLogger(__name__)
-
-
 class RetrievalResult:
-    """Result from retrieval system"""
+
     
     def __init__(
         self,
@@ -38,7 +37,7 @@ class RetrievalResult:
         self.query = query
     
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary"""
+
         return {
             "chunk": self.chunk.to_dict(),
             "bm25_score": self.bm25_score,
@@ -46,10 +45,8 @@ class RetrievalResult:
             "combined_score": self.combined_score,
             "query": self.query
         }
-
-
 class Retriever:
-    """Hybrid retrieval system (BM25 + dense vectors)"""
+
     
     def __init__(
         self,
@@ -65,7 +62,7 @@ class Retriever:
         self.document_chunks = []
         self.chunk_embeddings = None
         
-        # Initialize OpenAI client if using OpenAI embeddings
+
         if self.use_openai and settings.OPENAI_API_KEY:
             self.openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
             logger.info(f"Using OpenAI embeddings: {settings.OPENAI_EMBEDDING_MODEL}")
@@ -73,35 +70,41 @@ class Retriever:
             self.use_openai = False
             logger.info(f"Using sentence-transformers: {self.embedding_model_name}")
         
-        # Create vector store directory
+
         self.vector_store_path.mkdir(parents=True, exist_ok=True)
     
     def initialize(self, chunks: List[DocumentChunk]):
-        """Initialize retrieval system with document chunks"""
+
         logger.info(f"Initializing retriever with {len(chunks)} chunks")
         
         self.document_chunks = chunks
         
-        # Initialize embedding model (only if not using OpenAI)
+
         if not self.use_openai:
             self.embedding_model = SentenceTransformer(self.embedding_model_name)
         
-        # Prepare BM25
+
         self._prepare_bm25()
         
-        # Prepare dense embeddings (synchronous version)
-        self._prepare_embeddings_sync()
+
+        if self._load_embeddings(current_chunks=chunks):
+            logger.info("✅ Loaded existing embeddings from disk - skipping regeneration")
+        else:
+            logger.info("🔄 No compatible embeddings found, generating new ones")
+            self.document_chunks = chunks
+
+            self._prepare_embeddings_sync()
         
-        logger.info("Retriever initialized successfully")
+        logger.info("Retriever initialized")
     
     def _prepare_bm25(self):
-        """Prepare BM25 index"""
-        logger.info("Preparing BM25 index...")
+
+        logger.info("Preparing BM25 index")
         
-        # Tokenize documents for BM25
+
         tokenized_docs = []
         for chunk in self.document_chunks:
-            # Simple tokenization - split on whitespace and punctuation
+
             tokens = self._tokenize(chunk.content)
             tokenized_docs.append(tokens)
         
@@ -109,53 +112,53 @@ class Retriever:
         logger.info("BM25 index prepared")
     
     async def _prepare_embeddings(self):
-        """Prepare dense embeddings"""
-        logger.info("Preparing dense embeddings...")
+
+        logger.info("Preparing dense embeddings")
         
         chunk_texts = [chunk.content for chunk in self.document_chunks]
         
         if self.use_openai and self.openai_client:
-            # Use OpenAI embeddings
+
             logger.info(f"Generating embeddings using OpenAI {settings.OPENAI_EMBEDDING_MODEL}")
             self.chunk_embeddings = await self._generate_openai_embeddings(chunk_texts)
         else:
-            # Fallback to sentence-transformers
+
             logger.info(f"Generating embeddings using sentence-transformers")
             self.chunk_embeddings = self.embedding_model.encode(
                 chunk_texts, 
                 show_progress_bar=True
             )
         
-        # Save embeddings to disk
+
         self._save_embeddings()
         
         logger.info("Dense embeddings prepared")
     
     def _prepare_embeddings_sync(self):
-        """Prepare dense embeddings (synchronous version)"""
-        logger.info("Preparing dense embeddings...")
+
+        logger.info("Preparing dense embeddings")
         
         chunk_texts = [chunk.content for chunk in self.document_chunks]
         
         if self.use_openai and self.openai_client:
-            # Use OpenAI embeddings
+
             logger.info(f"Generating embeddings using OpenAI {settings.OPENAI_EMBEDDING_MODEL}")
             self.chunk_embeddings = self._generate_openai_embeddings_sync(chunk_texts)
         else:
-            # Fallback to sentence-transformers
+
             logger.info(f"Generating embeddings using sentence-transformers")
             self.chunk_embeddings = self.embedding_model.encode(
                 chunk_texts, 
                 show_progress_bar=True
             )
         
-        # Save embeddings to disk
+
         self._save_embeddings()
         
         logger.info("Dense embeddings prepared")
     
     def _generate_openai_embeddings_sync(self, texts: List[str]) -> np.ndarray:
-        """Generate embeddings using OpenAI API (synchronous)"""
+
         batch_size = 100  # OpenAI API rate limiting
         all_embeddings = []
         
@@ -174,7 +177,7 @@ class Retriever:
                 
             except Exception as e:
                 logger.error(f"Error generating embeddings for batch {i//batch_size + 1}: {e}")
-                # Fallback to sentence-transformers for this batch
+
                 if self.embedding_model is None:
                     self.embedding_model = SentenceTransformer(self.embedding_model_name)
                 fallback_embeddings = self.embedding_model.encode(batch, show_progress_bar=False)
@@ -183,7 +186,7 @@ class Retriever:
         return np.array(all_embeddings)
     
     async def _generate_openai_embeddings(self, texts: List[str]) -> np.ndarray:
-        """Generate embeddings using OpenAI API"""
+
         batch_size = 100  # OpenAI API rate limiting
         all_embeddings = []
         
@@ -200,7 +203,7 @@ class Retriever:
                 batch_embeddings = [data.embedding for data in response.data]
                 all_embeddings.extend(batch_embeddings)
                 
-                # Add small delay to respect rate limits
+
                 await asyncio.sleep(0.1)
                 
             except Exception as e:
@@ -210,7 +213,7 @@ class Retriever:
         return np.array(all_embeddings)
     
     async def _generate_query_embedding(self, query: str) -> np.ndarray:
-        """Generate embedding for a single query"""
+
         if self.use_openai and self.openai_client:
             try:
                 response = self.openai_client.embeddings.create(
@@ -220,7 +223,26 @@ class Retriever:
                 return np.array([response.data[0].embedding])
             except Exception as e:
                 logger.error(f"Error generating OpenAI query embedding: {e}")
-                # Fallback to sentence-transformers if available
+
+                if self.embedding_model:
+                    return self.embedding_model.encode([query])
+                else:
+                    raise
+        else:
+            return self.embedding_model.encode([query])
+    
+    def _generate_query_embedding_sync(self, query: str) -> np.ndarray:
+
+        if self.use_openai and self.openai_client:
+            try:
+                response = self.openai_client.embeddings.create(
+                    input=[query],
+                    model=settings.OPENAI_EMBEDDING_MODEL
+                )
+                return np.array([response.data[0].embedding])
+            except Exception as e:
+                logger.error(f"Error generating OpenAI query embedding: {e}")
+
                 if self.embedding_model:
                     return self.embedding_model.encode([query])
                 else:
@@ -229,35 +251,55 @@ class Retriever:
             return self.embedding_model.encode([query])
     
     def _save_embeddings(self):
-        """Save embeddings to disk"""
+
         embeddings_file = self.vector_store_path / "embeddings.pkl"
         with open(embeddings_file, 'wb') as f:
             pickle.dump(self.chunk_embeddings, f)
         
-        # Save chunk metadata
+
         metadata_file = self.vector_store_path / "chunks.json"
-        chunk_data = [chunk.to_dict() for chunk in self.document_chunks]
+        chunk_data = {
+            "documents_hash": self._generate_documents_hash(self.document_chunks),
+            "chunks": [chunk.to_dict() for chunk in self.document_chunks]
+        }
         with open(metadata_file, 'w') as f:
             json.dump(chunk_data, f, indent=2)
     
-    def _load_embeddings(self) -> bool:
-        """Load embeddings from disk"""
+    def _load_embeddings(self, current_chunks: Optional[List[DocumentChunk]] = None) -> bool:
+
         embeddings_file = self.vector_store_path / "embeddings.pkl"
         metadata_file = self.vector_store_path / "chunks.json"
         
         if not (embeddings_file.exists() and metadata_file.exists()):
+            logger.info("Embedding files not found")
             return False
         
         try:
-            # Load embeddings
+
+            with open(metadata_file, 'r') as f:
+                metadata = json.load(f)
+            
+
+            if isinstance(metadata, list):
+
+                logger.info("Old metadata format detected, will regenerate embeddings")
+                return False
+            
+            stored_hash = metadata.get("documents_hash")
+            chunk_data = metadata.get("chunks", [])
+            
+
+            if current_chunks and stored_hash:
+                current_hash = self._generate_documents_hash(current_chunks)
+                if stored_hash != current_hash:
+                    logger.info("Document hash mismatch, embeddings need regeneration")
+                    return False
+            
+
             with open(embeddings_file, 'rb') as f:
                 self.chunk_embeddings = pickle.load(f)
             
-            # Load chunk metadata
-            with open(metadata_file, 'r') as f:
-                chunk_data = json.load(f)
-            
-            # Reconstruct chunks
+
             self.document_chunks = []
             for data in chunk_data:
                 chunk = DocumentChunk(
@@ -271,16 +313,32 @@ class Retriever:
                 )
                 self.document_chunks.append(chunk)
             
+
+            if len(self.chunk_embeddings) != len(self.document_chunks):
+                logger.error(f"Embedding count ({len(self.chunk_embeddings)}) doesn't match chunk count ({len(self.document_chunks)})")
+                return False
+            
+            logger.info(f"Successfully loaded {len(self.document_chunks)} chunks with embeddings")
             return True
             
         except Exception as e:
             logger.error(f"Error loading embeddings: {e}")
             return False
     
+    def _generate_documents_hash(self, chunks: List[DocumentChunk]) -> str:
+
+        # Create a stable string representation of all chunks
+        chunks_data = []
+        for chunk in sorted(chunks, key=lambda x: (x.source_id, x.chunk_id)):
+            chunks_data.append(f"{chunk.source_id}|{chunk.chunk_id}|{chunk.content}")
+        
+        combined_data = "\n".join(chunks_data)
+        return hashlib.sha256(combined_data.encode('utf-8')).hexdigest()
+    
     def _tokenize(self, text: str) -> List[str]:
-        """Simple tokenization"""
+
         import re
-        # Remove punctuation and split on whitespace
+
         tokens = re.findall(r'\b\w+\b', text.lower())
         return tokens
     
@@ -292,29 +350,29 @@ class Retriever:
         header_boosts: Optional[Dict[str, float]] = None,
         topic_boosts: Optional[Dict[str, float]] = None
     ) -> List[RetrievalResult]:
-        """Perform hybrid search"""
+
         
         if not self.bm25 or self.chunk_embeddings is None:
             raise ValueError("Retriever not initialized")
         
-        # Tokenize query for BM25
+
         query_tokens = self._tokenize(query)
         
-        # Get BM25 scores
+
         bm25_scores = self.bm25.get_scores(query_tokens)
         
-        # Get dense scores using async method
-        query_embedding = asyncio.run(self._generate_query_embedding(query))
+
+        query_embedding = self._generate_query_embedding_sync(query)
         dense_scores = np.dot(query_embedding, self.chunk_embeddings.T)[0]
         
-        # Normalize scores
+
         bm25_scores = self._normalize_scores(bm25_scores)
         dense_scores = self._normalize_scores(dense_scores)
         
-        # Combine scores (equal weight for now)
+
         combined_scores = 0.5 * bm25_scores + 0.5 * dense_scores
         
-        # Apply boosts
+
         if source_boosts or header_boosts or topic_boosts:
             combined_scores = self._apply_boosts(
                 combined_scores,
@@ -323,7 +381,7 @@ class Retriever:
                 topic_boosts
             )
         
-        # Get top-k results
+
         top_indices = np.argsort(combined_scores)[::-1][:top_k]
         
         results = []
@@ -340,7 +398,7 @@ class Retriever:
         return results
     
     def _normalize_scores(self, scores: np.ndarray) -> np.ndarray:
-        """Normalize scores to [0, 1]"""
+
         if len(scores) == 0:
             return scores
         
@@ -359,25 +417,25 @@ class Retriever:
         header_boosts: Optional[Dict[str, float]],
         topic_boosts: Optional[Dict[str, float]]
     ) -> np.ndarray:
-        """Apply various boosts to scores"""
+
         
         boosted_scores = scores.copy()
         
         for i, chunk in enumerate(self.document_chunks):
             boost_multiplier = 1.0
             
-            # Source boost
+
             if source_boosts and chunk.source_type in source_boosts:
                 boost_multiplier *= source_boosts[chunk.source_type]
             
-            # Header boost
+
             if header_boosts:
                 for header in chunk.headers:
                     for boost_term, boost_value in header_boosts.items():
                         if boost_term.lower() in header.lower():
                             boost_multiplier *= boost_value
             
-            # Topic boost
+
             if topic_boosts:
                 for topic, boost_value in topic_boosts.items():
                     if topic.lower() in chunk.content.lower():
@@ -388,7 +446,7 @@ class Retriever:
         return boosted_scores
     
     def get_sources_info(self) -> Dict[str, Any]:
-        """Get information about available sources"""
+
         source_counts = {}
         source_types = {}
         
@@ -403,7 +461,7 @@ class Retriever:
             source_counts[source_type] += 1
             source_types[source_type].add(source_id)
         
-        # Convert sets to lists
+
         for source_type in source_types:
             source_types[source_type] = list(source_types[source_type])
         

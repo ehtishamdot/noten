@@ -108,7 +108,7 @@ def save_embeddings(embeddings: np.ndarray, vector_store_path: Path):
     with open(embeddings_file, 'wb') as f:
         pickle.dump(embeddings, f)
     
-    logger.info("Embeddings saved successfully")
+    logger.info("Embeddings saved")
 
 
 async def main():

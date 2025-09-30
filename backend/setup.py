@@ -11,10 +11,10 @@ from pathlib import Path
 
 def run_command(command, description):
     """Run a command and handle errors"""
-    print(f"\n{description}...")
+    print(f"\n{description}")
     try:
         result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
-        print(f"✓ {description} completed successfully")
+        print(f"✓ {description} completed ")
         return True
     except subprocess.CalledProcessError as e:
         print(f"✗ {description} failed:")
@@ -167,15 +167,15 @@ def main():
         sys.exit(1)
     
     # Create directories
-    print("\nCreating directories...")
+    print("\nCreating directories")
     create_directories()
     
     # Create .env file
-    print("\nSetting up configuration...")
+    print("\nSetting up configuration")
     create_env_file()
     
     # Check document paths
-    print("\nChecking document paths...")
+    print("\nChecking document paths")
     check_document_paths()
     
     print("\n=== Setup Complete! ===")
