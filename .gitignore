@@ -230,6 +230,43 @@ target/
 /Titled_CPGs/
 /Untitled_CPGs/
 
+# Embeddings and ML model files
+*.pkl
+*.pickle
+*.joblib
+*.npy
+*.npz
+*.h5
+*.hdf5
+*.pt
+*.pth
+*.ckpt
+*.pb
+*.tflite
+*.onnx
+*.bin
+*.safetensors
+embeddings/
+*embeddings*
+vector_store/
+vectorstore/
+vector_db/
+chroma_db/
+faiss_index/
+pinecone_cache/
+weaviate_cache/
+*.index
+*.faiss
+*.chroma
+*.vec
+*.vectors
+*.embedding
+*.embeddings
+models/
+checkpoints/
+.vector_cache/
+.embedding_cache/
+
 # Documentation that might be large
 *.docx
 
