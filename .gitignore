@@ -202,6 +202,8 @@ venv/
 env/
 .venv/
 .env/
+backend/venv/
+backend/env/
 
 # Ruby (if mixed project)
 /.bundle
