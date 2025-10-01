@@ -8,7 +8,7 @@ import {
   type Subsection,
   type Exercise,
   type Alternative 
-} from "@/lib/api";
+} from "../../../lib/api";
 
 interface Suggestion {
   id: string;

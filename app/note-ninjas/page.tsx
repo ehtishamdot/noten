@@ -7,7 +7,7 @@ import {
   generateSessionId, 
   convertFormDataToAPI,
   type RecommendationResponse 
-} from "@/lib/api";
+} from "../../lib/api";
 
 export default function NoteNinjas() {
   const router = useRouter();
