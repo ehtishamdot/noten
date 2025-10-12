@@ -398,3 +398,4 @@ __pycache__/
 # Backup files with specific extensions found
 *.bak.before_*
 
+*.pdf
