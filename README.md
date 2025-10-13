@@ -1,8 +1,21 @@
-# Note Ninjas Backend
+# Note Ninjas - Full Stack Physical Therapy Application
+
+A comprehensive physical therapy workflow application featuring an AI-powered RAG (Retrieval-Augmented Generation) backend for OT recommendations and a modern Next.js frontend.
+
+## Project Structure
+
+This repository contains both the backend and frontend components:
+
+- **Backend**: Python FastAPI server with RAG-based recommendation engine
+- **Frontend**: Next.js application with modern UI for physical therapy workflows
+
+---
+
+## 🔧 Backend - Note Ninjas RAG Engine
 
 RAG-only OT recommendation engine with feedback handling for the Note Ninjas application.
 
-## Features
+### Backend Features
 
 - **RAG-Only Recommendations**: Grounded in retrieved sources (Note Ninjas → CPGs → Textbooks)
 - **Hybrid Retrieval**: BM25 + dense vector search with cross-encoder reranking
@@ -11,7 +24,7 @@ RAG-only OT recommendation engine with feedback handling for the Note Ninjas app
 - **Structured Output**: JSON responses with exercises, cues, documentation, and CPT codes
 - **Source Prioritization**: Note Ninjas content prioritized over CPGs and textbooks
 
-## Architecture
+### Backend Architecture
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -19,193 +32,132 @@ RAG-only OT recommendation engine with feedback handling for the Note Ninjas app
 │   Processing    │───▶│   System        │───▶│   Engine        │
 │   (PDF/DOCX)    │    │   (BM25+Dense)  │    │   (RAG)         │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │
-                                ▼
-                       ┌─────────────────┐
-                       │   Feedback      │
-                       │   Manager       │
-                       │   (Session)     │
-                       └─────────────────┘
+                               │
+                               ▼
+                      ┌─────────────────┐
+                      │   Feedback      │
+                      │   Manager       │
+                      │   (Session)     │
+                      └─────────────────┘
 ```
 
-## Installation
+### Backend Installation
 
-1. **Clone the repository**:
-   ```bash
-   git clone <repository-url>
-   cd note-ninjas/backend
-   ```
-
-2. **Create virtual environment**:
+1. **Navigate to backend directory and create virtual environment**:
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
-3. **Install dependencies**:
+2. **Install dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
 
-4. **Set up environment variables**:
+3. **Set up environment variables**:
    ```bash
    cp .env.example .env
    # Edit .env with your configuration
    ```
 
-## Configuration
-
-Create a `.env` file with the following variables:
-
-```env
-# Document paths
-NOTE_NINJAS_PATH=../NoteNinjas
-TITLED_CPG_PATH=../Titled_CPGs
-UNTITLED_CPG_PATH=../Untitled_CPGs
-VECTOR_STORE_PATH=./vector_store
-
-# API settings
-ALLOWED_ORIGINS=["http://localhost:3000"]
-
-# RAG settings
-CHUNK_SIZE=1000
-CHUNK_OVERLAP=200
-TOP_K_RETRIEVAL=50
-TOP_N_RERANK=12
-
-# Model settings
-EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
-RERANK_MODEL=cross-encoder/ms-marco-MiniLM-L-6-v2
-
-# Logging
-LOG_LEVEL=INFO
-```
-
-## Usage
-
-### Development Server
+### Backend Usage
 
 ```bash
 # Run development server
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
-```
 
-### Production Server
-
-```bash
 # Run production server
 uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4
 ```
 
-## API Endpoints
+---
 
-### Health Check
-```http
-GET /health
-```
+## 🌐 Frontend - NextGenPT Demo
 
-### Get Recommendations
-```http
-POST /recommendations
-Content-Type: application/json
+A modern physical therapy workflow application built with Next.js.
 
-{
-  "user_input": {
-    "patient_condition": "21 year old female with torn rotator cuff",
-    "desired_outcome": "increase right shoulder abduction painless arc to 150° in 3-4 weeks",
-    "treatment_progression": "progressed from 130° to 135° in week 1"
-  },
-  "session_id": "session_123",
-  "rag_manifest": {
-    "source_boosts": {
-      "note_ninjas": 1.0,
-      "cpg": 0.8,
-      "textbook": 0.6
-    }
-  }
-}
-```
+### Frontend Features
 
-### Submit Feedback
-```http
-POST /feedback
-Content-Type: application/json
+- Clean, modern UI with a subtle blue color scheme
+- Patient selection interface
+- Responsive design with Tailwind CSS
+- TypeScript for type safety
+- Integration ready for backend API
 
-{
-  "session_id": "session_123",
-  "recommendation_id": "rec_456",
-  "feedback_type": "thumbs_down",
-  "feedback_data": {
-    "reason": "too_advanced"
-  }
-}
-```
+### Frontend Installation
 
-### Get Session Feedback
-```http
-GET /feedback/{session_id}
-```
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
 
-### Get Available Sources
-```http
-GET /sources
-```
+2. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
 
-## Document Processing
+3. **Open [http://localhost:3000](http://localhost:3000)** with your browser to see the application.
 
-The system processes documents in the following priority order:
+### Patient Selection
 
-1. **Note Ninjas** (highest priority)
-   - Documentation Banks
-   - CPT/Billing information
-   - OTPF/terminology
-   - Internal notes
+The demo includes three patient profiles:
 
-2. **Clinical Practice Guidelines** (secondary)
-   - Evidence-based recommendations
-   - Contraindications
-   - Safety guidelines
+- John Doe (Male, 45 years old)
+- Emily Smith (Female, 32 years old)
+- Maria Garcia (Female, 58 years old)
 
-3. **Textbooks/Other** (tertiary)
-   - Background information
-   - Definitions
+Click on any patient card to begin the intake process (functionality to be expanded).
 
-## RAG System
+---
 
-### Retrieval Process
+## 🚀 Full Stack Development
 
-1. **Query Building**: Extract queries from user input
-2. **Hybrid Search**: BM25 + dense vector search
-3. **Reranking**: Cross-encoder reranking for relevance
-4. **Source Filtering**: Ensure Note Ninjas sources per exercise
+### Running Both Services
 
-### Response Generation
+1. **Start the backend server** (Terminal 1):
+   ```bash
+   source venv/bin/activate
+   uvicorn main:app --reload --port 8000
+   ```
 
-1. **High-level Recommendations**: Extract treatment principles
-2. **Subsections**: Group exercises by topic/function
-3. **Exercises**: Parse structured exercise data
-4. **Alternatives**: Extract alternative approaches from CPGs
+2. **Start the frontend server** (Terminal 2):
+   ```bash
+   npm run dev
+   ```
 
-## Feedback System
+### Tech Stack
 
-### Supported Feedback Types
+**Backend:**
+- **FastAPI** - Modern Python web framework
+- **Python 3.11+** - Programming language
+- **Sentence Transformers** - Embedding models
+- **ChromaDB/FAISS** - Vector databases
+- **Pydantic** - Data validation
 
-- `thumbs_up`: Positive feedback
-- `thumbs_down`: Negative feedback with reasons
-- `correction`: CPT or content corrections
-- `preference`: User preferences (difficulty, style)
-- `block`: Block specific content
+**Frontend:**
+- **Next.js 14** - React framework
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Styling
+- **React 18** - UI library
 
-### Feedback Processing
+---
 
-- **Session-based**: Feedback tied to user sessions
-- **Preference Learning**: Adjust future recommendations
-- **Content Filtering**: Block inappropriate content
-- **CPT Corrections**: Learn correct billing codes
+## 📚 API Documentation
 
-## Development
+When the backend is running, visit `http://localhost:8000/docs` for interactive API documentation.
 
-### Code Structure
+### Key Endpoints
+
+- `POST /recommendations` - Get AI-powered therapy recommendations
+- `POST /feedback` - Submit user feedback
+- `GET /health` - Health check
+- `GET /sources` - Available document sources
+
+---
+
+## 🏗️ Development
+
+### Backend Structure
 
 ```
 backend/
@@ -213,96 +165,53 @@ backend/
 ├── config.py              # Configuration settings
 ├── requirements.txt       # Dependencies
 ├── core/                  # Core RAG system
-│   ├── __init__.py
 │   ├── rag_system.py     # Main RAG orchestrator
 │   ├── document_processor.py  # Document processing
 │   ├── retriever.py      # Hybrid retrieval
 │   ├── reranker.py       # Cross-encoder reranking
 │   └── feedback_manager.py    # Feedback handling
 ├── models/               # Pydantic models
-│   ├── __init__.py
-│   ├── request_models.py
-│   └── response_models.py
 └── tests/               # Test files
-    ├── __init__.py
-    └── test_rag_system.py
 ```
 
-### Running Tests
+### Frontend Structure
+
+```
+app/
+├── page.tsx              # Home page
+├── layout.tsx            # Root layout
+├── globals.css           # Global styles
+├── components/           # React components
+│   ├── LoginPage.tsx
+│   └── HistorySidebar.tsx
+├── note-ninjas/         # Main app pages
+└── history/             # History pages
+```
+
+---
+
+## 🧪 Testing
 
 ```bash
+# Backend tests
 pytest tests/ -v
+
+# Frontend tests (when available)
+npm test
 ```
 
-### Code Formatting
+---
 
-```bash
-black backend/
-flake8 backend/
-mypy backend/
-```
+## 📄 License
 
-## Deployment
+[Your License Here]
 
-### Docker
+---
 
-```dockerfile
-FROM python:3.11-slim
-
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-
-COPY . .
-EXPOSE 8000
-
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-```
-
-### Environment Variables for Production
-
-```env
-# Production settings
-LOG_LEVEL=WARNING
-FEEDBACK_STORAGE_TYPE=database
-DATABASE_URL=postgresql://user:pass@localhost/note_ninjas
-REDIS_URL=redis://localhost:6379
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Document Processing Errors**
-   - Check file permissions
-   - Verify document formats are supported
-   - Check for corrupted files
-
-2. **Memory Issues**
-   - Reduce `CHUNK_SIZE` and `TOP_K_RETRIEVAL`
-   - Use smaller embedding models
-   - Process documents in batches
-
-3. **Slow Retrieval**
-   - Use GPU acceleration for embeddings
-   - Implement caching for frequent queries
-   - Optimize chunk sizes
-
-### Performance Optimization
-
-- Use GPU for embedding generation
-- Implement vector store caching
-- Batch process documents
-- Use connection pooling for databases
-
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
 4. Add tests
 5. Submit a pull request
-
-## License
-
-[Your License Here]
