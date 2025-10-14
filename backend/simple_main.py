@@ -8,11 +8,14 @@ from typing import Optional
 from openai import OpenAI
 import json
 import os
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 openai_client: Optional[OpenAI] = None
+executor = ThreadPoolExecutor(max_workers=6)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -20,13 +23,14 @@ async def lifespan(app: FastAPI):
     logger.info("Initializing simple GPT backend (no RAG)")
     try:
         openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        logger.info("Backend initialized")
+        logger.info("Backend initialized with parallel processing")
         yield
     except Exception as e:
         logger.error(f"Failed to initialize: {e}")
         raise
     finally:
         logger.info("Shutting down")
+        executor.shutdown(wait=True)
 
 app = FastAPI(title="Note Ninjas OT Recommender", version="1.0.0", lifespan=lifespan)
 
@@ -51,124 +55,66 @@ class RecommendationRequest(BaseModel):
 async def health_check():
     return {"status": "healthy", "version": "1.0.0", "rag_system_ready": False, "feedback_system_ready": False}
 
-@app.post("/recommendations")
-async def get_recommendations(request: RecommendationRequest):
+def generate_subsection(subsection_info: dict, patient_condition: str, desired_outcome: str) -> dict:
+    """Generate a single subsection using GPT-4o"""
     try:
-        logger.info(f"Processing request for session: {request.session_id}")
         client = openai_client
         
-        prompt = f"""You are an expert occupational therapist. Generate 6 treatment recommendation subsections with exercises SPECIFIC to this patient.
+        prompt = f"""Generate 1 OT treatment subsection for: {patient_condition} | Goal: {desired_outcome}
 
-Patient Condition: {request.user_input.patient_condition}
-Treatment Goal: {request.user_input.desired_outcome}
+Subsection: {subsection_info['title']} - {subsection_info['focus']}
 
-Generate exactly 6 subsections following these treatment categories, but customize the exercises for THIS specific patient:
+Create 2-3 patient-specific exercises. Description MUST mention all exercise names naturally.
 
-1. Manual Therapy Techniques - Select appropriate manual techniques for this condition
-2. Progressive Strengthening Protocol - Choose strengthening exercises targeting this patient's deficits
-3. Neuromuscular Re-education - Select coordination/balance exercises appropriate for this case
-4. Work-Specific Functional Training - Create functional activities matching the desired outcome
-5. Pain Management Modalities - Choose modalities appropriate for this condition
-6. Home Exercise Program - Design home exercises this patient can safely perform
-
-CRITICAL REQUIREMENTS:
-1. Each subsection MUST have MINIMUM 2 exercises (preferably 3)
-2. Write a description that NATURALLY mentions EACH exercise name by its EXACT name
-3. Exercise names must appear word-for-word in the description text
-4. Make exercise names specific (e.g., "Shoulder External Rotation with Theraband" not just "strengthening")
-
-STEP-BY-STEP PROCESS:
-1. First, decide on 2-3 specific exercises for the subsection
-2. Then write a description that naturally mentions all of them by name
-3. Then provide full details for each exercise
-
-EXAMPLE of good description mentioning exercises:
-"Begin with Scapular Mobilizations to restore proper shoulder blade motion, then progress to Glenohumeral Joint Mobilizations for improved shoulder socket mobility. Soft Tissue Release techniques can help address muscle tension and restrictions."
-
-EXERCISE FORMAT (for each exercise):
+Each exercise needs:
 - name: Specific exercise name
-- description: 2-3 sentences about technique and positioning
-- cues: EXACTLY 3 cues (mix of Verbal, Tactile, Visual)
-- documentation_examples: EXACTLY 1 detailed clinical example
-- cpt_codes: 1 appropriate CPT code
+- description: 2-3 detailed sentences about technique and positioning
+- cues: EXACTLY 3 detailed cues (each cue should be 1-2 full sentences explaining the technique clearly)
+  * Verbal cue: What to say to the patient (detailed instruction)
+  * Tactile cue: How to physically guide or touch the patient (detailed technique)
+  * Visual cue: What to show or how to demonstrate (detailed visual feedback)
+- documentation_examples: 1 detailed clinical note (2-3 sentences)
+- cpt_codes: 1 appropriate CPT code with full details
 - notes: 1 sentence about contraindications
 
-JSON format:
+Example cue format:
+"Verbal: Instruct the patient to relax their shoulder muscles completely and breathe deeply, explaining that they should feel a gentle stretch but no sharp pain as you perform the mobilization technique."
+
+Format:
 {{
-  "high_level": ["Patient-specific recommendation 1", "Patient-specific recommendation 2"],
-  "subsections": [
+  "title": "{subsection_info['title']}",
+  "description": "Start with [Exercise 1 name] to address X, then [Exercise 2 name] for Y, and optionally [Exercise 3 name] to improve Z.",
+  "rationale": "Clinical rationale for this approach",
+  "exercises": [
     {{
-      "title": "Manual Therapy Techniques",
-      "description": "Begin with Scapular Mobilizations to restore proper shoulder blade motion, then progress to Glenohumeral Joint Mobilizations for improved shoulder socket mobility. Soft Tissue Release techniques can help address muscle tension and restrictions.",
-      "rationale": "Manual therapy addresses movement restrictions",
-      "exercises": [
-        {{
-          "name": "Scapular Mobilizations",
-          "description": "Patient positioned side-lying with affected shoulder up. Therapist stabilizes thorax while mobilizing scapula in multiple directions. Perform 2-3 sets of 10 repetitions in each direction.",
-          "cues": [
-            "Verbal: 'Let your shoulder blade relax completely as I move it'",
-            "Tactile: Place hands on medial border and inferior angle of scapula for control",
-            "Visual: Show patient scapular movement patterns on skeleton model"
-          ],
-          "documentation_examples": [
-            "Pt received scapular mobilizations in side-lying position to address scapulothoracic restrictions. Mobilizations performed in all planes with focus on inferior and lateral glide. Pt tolerated well with improved scapular mobility and reduced compensatory patterns during shoulder elevation."
-          ],
-          "cpt_codes": [
-            {{"code": "97140", "description": "Manual therapy techniques", "notes": "One or more regions, 15 minutes"}}
-          ],
-          "notes": "Avoid in acute shoulder trauma or severe osteoporosis"
-        }},
-        {{
-          "name": "Glenohumeral Joint Mobilizations",
-          "description": "Patient supine with arm in resting position. Apply Grade III inferior glides to increase overhead mobility. Progress to posterior glides for internal rotation improvements.",
-          "cues": [
-            "Verbal: 'This should feel like a gentle stretch deep in your shoulder joint'",
-            "Tactile: Stabilize scapula while applying mobilization force at humeral head",
-            "Visual: Use treatment table positioning to demonstrate proper arm angle"
-          ],
-          "documentation_examples": [
-            "Grade III inferior glides applied to R glenohumeral joint in supine to address capsular restrictions. Sustained mobilizations held 30 seconds with 3 repetitions. Passive shoulder flexion improved from 140° to 155° post-treatment with decreased pain at end range."
-          ],
-          "cpt_codes": [
-            {{"code": "97140", "description": "Manual therapy techniques", "notes": "Joint mobilization, 15 minute increments"}}
-          ],
-          "notes": "Contraindicated in acute inflammation or joint instability"
-        }},
-        {{
-          "name": "Soft Tissue Release",
-          "description": "Apply sustained pressure to rotator cuff muscles and surrounding soft tissue. Focus on areas of restriction with cross-fiber techniques. Treatment time 8-12 minutes per muscle group.",
-          "cues": [
-            "Verbal: 'Tell me if the pressure becomes too intense - it should be uncomfortable but tolerable'",
-            "Tactile: Apply gradually increasing pressure perpendicular to muscle fibers",
-            "Visual: Show patient trigger point locations on anatomy chart"
-          ],
-          "documentation_examples": [
-            "Soft tissue release applied to R supraspinatus and infraspinatus muscles to address myofascial restrictions. Cross-fiber techniques used for 10 minutes with patient reporting decreased muscle tension. Improved tolerance to shoulder elevation post-treatment."
-          ],
-          "cpt_codes": [
-            {{"code": "97140", "description": "Manual therapy techniques", "notes": "Soft tissue mobilization, 15 minutes"}}
-          ],
-          "notes": "May cause temporary soreness; avoid over bony prominences"
-        }}
-      ]
-    }},
-    ... (5 more subsections with same format)
-  ],
-  "suggested_alternatives": ["Alternatives specific to this case"],
-  "confidence": "high"
+      "name": "Specific Exercise Name",
+      "description": "Detailed description of how to perform this exercise. Patient positioning and setup. Progression and modifications as needed.",
+      "cues": [
+        "Verbal: Detailed instruction to give the patient explaining what to do and what they should feel during the exercise.",
+        "Tactile: Detailed explanation of where and how to place your hands to guide the patient through proper form and positioning.",
+        "Visual: Detailed description of what to show the patient, such as using mirrors, diagrams, or demonstrating the movement yourself."
+      ],
+      "documentation_examples": [
+        "Comprehensive clinical note documenting the exercise performed, patient positioning, number of repetitions or duration, patient response and tolerance, and measurable outcomes achieved."
+      ],
+      "cpt_codes": [
+        {{"code": "97XXX", "description": "Full billing code description", "notes": "Specific billing notes and time requirements"}}
+      ],
+      "notes": "Detailed contraindication or precaution to consider for this specific exercise"
+    }}
+  ]
 }}
 
-CRITICAL: The description MUST mention every exercise by its exact name. Return ONLY valid JSON.
-Specific to: {request.user_input.patient_condition} | Goal: {request.user_input.desired_outcome}"""
+Return ONLY JSON. Make cues detailed and comprehensive."""
 
         response = client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4o",  # Using full GPT-4o for best quality
             messages=[
-                {"role": "system", "content": "You are an expert OT. Generate patient-specific exercises. CRITICAL: The description text must mention every exercise by its exact name so they can be highlighted. Return valid JSON with exactly 3 cues and 1 doc example per exercise."},
+                {"role": "system", "content": "Expert OT. Generate patient-specific exercises with DETAILED cues (1-2 sentences each). Description must mention all exercise names. Return JSON only."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.8,
-            max_tokens=5000
+            max_tokens=2000
         )
         
         content = response.choices[0].message.content.strip()
@@ -182,8 +128,61 @@ Specific to: {request.user_input.patient_condition} | Goal: {request.user_input.
                 lines = lines[:-1]
             content = "\n".join(lines)
         
-        data = json.loads(content)
-        return data
+        return json.loads(content)
+        
+    except Exception as e:
+        logger.error(f"Error generating subsection {subsection_info['title']}: {e}")
+        # Return fallback subsection
+        return {
+            "title": subsection_info['title'],
+            "description": f"Treatment approach for {subsection_info['title'].lower()}.",
+            "rationale": "Evidence-based intervention",
+            "exercises": []
+        }
+
+@app.post("/recommendations")
+async def get_recommendations(request: RecommendationRequest):
+    try:
+        logger.info(f"Processing parallel request for session: {request.session_id}")
+        
+        # Define 6 subsections to generate in parallel
+        subsection_configs = [
+            {"title": "Manual Therapy Techniques", "focus": "mobilizations, soft tissue work"},
+            {"title": "Progressive Strengthening Protocol", "focus": "strengthening exercises"},
+            {"title": "Neuromuscular Re-education", "focus": "coordination, balance, proprioception"},
+            {"title": "Work-Specific Functional Training", "focus": "functional activities for goals"},
+            {"title": "Pain Management Modalities", "focus": "modalities for pain control"},
+            {"title": "Home Exercise Program", "focus": "home exercises patient can do"}
+        ]
+        
+        # Generate all subsections in parallel using ThreadPoolExecutor
+        loop = asyncio.get_event_loop()
+        tasks = [
+            loop.run_in_executor(
+                executor,
+                generate_subsection,
+                config,
+                request.user_input.patient_condition,
+                request.user_input.desired_outcome
+            )
+            for config in subsection_configs
+        ]
+        
+        # Wait for all parallel tasks to complete
+        subsections = await asyncio.gather(*tasks)
+        
+        # Build final response
+        response_data = {
+            "high_level": [
+                f"Focus on progressive treatment for {request.user_input.patient_condition}",
+                f"Incorporate activities to achieve: {request.user_input.desired_outcome}"
+            ],
+            "subsections": subsections,
+            "suggested_alternatives": ["Consider aquatic therapy if appropriate", "Explore telehealth options for home program"],
+            "confidence": "high"
+        }
+        
+        return response_data
         
     except Exception as e:
         logger.error(f"Error: {e}", exc_info=True)
