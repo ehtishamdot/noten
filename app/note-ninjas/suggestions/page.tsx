@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { noteNinjasAPI } from "@/lib/api";
 import HistorySidebar from "../../components/HistorySidebar";
 
 interface CaseHistory {
@@ -50,6 +51,7 @@ export default function BrainstormingSuggestions() {
   const [feedbackContext, setFeedbackContext] = useState<{
     title: string;
     type: string;
+    content?: string;
   } | null>(null);
   const [feedbackRating, setFeedbackRating] = useState<
     "good" | "needs-work" | null
@@ -128,8 +130,8 @@ export default function BrainstormingSuggestions() {
     setSelectedExercise(null);
   };
 
-  const openFeedbackModal = (title: string, type: string) => {
-    setFeedbackContext({ title, type });
+  const openFeedbackModal = (title: string, type: string, content?: string) => {
+    setFeedbackContext({ title, type, content });
     setFeedbackRating(null);
     setFeedbackComments("");
     setShowFeedbackModal(true);
@@ -142,13 +144,56 @@ export default function BrainstormingSuggestions() {
     setFeedbackComments("");
   };
 
-  const submitFeedback = () => {
-    console.log("Feedback submitted:", {
-      context: feedbackContext,
-      rating: feedbackRating,
-      comments: feedbackComments,
-    });
-    closeFeedbackModal();
+  const submitFeedback = async () => {
+    if (!feedbackRating) {
+      alert("Please select a rating");
+      return;
+    }
+
+    try {
+      // Get case ID from stored case data
+      const caseId = (caseData as any)?.caseId;
+      
+      // Build comprehensive feedback data with hierarchy
+      const feedbackPayload = {
+        case_id: caseId,
+        feedback_type: feedbackRating,
+        feedback_data: {
+          // Basic info
+          scope: feedbackContext?.type || "",
+          item_title: feedbackContext?.title || "",
+          rating: feedbackRating,
+          
+          // Hierarchy - which exercise this belongs to
+          exercise_name: selectedExercise?.name || null,
+          exercise_description: selectedExercise?.description || null,
+          
+          // Full item content (the actual cue text, doc text, etc.)
+          item_content: feedbackContext?.content || null,
+          
+          // Case context
+          case_data: {
+            patient_condition: caseData?.patientCondition || null,
+            desired_outcome: caseData?.desiredOutcome || null,
+            input_mode: caseData?.inputMode || null,
+          },
+          
+          // Timestamp
+          submitted_at: new Date().toISOString(),
+        },
+        comment: feedbackComments || undefined,
+      };
+      
+      console.log("Submitting feedback:", feedbackPayload);
+      
+      await noteNinjasAPI.submitFeedback(feedbackPayload);
+      
+      console.log("Feedback submitted successfully");
+      closeFeedbackModal();
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      alert("Failed to submit feedback. Please try again.");
+    }
   };
 
   const renderDescriptionWithClickableExercises = (suggestion: Suggestion) => {
@@ -326,9 +371,20 @@ export default function BrainstormingSuggestions() {
                 key={suggestion.id}
                 className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow border border-gray-200 hover:border-purple-300"
               >
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  {suggestion.title}
-                </h3>
+                <div className="flex justify-between items-start mb-3">
+                  <h3 className="text-lg font-semibold text-gray-900 flex-1">
+                    {suggestion.title}
+                  </h3>
+                  <button
+                    onClick={() => openFeedbackModal(suggestion.title, "suggestion")}
+                    className="ml-2 text-gray-400 hover:text-purple-600 transition-colors"
+                    title="Provide feedback"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                    </svg>
+                  </button>
+                </div>
                 <div
                   className="text-gray-600 text-sm leading-relaxed"
                   onClick={(e) => handleExerciseClick(e, suggestion)}
@@ -373,9 +429,20 @@ export default function BrainstormingSuggestions() {
                   <div className="space-y-6">
                     {/* Exercise Description */}
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                        Exercise
-                      </h3>
+                      <div className="flex justify-between items-center mb-3">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          Exercise
+                        </h3>
+                        <button
+                          onClick={() => openFeedbackModal(`${selectedExercise.name} - Exercise Description`, "exercise", selectedExercise.description)}
+                          className="text-gray-400 hover:text-purple-600 transition-colors"
+                          title="Feedback on exercise description"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                          </svg>
+                        </button>
+                      </div>
                       <p className="text-gray-700 leading-relaxed">
                         {selectedExercise.description}
                       </p>
@@ -389,9 +456,22 @@ export default function BrainstormingSuggestions() {
                         </h3>
                         <ul className="space-y-2">
                           {selectedExercise.cues.map((cue, index) => (
-                            <li key={index} className="flex items-start gap-2">
-                              <span className="inline-block w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></span>
-                              <span className="text-gray-700 flex-1">{cue}</span>
+                            <li key={index} className="flex items-start justify-between gap-3 group hover:bg-gray-50 p-2 rounded transition-colors">
+                              <div className="flex items-start gap-2 flex-1">
+                                <span className="inline-block w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></span>
+                                <span className="text-gray-700 flex-1">{cue}</span>
+                              </div>
+                              <div className="flex gap-1  transition-opacity">
+                                <button
+                                  onClick={() => openFeedbackModal(`${selectedExercise.name} - Cue ${index + 1}`, "cue", cue)}
+                                  className="text-gray-400 hover:text-purple-600 transition-colors p-1"
+                                  title="Feedback on this cue"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                                  </svg>
+                                </button>
+                              </div>
                             </li>
                           ))}
                         </ul>
@@ -406,10 +486,21 @@ export default function BrainstormingSuggestions() {
                         </h3>
                         <div className="space-y-4">
                           {selectedExercise.documentation_examples.map((doc, index) => (
-                            <div key={index} className="bg-gray-50 rounded-lg p-4">
-                              <span className="text-sm font-medium text-purple-600 block mb-2">
-                                Example {index + 1}
-                              </span>
+                            <div key={index} className="bg-gray-50 rounded-lg p-4 relative group hover:bg-gray-100 transition-colors">
+                              <div className="flex justify-between items-start mb-2">
+                                <span className="text-sm font-medium text-purple-600">
+                                  Example {index + 1}
+                                </span>
+                                <button
+                                  onClick={() => openFeedbackModal(`${selectedExercise.name} - Documentation Example ${index + 1}`, "documentation", doc)}
+                                  className="text-gray-400 hover:text-purple-600 transition-colors "
+                                  title="Feedback on this example"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                                  </svg>
+                                </button>
+                              </div>
                               <p className="text-gray-700 text-sm leading-relaxed italic">
                                 "{doc}"
                               </p>
@@ -429,15 +520,26 @@ export default function BrainstormingSuggestions() {
                           {selectedExercise.cpt_codes.map((billing, index) => (
                             <div
                               key={index}
-                              className="bg-green-50 rounded-lg p-4 border border-green-200"
+                              className="bg-green-50 rounded-lg p-4 border border-green-200 group hover:bg-green-100 transition-colors"
                             >
-                              <div className="flex items-center gap-3 mb-2">
-                                <span className="font-semibold text-green-800 text-lg">
-                                  CPT {billing.code}
-                                </span>
-                                <span className="text-green-700 font-medium">
-                                  {billing.description}
-                                </span>
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-3">
+                                  <span className="font-semibold text-green-800 text-lg">
+                                    CPT {billing.code}
+                                  </span>
+                                  <span className="text-green-700 font-medium">
+                                    {billing.description}
+                                  </span>
+                                </div>
+                                <button
+                                  onClick={() => openFeedbackModal(`CPT ${billing.code} - ${billing.description}`, "cpt_code", `${billing.code}: ${billing.description} - ${billing.notes}`)}
+                                  className="text-green-600 hover:text-green-800 transition-colors "
+                                  title="Feedback on this CPT code"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                                  </svg>
+                                </button>
                               </div>
                               <p className="text-green-700 text-sm">
                                 {billing.notes}
@@ -457,6 +559,7 @@ export default function BrainstormingSuggestions() {
                     )}
                   </div>
 
+
                   {/* Modal Footer */}
                   <div className="mt-6 pt-4 border-t border-gray-200 flex justify-end">
                     <button
@@ -470,6 +573,77 @@ export default function BrainstormingSuggestions() {
               </div>
             </div>
           )}
+
+          {/* Feedback Modal */}
+          {showFeedbackModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">
+                  Provide Feedback
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Help us improve: {feedbackContext?.title}
+                </p>
+                
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    How would you rate this?
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setFeedbackRating("good")}
+                      className={`flex-1 py-2 px-4 rounded-md border transition-colors ${
+                        feedbackRating === "good"
+                          ? "bg-green-100 border-green-500 text-green-700"
+                          : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      👍 Helpful
+                    </button>
+                    <button
+                      onClick={() => setFeedbackRating("needs-work")}
+                      className={`flex-1 py-2 px-4 rounded-md border transition-colors ${
+                        feedbackRating === "needs-work"
+                          ? "bg-red-100 border-red-500 text-red-700"
+                          : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      👎 Needs Work
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Additional Comments (Optional)
+                  </label>
+                  <textarea
+                    value={feedbackComments}
+                    onChange={(e) => setFeedbackComments(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    rows={3}
+                    placeholder="Tell us more about your experience..."
+                  />
+                </div>
+
+                <div className="flex gap-3 justify-end">
+                  <button
+                    onClick={closeFeedbackModal}
+                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={submitFeedback}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+                  >
+                    Submit Feedback
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
         </div>
       </main>
     </>
