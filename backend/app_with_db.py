@@ -1,0 +1,543 @@
+from fastapi import FastAPI, HTTPException, Depends, Header
+from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+import uvicorn
+import logging
+import os
+from dotenv import load_dotenv
+load_dotenv()
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+from typing import Optional, List
+from pydantic import BaseModel
+from uuid import UUID
+import secrets
+import json
+
+from openai import OpenAI
+
+# Import database models and connection
+from database.models import User, Case, Feedback
+from database.connection import get_db, init_db
+from schemas.user import LoginRequest, LoginResponse, UserResponse, UserUpdate
+from schemas.case import CaseCreate, CaseResponse, CaseListResponse, CaseUpdate
+from schemas.feedback import FeedbackCreate, FeedbackResponse
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+openai_client: Optional[OpenAI] = None
+executor = ThreadPoolExecutor(max_workers=6)
+
+# Simple token storage (in production, use Redis or JWT)
+active_tokens = {}
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global openai_client
+    logger.info("Initializing backend with database support")
+    try:
+        # Initialize OpenAI
+        openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        
+        # Initialize database
+        await init_db()
+        logger.info("Database initialized")
+        
+        logger.info("Backend initialized successfully")
+        yield
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Failed to initialize: {e}")
+        raise
+    finally:
+        logger.info("Shutting down")
+        executor.shutdown(wait=True)
+
+app = FastAPI(title="Note Ninjas OT Recommender", version="2.0.0", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ===== Helper Functions =====
+
+def create_token(user_id: UUID) -> str:
+    """Create a simple session token"""
+    token = secrets.token_urlsafe(32)
+    active_tokens[token] = str(user_id)
+    return token
+
+async def get_current_user(
+    authorization: Optional[str] = Header(None),
+    db: AsyncSession = Depends(get_db)
+) -> User:
+    """Dependency to get current user from token"""
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    token = authorization.replace("Bearer ", "")
+    user_id = active_tokens.get(token)
+    
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    result = await db.execute(select(User).where(User.id == UUID(user_id)))
+    user = result.scalar_one_or_none()
+    
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+    
+    return user
+
+async def generate_case_name(input_data: dict) -> str:
+    """Generate case name using GPT"""
+    try:
+        client = openai_client
+        condition = input_data.get("patient_condition", "")
+        prompt = f"Generate a short case name (max 50 chars) for: {condition}. Format like '21 Y/o Rotator Cuff Injury' or 'Post-Concussion Balance Issues'. Return ONLY the name, no quotes or explanations."
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a medical case naming expert. Return only the case name."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=50
+        )
+        
+        name = response.choices[0].message.content.strip().replace('"', '')
+        return name[:50]  # Ensure max length
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Error generating case name: {e}")
+        # Fallback to simple name
+        condition = input_data.get("patient_condition", "Unknown Case")
+        return condition[:50]
+
+# ===== Existing recommendation generation =====
+
+def generate_subsection(subsection_info: dict, patient_condition: str, desired_outcome: str) -> dict:
+    """Generate a single subsection using GPT-4o"""
+    try:
+        client = openai_client
+        
+        prompt = f"""Generate 1 OT treatment subsection for: {patient_condition} | Goal: {desired_outcome}
+
+Subsection: {subsection_info['title']} - {subsection_info['focus']}
+
+Create 2-3 patient-specific exercises. Description MUST mention all exercise names naturally.
+
+Each exercise needs:
+- name: Specific exercise name
+- description: 2-3 detailed sentences about technique and positioning
+- cues: EXACTLY 3 detailed cues (each cue should be 1-2 full sentences explaining the technique clearly)
+  * Verbal cue: What to say to the patient (detailed instruction)
+  * Tactile cue: How to physically guide or touch the patient (detailed technique)
+  * Visual cue: What to show or how to demonstrate (detailed visual feedback)
+- documentation_examples: 1 detailed clinical note (2-3 sentences)
+- cpt_codes: 1 appropriate CPT code with full details
+- notes: 1 sentence about contraindications
+
+Format:
+{{
+  "title": "{subsection_info['title']}",
+  "description": "Start with [Exercise 1 name] to address X, then [Exercise 2 name] for Y, and optionally [Exercise 3 name] to improve Z.",
+  "rationale": "Clinical rationale for this approach",
+  "exercises": [
+    {{
+      "name": "Specific Exercise Name",
+      "description": "Detailed description of how to perform this exercise. Patient positioning and setup. Progression and modifications as needed.",
+      "cues": [
+        "Verbal: Detailed instruction to give the patient explaining what to do and what they should feel during the exercise.",
+        "Tactile: Detailed explanation of where and how to place your hands to guide the patient through proper form and positioning.",
+        "Visual: Detailed description of what to show the patient, such as using mirrors, diagrams, or demonstrating the movement yourself."
+      ],
+      "documentation_examples": [
+        "Comprehensive clinical note documenting the exercise performed, patient positioning, number of repetitions or duration, patient response and tolerance, and measurable outcomes achieved."
+      ],
+      "cpt_codes": [
+        {{"code": "97XXX", "description": "Full billing code description", "notes": "Specific billing notes and time requirements"}}
+      ],
+      "notes": "Detailed contraindication or precaution to consider for this specific exercise"
+    }}
+  ]
+}}
+
+Return ONLY JSON. Make cues detailed and comprehensive."""
+
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "Expert OT. Generate patient-specific exercises with DETAILED cues (1-2 sentences each). Description must mention all exercise names. Return JSON only."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.8,
+            max_tokens=2000
+        )
+        
+        content = response.choices[0].message.content.strip()
+        
+        if content.startswith("```"):
+            lines = content.split("\n")
+            if lines[0].strip().startswith("```"):
+                lines = lines[1:]
+            if lines and lines[-1].strip() == "```":
+                lines = lines[:-1]
+            content = "\n".join(lines)
+        
+        return json.loads(content)
+        
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Error generating subsection {subsection_info['title']}: {e}")
+        return {
+            "title": subsection_info['title'],
+            "description": f"Treatment approach for {subsection_info['title'].lower()}.",
+            "rationale": "Evidence-based intervention",
+            "exercises": []
+        }
+
+# ===== Health Check =====
+
+@app.get("/health")
+async def health_check():
+    return {
+        "status": "healthy",
+        "version": "2.0.0",
+        "database": "connected",
+        "rag_system_ready": False,
+        "feedback_system_ready": True
+    }
+
+# ===== Authentication Routes =====
+
+@app.post("/auth/login", response_model=LoginResponse)
+async def login(request: LoginRequest, db: AsyncSession = Depends(get_db)):
+    """Login or create user - simple email-based auth"""
+    try:
+        # Check if user exists
+        result = await db.execute(select(User).where(User.email == request.email))
+        user = result.scalar_one_or_none()
+        
+        if not user:
+            # Create new user
+            user = User(name=request.name, email=request.email)
+            db.add(user)
+            await db.commit()
+            await db.refresh(user)
+            logger.info(f"Created new user: {user.email}")
+        else:
+            # Update name if changed
+            if user.name != request.name:
+                user.name = request.name
+                await db.commit()
+                await db.refresh(user)
+            else:
+                await db.refresh(user)
+        
+        # Create session token
+        token = create_token(user.id)
+        
+        # Create response with eagerly loaded attributes
+        user_response = UserResponse(
+            id=str(user.id),
+            name=user.name,
+            email=user.email,
+            created_at=user.created_at,
+            updated_at=user.updated_at
+        )
+        
+        return LoginResponse(
+            token=token,
+            user=user_response
+        )
+    except Exception as e:
+        logger.error(f"Login error: {e}")
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/auth/me", response_model=UserResponse)
+async def get_me(current_user: User = Depends(get_current_user)):
+    """Get current user info"""
+    await db.refresh(current_user)
+    return UserResponse(
+        id=str(current_user.id),
+        name=current_user.name,
+        email=current_user.email,
+        created_at=current_user.created_at,
+        updated_at=current_user.updated_at
+    )
+
+@app.put("/auth/profile", response_model=UserResponse)
+async def update_profile(
+    update_data: UserUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Update user profile"""
+    try:
+        current_user.name = update_data.name
+        current_user.email = update_data.email
+        await db.flush()
+        await db.refresh(current_user)
+        return UserResponse(
+            id=str(current_user.id),
+            name=current_user.name,
+            email=current_user.email,
+            created_at=current_user.created_at,
+            updated_at=current_user.updated_at
+    )
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Profile update error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ===== Case Management Routes =====
+
+@app.post("/cases", response_model=CaseResponse)
+async def create_case(
+    case_data: CaseCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Create a new case"""
+    try:
+        # Generate case name
+        name = await generate_case_name(case_data.input_json)
+        
+        # Create case
+        case = Case(
+            user_id=current_user.id,
+            name=name,
+            input_json=case_data.input_json,
+            output_json=case_data.output_json
+        )
+        db.add(case)
+        await db.flush()
+        
+        logger.info(f"Created case {case.id} for user {current_user.email}")
+        await db.refresh(case)
+        return CaseResponse(
+            id=str(case.id),
+            user_id=str(case.user_id),
+            name=case.name,
+            input_json=case.input_json,
+            output_json=case.output_json,
+            created_at=case.created_at,
+            updated_at=case.updated_at
+        )
+    except Exception as e:
+        logger.error(f"Create case error: {e}")
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/cases", response_model=List[CaseListResponse])
+async def get_cases(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get all cases for current user"""
+    try:
+        result = await db.execute(
+            select(Case)
+            .where(Case.user_id == current_user.id)
+            .order_by(Case.created_at.desc())
+        )
+        cases = result.scalars().all()
+        return [CaseListResponse(
+            id=str(case.id),
+            user_id=str(case.user_id),
+            name=case.name,
+            created_at=case.created_at
+        ) for case in cases]
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Get cases error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/cases/{case_id}", response_model=CaseResponse)
+async def get_case(
+    case_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get a specific case"""
+    try:
+        result = await db.execute(
+            select(Case).where(Case.id == case_id, Case.user_id == current_user.id)
+        )
+        case = result.scalar_one_or_none()
+        
+        if not case:
+            raise HTTPException(status_code=404, detail="Case not found")
+        
+        return CaseResponse.model_validate(case)
+    except HTTPException:
+        raise
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Get case error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.put("/cases/{case_id}/name", response_model=CaseResponse)
+async def update_case_name(
+    case_id: UUID,
+    update_data: CaseUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Update case name"""
+    try:
+        result = await db.execute(
+            select(Case).where(Case.id == case_id, Case.user_id == current_user.id)
+        )
+        case = result.scalar_one_or_none()
+        
+        if not case:
+            raise HTTPException(status_code=404, detail="Case not found")
+        
+        case.name = update_data.name
+        await db.flush()
+        
+        return CaseResponse.model_validate(case)
+    except HTTPException:
+        raise
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Update case error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/cases/{case_id}")
+async def delete_case(
+    case_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Delete a case"""
+    try:
+        result = await db.execute(
+            select(Case).where(Case.id == case_id, Case.user_id == current_user.id)
+        )
+        case = result.scalar_one_or_none()
+        
+        if not case:
+            raise HTTPException(status_code=404, detail="Case not found")
+        
+        await db.delete(case)
+        await db.flush()
+        
+        return {"success": True, "message": "Case deleted"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Delete case error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ===== Feedback Routes =====
+
+@app.post("/feedback", response_model=FeedbackResponse)
+async def submit_feedback(
+    feedback_data: FeedbackCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Submit feedback"""
+    try:
+        feedback = Feedback(
+            user_id=current_user.id,
+            case_id=feedback_data.case_id,
+            feedback_type=feedback_data.feedback_type,
+            exercise_name=feedback_data.exercise_name,
+            cue_type=feedback_data.cue_type,
+            cpt_code=feedback_data.cpt_code,
+            example_number=feedback_data.example_number,
+            rating=feedback_data.rating,
+            comments=feedback_data.comments,
+            context_json=feedback_data.context_json
+        )
+        db.add(feedback)
+        await db.flush()
+        
+        logger.info(f"Feedback submitted by {current_user.email}")
+        await db.refresh(feedback)
+        return FeedbackResponse(
+            id=str(feedback.id),
+            user_id=str(feedback.user_id),
+            case_id=str(feedback.case_id) if feedback.case_id else None,
+            feedback_type=feedback.feedback_type,
+            feedback_data=feedback.feedback_data,
+            comment=feedback.comment,
+            created_at=feedback.created_at
+        )
+    except Exception as e:
+        logger.error(f"Submit feedback error: {e}")
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ===== Recommendations Route (existing logic) =====
+
+class UserInput(BaseModel):
+    patient_condition: str
+    desired_outcome: str
+    input_mode: str = "simple"
+
+class RecommendationRequest(BaseModel):
+    user_input: UserInput
+    session_id: str
+
+@app.post("/recommendations")
+async def get_recommendations(request: RecommendationRequest):
+    try:
+        logger.info(f"Processing parallel request for session: {request.session_id}")
+        
+        subsection_configs = [
+            {"title": "Manual Therapy Techniques", "focus": "mobilizations, soft tissue work"},
+            {"title": "Progressive Strengthening Protocol", "focus": "strengthening exercises"},
+            {"title": "Neuromuscular Re-education", "focus": "coordination, balance, proprioception"},
+            {"title": "Work-Specific Functional Training", "focus": "functional activities for goals"},
+            {"title": "Pain Management Modalities", "focus": "modalities for pain control"},
+            {"title": "Home Exercise Program", "focus": "home exercises patient can do"}
+        ]
+        
+        loop = asyncio.get_event_loop()
+        tasks = [
+            loop.run_in_executor(
+                executor,
+                generate_subsection,
+                config,
+                request.user_input.patient_condition,
+                request.user_input.desired_outcome
+            )
+            for config in subsection_configs
+        ]
+        
+        subsections = await asyncio.gather(*tasks)
+        
+        response_data = {
+            "high_level": [
+                f"Focus on progressive treatment for {request.user_input.patient_condition}",
+                f"Incorporate activities to achieve: {request.user_input.desired_outcome}"
+            ],
+            "subsections": subsections,
+            "suggested_alternatives": ["Consider aquatic therapy if appropriate", "Explore telehealth options for home program"],
+            "confidence": "high"
+        }
+        
+        return response_data
+        
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+if __name__ == "__main__":
+    uvicorn.run("app_with_db:app", host="0.0.0.0", port=8000, reload=True)

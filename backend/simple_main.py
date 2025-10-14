@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -8,6 +8,9 @@ from typing import Optional
 from openai import OpenAI
 import json
 import os
+import time
+from dotenv import load_dotenv
+load_dotenv()
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
@@ -190,3 +193,44 @@ async def get_recommendations(request: RecommendationRequest):
 
 if __name__ == "__main__":
     uvicorn.run("simple_main:app", host="0.0.0.0", port=8000, reload=True)
+
+# Feedback endpoint
+@app.post("/feedback")
+async def submit_feedback(request: Request):
+    """
+    Submit feedback on any component (exercise, cue, documentation, CPT code)
+    For now, logs to console. Can be saved to database later.
+    """
+    try:
+        data = await request.json()
+        
+        # Extract feedback data
+        feedback_type = data.get("feedback_type")
+        feedback_data = data.get("feedback_data", {})
+        comment = data.get("comment")
+        case_id = data.get("case_id")
+        
+        # Log feedback (in production, save to database)
+        logger.info("=" * 60)
+        logger.info("FEEDBACK RECEIVED")
+        logger.info("=" * 60)
+        logger.info(f"Type: {feedback_type}")
+        logger.info(f"Scope: {feedback_data.get('scope')}")
+        logger.info(f"Item: {feedback_data.get('subsection_title')}")
+        logger.info(f"Rating: {feedback_data.get('rating')}")
+        if comment:
+            logger.info(f"Comment: {comment}")
+        logger.info(f"Case ID: {case_id}")
+        logger.info("=" * 60)
+        
+        # Return success response
+        return {
+            "success": True,
+            "message": "Feedback received successfully",
+            "feedback_id": f"temp_{int(time.time())}"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error submitting feedback: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
