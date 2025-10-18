@@ -237,13 +237,47 @@ export default function NoteNinjas() {
     if (isValid) {
       setIsProcessing(true);
 
-      // Save case data for suggestions page with streaming flag
-      const userInputStr = formData.patientCondition || `${formData.age} year old with ${formData.diagnosis}. Desired outcome: ${formData.desiredOutcome}`;
+      // Generate recommendations from backend using streaming
+      let recommendations: any = { subsections: [], high_level: [], confidence: "high" };
+      const subsections: any[] = [];
       
+      try {
+        const userInputStr = formData.patientCondition || `${formData.age} year old with ${formData.diagnosis}. Desired outcome: ${formData.desiredOutcome}`;
+        
+        await noteNinjasAPI.generateRecommendationsStream(
+          userInputStr,
+          {}, // RAG manifest (optional)
+          `session_${Date.now()}`, // session ID
+          (subsection, index) => {
+            // Callback when each subsection arrives
+            subsections.push(subsection);
+            console.log(`Received subsection ${index + 1}/6:`, subsection.title);
+          },
+          () => {
+            // Completion callback
+            console.log('All subsections received');
+          },
+          (error) => {
+            // Error callback
+            console.error('Streaming error:', error);
+          }
+        );
+        
+        recommendations = {
+          subsections: subsections,
+          high_level: [
+            `Focus on progressive treatment for ${formData.patientCondition}`,
+            `Incorporate activities to achieve: ${formData.desiredOutcome}`
+          ],
+          confidence: "high"
+        };
+      } catch (error) {
+        console.error("Error generating recommendations:", error);
+        // Continue anyway - will use static suggestions
+      }
+      // Save case data for suggestions page
       const caseData = {
-        isStreaming: true,
-        sessionId: `session_${Date.now()}`,
-        userInput: userInputStr,
+        recommendations,
         ...formData,
         inputMode,
         // Create combined condition string for detailed mode
@@ -274,13 +308,14 @@ export default function NoteNinjas() {
       // Save to case history
       saveCaseToHistory(caseData);
 
-      // Navigate immediately - streaming will happen on suggestions page
-      router.push("/note-ninjas/suggestions");
+      // Simulate processing time
+      setTimeout(() => {
+        router.push("/note-ninjas/suggestions");
+      }, 2000);
     } else {
       alert("Please fill in the required fields.");
     }
   };
-
 
   // Show loading state
   if (isLoading) {

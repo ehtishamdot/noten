@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Streaming Test</title>
+</head>
+<body>
+    <h1>Streaming Test</h1>
+    <button onclick="testStream()">Test Streaming</button>
+    <div id="output"></div>
+
+    <script>
+    async function testStream() {
+        const output = document.getElementById('output');
+        output.innerHTML = '<p>Starting stream...</p>';
+        
+        try {
+            const response = await fetch('http://54.236.21.99/api/recommendations/stream', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    user_input: {
+                        patient_condition: "21 year old female with torn rotator cuff",
+                        desired_outcome: "increase shoulder range"
+                    },
+                    session_id: "test_" + Date.now()
+                })
+            });
+
+            console.log('Response:', response);
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let count = 0;
+
+            while (true) {
+                const {done, value} = await reader.read();
+                if (done) break;
+                
+                const chunk = decoder.decode(value);
+                console.log('Chunk:', chunk);
+                
+                const lines = chunk.split('\n');
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const data = JSON.parse(line.substring(6));
+                        if (data.type === 'subsection') {
+                            count++;
+                            output.innerHTML += `<p>✅ Received ${count}: ${data.data.title}</p>`;
+                        }
+                    }
+                }
+            }
+            
+            output.innerHTML += '<p><strong>✅ Stream complete!</strong></p>';
+        } catch (error) {
+            output.innerHTML += `<p style="color:red">❌ Error: ${error.message}</p>`;
+            console.error('Error:', error);
+        }
+    }
+    </script>
+</body>
+</html>

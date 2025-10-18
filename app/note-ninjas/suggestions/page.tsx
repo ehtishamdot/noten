@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+
 import { useRouter } from "next/navigation";
 import { noteNinjasAPI } from "@/lib/api";
 import HistorySidebar from "../../components/HistorySidebar";
@@ -41,6 +42,13 @@ export default function BrainstormingSuggestions() {
   const router = useRouter();
   const [caseData, setCaseData] = useState<any>(null);
   const [userName, setUserName] = useState("");
+  const [isLoadingStream, setIsLoadingStream] = useState(false);
+  const [streamedSubsections, setStreamedSubsections] = useState<any[]>([]);
+  const [streamComplete, setStreamComplete] = useState(false);
+  const [isTyping, setIsTyping] = useState<{[key: number]: boolean}>({});
+  const [showCard, setShowCard] = useState<{[key: number]: boolean}>({});
+  const [typewriterTexts, setTypewriterTexts] = useState<{[key: string]: string}>({});
+
   const [selectedSuggestion, setSelectedSuggestion] =
     useState<Suggestion | null>(null);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
@@ -65,7 +73,65 @@ export default function BrainstormingSuggestions() {
     // Get case data from sessionStorage
     const storedData = sessionStorage.getItem("note-ninjas-case");
     if (storedData) {
-      setCaseData(JSON.parse(storedData));
+      const parsedData = JSON.parse(storedData);
+      console.log("Loaded case data:", parsedData);
+      console.log("Is streaming?", parsedData.isStreaming);
+      setCaseData(parsedData);
+      
+      // Start streaming immediately if needed
+      if (parsedData.isStreaming && parsedData.sessionId && parsedData.userInput) {
+        console.log("🚀🚀🚀 STARTING STREAMING IMMEDIATELY! 🚀🚀🚀");
+        setIsLoadingStream(true);
+        
+        const collectedSubsections: any[] = [];
+        
+        noteNinjasAPI.generateRecommendationsStream(
+          parsedData.userInput,
+          {},
+          parsedData.sessionId,
+          (subsection, index) => {
+            console.log(`✅ Received subsection ${index}:`, subsection.title);
+            collectedSubsections.push(subsection);
+            setStreamedSubsections([...collectedSubsections]);
+            
+            // Trigger card appearance animation
+            setTimeout(() => {
+              console.log(`🎬 Showing card ${index}`);
+              setShowCard(prev => ({...prev, [index]: true}));
+              // Start typewriter after card appears
+              setTimeout(() => {
+                console.log(`⌨️ Starting typewriter for card ${index}`);
+                setIsTyping(prev => ({...prev, [index]: true}));
+              }, 300);
+            }, 100);
+          },
+          () => {
+            console.log('✅ Streaming complete!', collectedSubsections.length, 'subsections');
+            setStreamComplete(true);
+            setIsLoadingStream(false);
+            
+            const updatedCaseData = {
+              ...parsedData,
+              isStreaming: false,
+              recommendations: {
+                subsections: collectedSubsections,
+                high_level: [
+                  `Focus on progressive treatment for ${parsedData.patientCondition}`,
+                  `Incorporate activities to achieve: ${parsedData.desiredOutcome}`
+                ],
+                confidence: "high"
+              }
+            };
+            sessionStorage.setItem("note-ninjas-case", JSON.stringify(updatedCaseData));
+            setCaseData(updatedCaseData);
+          },
+          (error) => {
+            console.error('❌ Streaming error:', error);
+            setIsLoadingStream(false);
+            setStreamComplete(true);
+          }
+        );
+      }
     } else {
       // Redirect back if no case data
       router.push("/note-ninjas");
@@ -93,22 +159,143 @@ export default function BrainstormingSuggestions() {
 
   const handleSelectCase = (caseData: any) => {
     sessionStorage.setItem("note-ninjas-case", JSON.stringify(caseData));
+
+  // Streaming effect
+  useEffect(() => {
+    console.log('🔥 STREAMING USEEFFECT RUNNING!');
+    console.log('Streaming useEffect triggered, caseData:', caseData);
+    console.log('isStreaming:', caseData?.isStreaming, 'streamComplete:', streamComplete);
+    
+    // Debug alert
+    if (caseData?.isStreaming) {
+      console.log('✅✅✅ ABOUT TO START STREAMING! ✅✅✅');
+    } else {
+      console.log('❌ NOT STREAMING - isStreaming is', caseData?.isStreaming);
+    }
+    
+    if (caseData?.isStreaming && !streamComplete) {
+      setIsLoadingStream(true);
+      console.log('Starting streaming for session:', caseData.sessionId);
+      
+      const collectedSubsections: any[] = [];
+      
+      noteNinjasAPI.generateRecommendationsStream(
+        caseData.userInput,
+        {},
+        caseData.sessionId,
+        (subsection, index) => {
+          // Add subsection as it arrives
+          console.log(`Received subsection ${index}:`, subsection.title);
+          collectedSubsections.push(subsection);
+          setStreamedSubsections([...collectedSubsections]);
+        },
+        () => {
+          // Streaming complete
+          console.log('Streaming complete, total subsections:', collectedSubsections.length);
+          setStreamComplete(true);
+          setIsLoadingStream(false);
+          
+          // Update caseData with final recommendations
+          const updatedCaseData = {
+            ...caseData,
+            isStreaming: false,
+            recommendations: {
+              subsections: collectedSubsections,
+              high_level: [
+                `Focus on progressive treatment for ${caseData.patientCondition}`,
+                `Incorporate activities to achieve: ${caseData.desiredOutcome}`
+              ],
+              confidence: "high"
+            }
+          };
+          sessionStorage.setItem("note-ninjas-case", JSON.stringify(updatedCaseData));
+          setCaseData(updatedCaseData);
+        },
+        (error) => {
+          // Error handling
+          console.error('Streaming error:', error);
+          setIsLoadingStream(false);
+          setStreamComplete(true);
+        }
+      );
+    }
+  }, [caseData, streamComplete]);  // Watch entire caseData object
+
+
     setCaseData(caseData);
     setIsSidebarOpen(false);
   };
 
   // Use backend recommendations if available
-  const backendSuggestions = caseData?.recommendations?.subsections || [];
+  const backendSuggestions = (caseData?.isStreaming && !streamComplete) 
+    ? streamedSubsections 
+    : (caseData?.recommendations?.subsections || []);
+  
+  console.log('Backend suggestions:', backendSuggestions);
+  console.log('Streamed subsections:', streamedSubsections);
+  console.log('Is streaming:', caseData?.isStreaming, 'Stream complete:', streamComplete);
   
   const suggestions: Suggestion[] = backendSuggestions.length > 0 
     ? backendSuggestions.map((sub: any, idx: number) => ({
-        id: sub.title.toLowerCase().replace(/\s+/g, '-'),
-        title: sub.title,
-        description: sub.description,
+        id: sub.title?.toLowerCase().replace(/\s+/g, '-') || `subsection-${idx}`,
+        title: sub.title || 'Loading...',
+        description: sub.description || 'Generating recommendations...',
         exercises: sub.exercises || [],
         cptCodes: sub.exercises?.flatMap((ex: any) => ex.cpt_codes || []) || []
       }))
     : [];
+  
+  console.log('Mapped suggestions count:', suggestions.length);
+  console.log('Suggestions:', suggestions);
+  
+  // Typewriter effect
+  useEffect(() => {
+    const intervals: NodeJS.Timeout[] = [];
+    
+    suggestions.forEach((suggestion, idx) => {
+      if (isTyping[idx] && suggestion.title) {
+        let currentIndex = 0;
+        const fullText = suggestion.title;
+        const key = `title-${idx}`;
+        
+        const interval = setInterval(() => {
+          if (currentIndex <= fullText.length) {
+            setTypewriterTexts(prev => ({
+              ...prev,
+              [key]: fullText.substring(0, currentIndex)
+            }));
+            currentIndex++;
+          } else {
+            clearInterval(interval);
+          }
+        }, 30);
+        
+        intervals.push(interval);
+      }
+      
+      if (isTyping[idx] && suggestion.description) {
+        let currentIndex = 0;
+        const fullText = suggestion.description;
+        const key = `desc-${idx}`;
+        
+        const interval = setInterval(() => {
+          if (currentIndex <= fullText.length) {
+            setTypewriterTexts(prev => ({
+              ...prev,
+              [key]: fullText.substring(0, currentIndex)
+            }));
+            currentIndex++;
+          } else {
+            clearInterval(interval);
+          }
+        }, 15);
+        
+        intervals.push(interval);
+      }
+    });
+    
+    return () => intervals.forEach(clearInterval);
+  }, [isTyping, suggestions]);
 
   const openModal = (suggestion: Suggestion) => {
     setSelectedSuggestion(suggestion);
@@ -366,6 +553,18 @@ export default function BrainstormingSuggestions() {
 
           {/* Suggestion Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Streaming Indicator */}
+          {isLoadingStream && !streamComplete && (
+            <div className="mb-6 bg-purple-50 border border-purple-200 rounded-lg p-4">
+              <div className="flex items-center justify-center gap-3">
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-purple-600 border-t-transparent"></div>
+                <p className="text-purple-900 font-medium">
+                  Generating personalized suggestions... ({streamedSubsections.length}/6 ready)
+                </p>
+              </div>
+            </div>
+          )}
+
             {suggestions.map((suggestion) => (
               <div
                 key={suggestion.id}
