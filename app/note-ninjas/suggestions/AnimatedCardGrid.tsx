@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import AnimatedCard from './AnimatedCard';
 
 interface Suggestion {
@@ -34,20 +34,27 @@ export default function AnimatedCardGrid({
 }: AnimatedCardGridProps) {
   const [animatedCards, setAnimatedCards] = useState<Set<string>>(new Set());
   const [completedCards, setCompletedCards] = useState<Set<string>>(new Set());
+  const processedIds = useRef<Set<string>>(new Set());
 
+  useEffect(() => {
     if (isFirstTimeGeneration) {
+      // Animate cards as they come in with staggered delays
       suggestions.forEach((suggestion, index) => {
-        if (!animatedCards.has(suggestion.id)) {
+        if (!processedIds.current.has(suggestion.id)) {
+          processedIds.current.add(suggestion.id);
           setTimeout(() => {
-            setAnimatedCards(prev => new Set([...prev, suggestion.id]));
+            setAnimatedCards(prevCards => new Set([...prevCards, suggestion.id]));
           }, index * 200);
         }
       });
     } else {
       // Immediately show all cards without animation
       const allSuggestionIds = new Set(suggestions.map(s => s.id));
-      setAnimatedCards(allSuggestionIds);
+      if (allSuggestionIds.size > 0) {
+        setAnimatedCards(allSuggestionIds);
+      }
     }
+  }, [suggestions, isFirstTimeGeneration]);
 
   const handleCardAnimationComplete = (suggestionId: string) => {
     setCompletedCards(prev => new Set([...prev, suggestionId]));

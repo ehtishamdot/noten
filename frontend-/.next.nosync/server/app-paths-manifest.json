@@ -1,0 +1,5 @@
+{
+  "/note-ninjas/page": "app/note-ninjas/page.js",
+  "/page": "app/page.js",
+  "/note-ninjas/suggestions/page": "app/note-ninjas/suggestions/page.js"
+}

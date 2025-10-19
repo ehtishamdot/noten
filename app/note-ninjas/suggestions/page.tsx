@@ -156,99 +156,10 @@ export default function BrainstormingSuggestions() {
         console.error("Error parsing user data:", error);
       }
     }
-  }, [router]);
+  }, []);
 
   const handleSelectCase = (caseData: any) => {
     sessionStorage.setItem("note-ninjas-case", JSON.stringify(caseData));
-
-  // Streaming effect
-  useEffect(() => {
-    console.log('🔥 STREAMING USEEFFECT RUNNING!');
-    console.log('Streaming useEffect triggered, caseData:', caseData);
-    console.log('isStreaming:', caseData?.isStreaming, 'streamComplete:', streamComplete);
-    
-    // Debug alert
-    if (caseData?.isStreaming) {
-      console.log('✅✅✅ ABOUT TO START STREAMING! ✅✅✅');
-    } else {
-      console.log('❌ NOT STREAMING - isStreaming is', caseData?.isStreaming);
-    }
-    
-    if (caseData?.isStreaming && !streamComplete) {
-      setIsLoadingStream(true);
-      console.log('Starting streaming for session:', caseData.sessionId);
-      
-      const collectedSubsections: any[] = [];
-      
-      noteNinjasAPI.generateRecommendationsStream(
-        caseData.userInput,
-        {},
-        caseData.sessionId,
-        (subsection, index) => {
-          // Add subsection as it arrives
-          console.log(`Received subsection ${index}:`, subsection.title);
-          collectedSubsections.push(subsection);
-          setStreamedSubsections([...collectedSubsections]);
-        },
-        () => {
-          // Streaming complete
-          console.log('Streaming complete, total subsections:', collectedSubsections.length);
-          setStreamComplete(true);
-          setIsLoadingStream(false);
-          
-          // Update caseData with final recommendations
-          const updatedCaseData = {
-            ...caseData,
-            isStreaming: false,
-            recommendations: {
-              subsections: collectedSubsections,
-              high_level: [
-                `Focus on progressive treatment for ${caseData.patientCondition}`,
-                `Incorporate activities to achieve: ${caseData.desiredOutcome}`
-              ],
-              confidence: "high"
-            }
-          };
-          sessionStorage.setItem("note-ninjas-case", JSON.stringify(updatedCaseData));
-          setCaseData(updatedCaseData);
-        },
-        (error) => {
-          // Error handling
-          console.error('Streaming error:', error);
-          setIsLoadingStream(false);
-
-  const handleCreateNewCase = () => {
-    // Extract current case data and prepare for new case creation
-    const newCaseData = {
-      patientCondition: caseData.patientCondition || "",
-      desiredOutcome: caseData.desiredOutcome || "",
-      treatmentProgression: caseData.treatmentProgression || "",
-      // Copy detailed mode fields if available
-      age: caseData.age || "",
-      gender: caseData.gender || "",
-      diagnosis: caseData.diagnosis || "",
-      comorbidities: caseData.comorbidities || "",
-      severity: caseData.severity || "",
-      dateOfOnset: caseData.dateOfOnset || "",
-      priorLevelOfFunction: caseData.priorLevelOfFunction || "",
-      workLifeRequirements: caseData.workLifeRequirements || "",
-      inputMode: caseData.inputMode || "simple"
-    };
-    
-    // Save the case data to session storage for the form to pick up
-    sessionStorage.setItem("note-ninjas-form-data", JSON.stringify(newCaseData));
-    sessionStorage.setItem("note-ninjas-input-mode", newCaseData.inputMode);
-    
-    // Navigate to the main form
-    router.push("/note-ninjas");
-  };
-          setStreamComplete(true);
-        }
-      );
-    }
-  }, [caseData, streamComplete]);  // Watch entire caseData object
-
-
     setCaseData(caseData);
     setIsSidebarOpen(false);
   };
@@ -258,7 +169,7 @@ export default function BrainstormingSuggestions() {
     return (caseData?.isStreaming && !streamComplete)
       ? streamedSubsections
       : (caseData?.recommendations?.subsections || []);
-  }, [caseData, streamComplete]);
+  }, [caseData, streamComplete, streamedSubsections]);
   
   console.log('Backend suggestions:', backendSuggestions);
   console.log('Streamed subsections:', streamedSubsections);
@@ -276,7 +187,7 @@ export default function BrainstormingSuggestions() {
         exercises: sub.exercises || [],
         cptCodes: sub.exercises?.flatMap((ex: any) => ex.cpt_codes || []) || []
       }));
-  }, [backendSuggestions.length]);
+  }, [backendSuggestions]);
   
   console.log('Mapped suggestions count:', suggestions.length);
   console.log('Suggestions:', suggestions);
@@ -332,11 +243,29 @@ export default function BrainstormingSuggestions() {
 
 
   const handleCreateNewCase = () => {
-    sessionStorage.removeItem("note-ninjas-case");
-    setCaseData(null);
-    setStreamComplete(false);
-    setStreamedSubsections([]);
-    router.push('/note-ninjas');
+    // Extract current case data and prepare for new case creation
+    const newCaseData = {
+      patientCondition: caseData?.patientCondition || "",
+      desiredOutcome: caseData?.desiredOutcome || "",
+      treatmentProgression: caseData?.treatmentProgression || "",
+      // Copy detailed mode fields if available
+      age: caseData?.age || "",
+      gender: caseData?.gender || "",
+      diagnosis: caseData?.diagnosis || "",
+      comorbidities: caseData?.comorbidities || "",
+      severity: caseData?.severity || "",
+      dateOfOnset: caseData?.dateOfOnset || "",
+      priorLevelOfFunction: caseData?.priorLevelOfFunction || "",
+      workLifeRequirements: caseData?.workLifeRequirements || "",
+      inputMode: caseData?.inputMode || "simple"
+    };
+    
+    // Save the case data to session storage for the form to pick up
+    sessionStorage.setItem("note-ninjas-form-data", JSON.stringify(newCaseData));
+    sessionStorage.setItem("note-ninjas-input-mode", newCaseData.inputMode);
+    
+    // Navigate to the main form
+    router.push("/note-ninjas");
   };
 
   const openModal = (suggestion: Suggestion) => {
