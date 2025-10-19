@@ -217,6 +217,31 @@ export default function BrainstormingSuggestions() {
           console.error('Streaming error:', error);
           setIsLoadingStream(false);
 
+  const handleCreateNewCase = () => {
+    // Extract current case data and prepare for new case creation
+    const newCaseData = {
+      patientCondition: caseData.patientCondition || "",
+      desiredOutcome: caseData.desiredOutcome || "",
+      treatmentProgression: caseData.treatmentProgression || "",
+      // Copy detailed mode fields if available
+      age: caseData.age || "",
+      gender: caseData.gender || "",
+      diagnosis: caseData.diagnosis || "",
+      comorbidities: caseData.comorbidities || "",
+      severity: caseData.severity || "",
+      dateOfOnset: caseData.dateOfOnset || "",
+      priorLevelOfFunction: caseData.priorLevelOfFunction || "",
+      workLifeRequirements: caseData.workLifeRequirements || "",
+      inputMode: caseData.inputMode || "simple"
+    };
+    
+    // Save the case data to session storage for the form to pick up
+    sessionStorage.setItem("note-ninjas-form-data", JSON.stringify(newCaseData));
+    sessionStorage.setItem("note-ninjas-input-mode", newCaseData.inputMode);
+    
+    // Navigate to the main form
+    router.push("/note-ninjas");
+  };
           setStreamComplete(true);
         }
       );
@@ -229,9 +254,11 @@ export default function BrainstormingSuggestions() {
   };
 
   // Use backend recommendations if available
-  const backendSuggestions = (caseData?.isStreaming && !streamComplete) 
-    ? streamedSubsections 
-    : (caseData?.recommendations?.subsections || []);
+  const backendSuggestions = useMemo(() => {
+    return (caseData?.isStreaming && !streamComplete)
+      ? streamedSubsections
+      : (caseData?.recommendations?.subsections || []);
+  }, [caseData, streamComplete]);
   
   console.log('Backend suggestions:', backendSuggestions);
   console.log('Streamed subsections:', streamedSubsections);
@@ -250,7 +277,6 @@ export default function BrainstormingSuggestions() {
         cptCodes: sub.exercises?.flatMap((ex: any) => ex.cpt_codes || []) || []
       }));
   }, [backendSuggestions.length]);
-  
   
   console.log('Mapped suggestions count:', suggestions.length);
   console.log('Suggestions:', suggestions);
@@ -303,6 +329,7 @@ export default function BrainstormingSuggestions() {
     
     return () => intervals.forEach(clearInterval);
   }, [isTyping, suggestions]);
+
 
   const handleCreateNewCase = () => {
     sessionStorage.removeItem("note-ninjas-case");
