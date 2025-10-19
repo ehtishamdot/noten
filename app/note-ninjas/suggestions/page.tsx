@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import AnimatedCardGrid from "./AnimatedCardGrid";
 
 import { useRouter } from "next/navigation";
 import { noteNinjasAPI } from "@/lib/api";
@@ -215,6 +216,7 @@ export default function BrainstormingSuggestions() {
           // Error handling
           console.error('Streaming error:', error);
           setIsLoadingStream(false);
+
           setStreamComplete(true);
         }
       );
@@ -235,15 +237,20 @@ export default function BrainstormingSuggestions() {
   console.log('Streamed subsections:', streamedSubsections);
   console.log('Is streaming:', caseData?.isStreaming, 'Stream complete:', streamComplete);
   
-  const suggestions: Suggestion[] = backendSuggestions.length > 0 
-    ? backendSuggestions.map((sub: any, idx: number) => ({
-        id: sub.title?.toLowerCase().replace(/\s+/g, '-') || `subsection-${idx}`,
-        title: sub.title || 'Loading...',
-        description: sub.description || 'Generating recommendations...',
+  const suggestions: Suggestion[] = useMemo(() => {
+    if (!backendSuggestions || backendSuggestions.length === 0) return [];
+    
+    return backendSuggestions
+      .filter((sub: any) => sub.title && sub.description && sub.title !== "Loading..." && sub.description !== "Generating recommendations...")
+      .map((sub: any, idx: number) => ({
+        id: sub.title?.toLowerCase().replace(/\s+/g, "-") || `subsection-${idx}`,
+        title: sub.title,
+        description: sub.description,
         exercises: sub.exercises || [],
         cptCodes: sub.exercises?.flatMap((ex: any) => ex.cpt_codes || []) || []
-      }))
-    : [];
+      }));
+  }, [backendSuggestions.length]);
+  
   
   console.log('Mapped suggestions count:', suggestions.length);
   console.log('Suggestions:', suggestions);
@@ -296,6 +303,14 @@ export default function BrainstormingSuggestions() {
     
     return () => intervals.forEach(clearInterval);
   }, [isTyping, suggestions]);
+
+  const handleCreateNewCase = () => {
+    sessionStorage.removeItem("note-ninjas-case");
+    setCaseData(null);
+    setStreamComplete(false);
+    setStreamedSubsections([]);
+    router.push('/note-ninjas');
+  };
 
   const openModal = (suggestion: Suggestion) => {
     setSelectedSuggestion(suggestion);
@@ -545,6 +560,29 @@ export default function BrainstormingSuggestions() {
 
           {/* Techniques Section Title */}
           <div className="mb-6">
+
+                {/* Create New Case from Details Button */}
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <button
+                    onClick={handleCreateNewCase}
+                    className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors flex items-center justify-center"
+                  >
+                    <svg
+                      className="w-4 h-4 mr-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                      />
+                    </svg>
+                    Create New Case from Details
+                  </button>
+                </div>
             <h3 className="text-xl font-semibold text-gray-900 text-center">
               Specific Techniques to Consider
             </h3>
@@ -552,48 +590,15 @@ export default function BrainstormingSuggestions() {
           </div>
 
           {/* Suggestion Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Streaming Indicator */}
-          {isLoadingStream && !streamComplete && (
-            <div className="mb-6 bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <div className="flex items-center justify-center gap-3">
-                <div className="animate-spin rounded-full h-5 w-5 border-2 border-purple-600 border-t-transparent"></div>
-                <p className="text-purple-900 font-medium">
-                  Generating personalized suggestions... ({streamedSubsections.length}/6 ready)
-                </p>
-              </div>
-            </div>
-          )}
-
-            {suggestions.map((suggestion) => (
-              <div
-                key={suggestion.id}
-                className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow border border-gray-200 hover:border-purple-300"
-              >
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="text-lg font-semibold text-gray-900 flex-1">
-                    {suggestion.title}
-                  </h3>
-                  <button
-                    onClick={() => openFeedbackModal(suggestion.title, "suggestion")}
-                    className="ml-2 text-gray-400 hover:text-purple-600 transition-colors"
-                    title="Provide feedback"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-                    </svg>
-                  </button>
-                </div>
-                <div
-                  className="text-gray-600 text-sm leading-relaxed"
-                  onClick={(e) => handleExerciseClick(e, suggestion)}
-                  dangerouslySetInnerHTML={{
-                    __html: renderDescriptionWithClickableExercises(suggestion),
-                  }}
-                />
-              </div>
-            ))}
-          </div>
+          <AnimatedCardGrid
+            suggestions={suggestions}
+            isLoadingStream={isLoadingStream}
+            streamComplete={streamComplete}
+            streamedSubsectionsCount={streamedSubsections.length}
+            onFeedbackClick={(index) => openFeedbackModal(suggestions[index]?.title || "Suggestion", "suggestion", suggestions[index]?.description)}
+            onDescriptionClick={(index, e) => handleExerciseClick(e, suggestions[index])}
+            renderDescription={(index) => renderDescriptionWithClickableExercises(suggestions[index])}
+          />
 
           {/* Exercise Modal */}
           {showExerciseModal && selectedExercise && (

@@ -1,30 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
-  
-  // Environment variables configuration
-  env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
-    NEXT_PUBLIC_FRONTEND_PORT: process.env.NEXT_PUBLIC_FRONTEND_PORT,
+  assetPrefix: process.env.NODE_ENV === 'production' ? '' : '',
+  // Allow the app to work when accessed via IP address
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN',
+          },
+        ],
+      },
+    ]
   },
-  
-  // Optional: Custom server port from environment
-  ...(process.env.NEXT_PUBLIC_FRONTEND_PORT && {
-    serverRuntimeConfig: {
-      port: process.env.NEXT_PUBLIC_FRONTEND_PORT,
-    },
-  }),
-  
-  // Enable experimental features if needed
-  experimental: {
-    // Add any experimental features here
-  },
-  
-  // Production optimizations
-  ...(process.env.NODE_ENV === 'production' && {
-    compress: true,
-    poweredByHeader: false,
-  }),
 }
 
 module.exports = nextConfig
