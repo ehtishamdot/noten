@@ -101,7 +101,7 @@ next-env.d.ts
 *.3g2
 *.mts
 *.m2ts
-*.ts
+# *.ts  # Commented out - conflicts with TypeScript files
 *.vob
 
 # Audio files
