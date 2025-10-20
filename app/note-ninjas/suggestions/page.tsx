@@ -71,6 +71,7 @@ export default function BrainstormingSuggestions() {
   const [showModal, setShowModal] = useState(false);
   const [showExerciseModal, setShowExerciseModal] = useState(false);
   const [isCaseDetailsExpanded, setIsCaseDetailsExpanded] = useState(false);
+  const [showCaseDetailsModal, setShowCaseDetailsModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [feedbackContext, setFeedbackContext] = useState<{
     title: string;
@@ -86,13 +87,32 @@ export default function BrainstormingSuggestions() {
   const [userEmail, setUserEmail] = useState("");
 
   useEffect(() => {
+    // Load case history from backend
+    const loadHistory = async () => {
+      try {
+        const cases = await noteNinjasAPI.getCases();
+        const formattedCases = cases.map((c) => ({
+          id: c.id,
+          name: c.name,
+          timestamp: new Date(c.created_at).getTime(),
+          caseData: null // Will load on demand
+        }));
+        setCaseHistory(formattedCases);
+      } catch (error) {
+        console.error("Error loading case history:", error);
+      }
+    };
+    
+    loadHistory();
+    
     // Get case data from sessionStorage
     const storedData = sessionStorage.getItem("note-ninjas-case");
     if (storedData) {
       const parsedData = JSON.parse(storedData);
-      console.log("Loaded case data:", parsedData);
-      console.log("Is streaming?", parsedData.isStreaming);
+      // Loaded case data
       setCaseData(parsedData);
+      
+      // Simple approach - no complex reload logic
       
       // Start streaming immediately if needed
       if (parsedData.isStreaming && parsedData.sessionId && parsedData.userInput) {
@@ -128,6 +148,8 @@ export default function BrainstormingSuggestions() {
           setFastMode(true);
           setStreamComplete(true);
           setIsLoadingStream(false);
+          // Keep streamedSubsections intact - don't clear them
+          console.log('🔒 Preserving streamedSubsections during timeout:', streamedSubsections.length);
         }, 10000); // 10 second timeout
         
         startStreaming(
@@ -158,27 +180,63 @@ export default function BrainstormingSuggestions() {
               // Enable fast mode to quickly finish all typewriter animations
               setFastMode(true);
               
-              // Update case data with final results
-              setStreamedSubsections(prev => {
-                const updatedCaseData = {
-                  ...parsedData,
-                  isStreaming: false,
-                  recommendations: {
-                    subsections: prev,
-                    high_level: [
-                      `Focus on progressive treatment for ${parsedData.patientCondition}`,
-                      `Incorporate activities to achieve: ${parsedData.desiredOutcome}`
-                    ],
-                    confidence: "high"
-                  }
-                };
-                sessionStorage.setItem("note-ninjas-case", JSON.stringify(updatedCaseData));
-                setCaseData(updatedCaseData);
-                
-                // No page refresh needed - exercise links will be clickable automatically
-                
-                return prev;
-              });
+              // Save case to backend
+              (async () => {
+                try {
+                  // Get current subsections
+                  setStreamedSubsections(prev => {
+                    const updatedCaseData = {
+                      ...parsedData,
+                      isStreaming: false,
+                      recommendations: {
+                        subsections: prev,
+                        high_level: [
+                          `Focus on progressive treatment for ${parsedData.patientCondition}`,
+                          `Incorporate activities to achieve: ${parsedData.desiredOutcome}`
+                        ],
+                        confidence: "high"
+                      }
+                    };
+                    
+                    // Check if user is logged in before saving
+                    const userAuth = sessionStorage.getItem("note-ninjas-user");
+                    if (!userAuth) {
+                      console.warn('⚠️ User not logged in, skipping backend save');
+                      sessionStorage.setItem("note-ninjas-case", JSON.stringify(updatedCaseData));
+                      setCaseData(updatedCaseData);
+                      return prev;
+                    }
+                    
+                    // Save to backend async
+                    noteNinjasAPI.createCase(
+                      parsedData.userInput,
+                      updatedCaseData.recommendations
+                    ).then(caseResponse => {
+                      console.log('✅ Case saved to backend:', caseResponse.id);
+                      
+                      // Update case data with ID
+                      const finalCaseData = {
+                        ...updatedCaseData,
+                        caseId: caseResponse.id,
+                        caseName: caseResponse.name
+                      };
+                      
+                      sessionStorage.setItem("note-ninjas-case", JSON.stringify(finalCaseData));
+                      setCaseData(finalCaseData);
+                    }).catch(error => {
+                      console.error('❌ Error saving case to backend:', error);
+                      // If unauthorized, will auto-redirect to login
+                      // Still save to sessionStorage even if backend fails
+                      sessionStorage.setItem("note-ninjas-case", JSON.stringify(updatedCaseData));
+                      setCaseData(updatedCaseData);
+                    });
+                    
+                    return prev;
+                  });
+                } catch (error) {
+                  console.error('❌ Error in onComplete:', error);
+                }
+              })();
             },
             onError: (error) => {
               console.error('❌ Streaming error:', error);
@@ -204,40 +262,53 @@ export default function BrainstormingSuggestions() {
         const userData = JSON.parse(userAuth);
         setUserName(userData.name);
         setUserEmail(userData.email);
-
-        // Load case history
-        const historyKey = `note-ninjas-history-${userData.email}`;
-        const storedHistory = localStorage.getItem(historyKey);
-        if (storedHistory) {
-          setCaseHistory(JSON.parse(storedHistory));
-        }
       } catch (error) {
         console.error("Error parsing user data:", error);
       }
     }
   }, []);
 
-  const handleSelectCase = (caseData: any) => {
-    sessionStorage.setItem("note-ninjas-case", JSON.stringify(caseData));
-    setCaseData(caseData);
-    setIsSidebarOpen(false);
+  const handleSelectCase = async (item: CaseHistory) => {
+    try {
+      // Fetch full case data from backend if not already loaded
+      if (!item.caseData) {
+        const fullCase = await noteNinjasAPI.getCase(item.id);
+        
+        // Convert backend case format to frontend format
+        const caseData = {
+          caseId: fullCase.id,
+          caseName: fullCase.name,
+          patientCondition: fullCase.input_json.patient_condition,
+          desiredOutcome: fullCase.input_json.desired_outcome,
+          treatmentProgression: fullCase.input_json.treatment_progression || "",
+          inputMode: fullCase.input_json.input_mode || "simple",
+          sessionId: fullCase.input_json.session_id || `session_${Date.now()}`,
+          userInput: fullCase.input_json,
+          recommendations: fullCase.output_json,
+          isStreaming: false
+        };
+        
+        sessionStorage.setItem("note-ninjas-case", JSON.stringify(caseData));
+        setCaseData(caseData);
+      } else {
+        sessionStorage.setItem("note-ninjas-case", JSON.stringify(item.caseData));
+        setCaseData(item.caseData);
+      }
+      
+      setIsSidebarOpen(false);
+    } catch (error) {
+      console.error("Error loading case:", error);
+      alert("Failed to load case. Please try again.");
+    }
   };
 
   // Use backend recommendations if available
   const backendSuggestions = useMemo(() => {
-    const result = (caseData?.isStreaming && !streamComplete)
-      ? streamedSubsections
+    // Simple approach - use streamedSubsections if available, otherwise use caseData
+    return streamedSubsections.length > 0 
+      ? streamedSubsections 
       : (caseData?.recommendations?.subsections || []);
-    console.log('📊 backendSuggestions calculation:', {
-      isStreaming: caseData?.isStreaming,
-      streamComplete,
-      streamedSubsectionsLength: streamedSubsections.length,
-      recommendationsSubsectionsLength: caseData?.recommendations?.subsections?.length,
-      resultLength: result.length,
-      result
-    });
-    return result;
-  }, [caseData, streamComplete, streamedSubsections]);
+  }, [streamedSubsections, caseData?.recommendations?.subsections]);
   
   // Debug logs removed to prevent unnecessary re-renders
   
@@ -245,11 +316,11 @@ export default function BrainstormingSuggestions() {
     if (!backendSuggestions || backendSuggestions.length === 0) return [];
     
     return backendSuggestions
-      .filter((sub: any) => sub && sub.title && sub.description && sub.title !== "Loading..." && sub.description !== "Generating recommendations...")
+      .filter((sub: any) => sub && sub.title) // Only filter out null/undefined and missing titles
       .map((sub: any, idx: number) => ({
         id: sub.title?.toLowerCase().replace(/\s+/g, "-") || `subsection-${idx}`,
         title: sub.title,
-        description: sub.description,
+        description: sub.description || "Generating recommendations...", // Keep placeholder text
         exercises: sub.exercises || [],
         cptCodes: sub.exercises?.flatMap((ex: any) => ex.cpt_codes || []) || []
       }));
@@ -373,38 +444,76 @@ export default function BrainstormingSuggestions() {
       return;
     }
 
+    // Check if user is logged in
+    const userAuth = sessionStorage.getItem("note-ninjas-user");
+    if (!userAuth) {
+      alert("Please login to submit feedback");
+      router.push("/note-ninjas");
+      return;
+    }
+
     try {
       // Get case ID from stored case data
       const caseId = (caseData as any)?.caseId;
       
-      // Build comprehensive feedback data with hierarchy
+      // Determine what we're giving feedback on
+      const feedbackType = feedbackContext?.type || 'general';
+      
+      // Extract specific fields based on feedback type
+      let exerciseName: string | undefined;
+      let cueType: string | undefined;
+      let cptCode: string | undefined;
+      let exampleNumber: number | undefined;
+      
+      if (feedbackType === 'exercise') {
+        exerciseName = selectedExercise?.name;
+      } else if (feedbackType === 'cue') {
+        exerciseName = selectedExercise?.name;
+        // Extract cue type from title if present (e.g., "Exercise Name - Cue 1" -> "Verbal", "Tactile", or "Visual")
+        const titleParts = feedbackContext?.title?.split(' - Cue ');
+        if (titleParts && titleParts.length > 1) {
+          const cueIndex = parseInt(titleParts[1]) - 1;
+          const cueTypes = ['Verbal', 'Tactile', 'Visual'];
+          cueType = cueTypes[cueIndex] || 'General';
+        }
+      } else if (feedbackType === 'documentation') {
+        exerciseName = selectedExercise?.name;
+        // Extract example number from title
+        const match = feedbackContext?.title?.match(/Example (\d+)/);
+        if (match) {
+          exampleNumber = parseInt(match[1]);
+        }
+      } else if (feedbackType === 'cpt_code') {
+        exerciseName = selectedExercise?.name;
+        // Extract CPT code from title or content
+        const match = feedbackContext?.title?.match(/CPT (\d+)/);
+        if (match) {
+          cptCode = match[1];
+        }
+      }
+      
+      // Build feedback payload matching backend schema
       const feedbackPayload = {
         case_id: caseId,
-        feedback_type: feedbackRating,
-        feedback_data: {
-          // Basic info
-          scope: feedbackContext?.type || "",
-          item_title: feedbackContext?.title || "",
-          rating: feedbackRating,
-          
-          // Hierarchy - which exercise this belongs to
-          exercise_name: selectedExercise?.name || null,
+        feedback_type: feedbackType,
+        exercise_name: exerciseName,
+        cue_type: cueType,
+        cpt_code: cptCode,
+        example_number: exampleNumber,
+        rating: feedbackRating,
+        comments: feedbackComments || undefined,
+        context_json: {
+          // Store full context for analysis
+          item_title: feedbackContext?.title || '',
+          item_content: feedbackContext?.content || '',
           exercise_description: selectedExercise?.description || null,
-          
-          // Full item content (the actual cue text, doc text, etc.)
-          item_content: feedbackContext?.content || null,
-          
-          // Case context
           case_data: {
             patient_condition: caseData?.patientCondition || null,
             desired_outcome: caseData?.desiredOutcome || null,
             input_mode: caseData?.inputMode || null,
           },
-          
-          // Timestamp
           submitted_at: new Date().toISOString(),
-        },
-        comment: feedbackComments || undefined,
+        }
       };
       
       console.log("Submitting feedback:", feedbackPayload);
@@ -525,56 +634,19 @@ export default function BrainstormingSuggestions() {
             </div>
           </div>
 
-          {/* Case Details - Collapsible */}
+          {/* Case Details - Button to open modal */}
           <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-gray-900">
                 Case Details
               </h2>
               <button
-                onClick={() => setIsCaseDetailsExpanded(!isCaseDetailsExpanded)}
-                className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                onClick={() => setShowCaseDetailsModal(true)}
+                className="px-4 py-2 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 transition-colors"
               >
-                <svg
-                  className={`w-4 h-4 text-gray-600 transition-transform ${
-                    isCaseDetailsExpanded ? "rotate-45" : ""
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                  />
-                </svg>
+                View Details
               </button>
             </div>
-
-            {isCaseDetailsExpanded && (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mt-4 pt-4 border-t border-gray-200">
-                  <div>
-                    <span className="font-medium text-gray-700">
-                      Condition:
-                    </span>
-                    <p className="text-gray-600 mt-1">
-                      {caseData.patientCondition}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-700">
-                      Desired Outcome:
-                    </span>
-                    <p className="text-gray-600 mt-1">
-                      {caseData.desiredOutcome}
-                    </p>
-                  </div>
-                </div>
-              </>
-            )}
           </div>
 
           {/* Treatment Approach Header */}
@@ -599,29 +671,6 @@ export default function BrainstormingSuggestions() {
 
           {/* Techniques Section Title */}
           <div className="mb-6">
-
-                {/* Create New Case from Details Button */}
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <button
-                    onClick={handleCreateNewCase}
-                    className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors flex items-center justify-center"
-                  >
-                    <svg
-                      className="w-4 h-4 mr-2"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                      />
-                    </svg>
-                    Create New Case from Details
-                  </button>
-                </div>
             <h3 className="text-xl font-semibold text-gray-900 text-center">
               Specific Techniques to Consider
             </h3>
@@ -634,7 +683,11 @@ export default function BrainstormingSuggestions() {
             isLoadingStream={isLoadingStream}
             streamComplete={streamComplete}
             streamedSubsectionsCount={streamedSubsections.length}
-            onFeedbackClick={(index) => openFeedbackModal(suggestions[index]?.title || "Suggestion", "suggestion", suggestions[index]?.description)}
+            onFeedbackClick={(index) => openFeedbackModal(
+              suggestions[index]?.title ? `Title: ${suggestions[index]?.title}` : "Title",
+              "title",
+              suggestions[index]?.title || ""
+            )}
             onDescriptionClick={(index, e) => handleExerciseClick(e, suggestions[index])}
             renderDescription={(index) => renderDescriptionWithClickableExercises(suggestions[index])}
             isFirstTimeGeneration={caseData?.isStreaming === true}
@@ -648,12 +701,25 @@ export default function BrainstormingSuggestions() {
                 <div className="p-6">
                   {/* Modal Header */}
                   <div className="flex justify-between items-start mb-6">
-                    <h2 className="text-2xl font-bold text-gray-900">
-                      {selectedExercise.name}
-                    </h2>
+                    <div className="flex items-center gap-3">
+                      <h2 className="text-2xl font-bold text-gray-900">
+                        {selectedExercise.name}
+                      </h2>
+                      <button
+                        onClick={() => openFeedbackModal(`Title: ${selectedExercise.name}`, "title", selectedExercise.name)}
+                        className="text-gray-400 hover:text-purple-600 transition-colors"
+                        title="Feedback on title"
+                        aria-label="Feedback on title"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                        </svg>
+                      </button>
+                    </div>
                     <button
                       onClick={closeExerciseModal}
                       className="text-gray-400 hover:text-gray-600 transition-colors"
+                      aria-label="Close"
                     >
                       <svg
                         className="w-6 h-6"
@@ -674,7 +740,7 @@ export default function BrainstormingSuggestions() {
                   <div className="space-y-6">
                     {/* Exercise Description */}
                     <div>
-                      <div className="flex justify-between items-center mb-3">
+                  <div className="flex justify-between items-center mb-3">
                         <h3 className="text-lg font-semibold text-gray-900">
                           Exercise
                         </h3>
@@ -819,10 +885,116 @@ export default function BrainstormingSuggestions() {
             </div>
           )}
 
+          {/* Case Details Modal (reverted to simpler design) */}
+          {showCaseDetailsModal && (
+            <div
+              className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+              onClick={() => setShowCaseDetailsModal(false)}
+            >
+              <div
+                className="bg-white rounded-md max-w-2xl w-full shadow-md max-h-[90vh] overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="p-6">
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h2 className="text-xl font-semibold text-gray-900">Case Details</h2>
+                      {caseData.sessionId && (
+                        <p className="text-xs text-gray-500 mt-1">Session ID: {caseData.sessionId.substring(0, 16)}...</p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => setShowCaseDetailsModal(false)}
+                      className="text-gray-400 hover:text-gray-600"
+                      aria-label="Close"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* Body */}
+                  <div className="space-y-4">
+                    <div className="border border-gray-200 rounded-md p-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <div className="text-xs text-gray-500 uppercase">Condition</div>
+                          <div className="text-gray-900 mt-1">{caseData.patientCondition}</div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-gray-500 uppercase">Desired Outcome</div>
+                          <div className="text-gray-900 mt-1">{caseData.desiredOutcome}</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {caseData.treatmentProgression && (
+                      <div className="border border-gray-200 rounded-md p-4">
+                        <div className="text-xs text-gray-500 uppercase mb-1">Treatment Progression</div>
+                        <div className="text-gray-900">{caseData.treatmentProgression}</div>
+                      </div>
+                    )}
+
+                    {caseData.inputMode === "detailed" && (
+                      <div className="border border-gray-200 rounded-md p-4">
+                        <div className="text-xs text-gray-500 uppercase mb-2">Additional Details</div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-900">
+                          {caseData.age && (
+                            <div><span className="text-xs text-gray-500 uppercase">Age:</span> <span>{caseData.age}</span></div>
+                          )}
+                          {caseData.gender && (
+                            <div><span className="text-xs text-gray-500 uppercase">Gender:</span> <span>{caseData.gender}</span></div>
+                          )}
+                          {caseData.severity && (
+                            <div><span className="text-xs text-gray-500 uppercase">Severity:</span> <span>{caseData.severity}</span></div>
+                          )}
+                          {caseData.comorbidities && (
+                            <div className="md:col-span-2">
+                              <span className="text-xs text-gray-500 uppercase">Comorbidities:</span> <span>{caseData.comorbidities}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between text-xs text-gray-500">
+                      <div>
+                        <span className="font-medium">Input Mode:</span> {caseData.inputMode === "detailed" ? "Detailed" : "Simple"}
+                      </div>
+                      {caseData.recommendations?.subsections && (
+                        <div>
+                          <span className="font-medium">Recommendations:</span> {caseData.recommendations.subsections.length} subsections
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="mt-6">
+                    <button
+                      onClick={() => { handleCreateNewCase(); setShowCaseDetailsModal(false); }}
+                      className="w-full bg-purple-600 text-white py-2.5 px-4 rounded-md font-medium hover:bg-purple-700"
+                    >
+                      Create New Case from Details
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Feedback Modal */}
           {showFeedbackModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div 
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4"
+              onClick={closeFeedbackModal}
+            >
+              <div 
+                className="bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <h3 className="text-xl font-bold text-gray-900 mb-4">
                   Provide Feedback
                 </h3>

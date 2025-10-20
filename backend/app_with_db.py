@@ -286,7 +286,7 @@ async def update_profile(
     try:
         current_user.name = update_data.name
         current_user.email = update_data.email
-        await db.flush()
+        await db.commit()
         await db.refresh(current_user)
         return UserResponse(
             id=str(current_user.id),
@@ -294,7 +294,7 @@ async def update_profile(
             email=current_user.email,
             created_at=current_user.created_at,
             updated_at=current_user.updated_at
-    )
+        )
     except Exception as e:
         await db.rollback()
         logger.error(f"Profile update error: {e}")
@@ -321,7 +321,7 @@ async def create_case(
             output_json=case_data.output_json
         )
         db.add(case)
-        await db.flush()
+        await db.commit()
         
         logger.info(f"Created case {case.id} for user {current_user.email}")
         await db.refresh(case)
@@ -405,7 +405,8 @@ async def update_case_name(
             raise HTTPException(status_code=404, detail="Case not found")
         
         case.name = update_data.name
-        await db.flush()
+        await db.commit()
+        await db.refresh(case)
         
         return CaseResponse.model_validate(case)
     except HTTPException:
@@ -432,7 +433,7 @@ async def delete_case(
             raise HTTPException(status_code=404, detail="Case not found")
         
         await db.delete(case)
-        await db.flush()
+        await db.commit()
         
         return {"success": True, "message": "Case deleted"}
     except HTTPException:
@@ -465,17 +466,22 @@ async def submit_feedback(
             context_json=feedback_data.context_json
         )
         db.add(feedback)
-        await db.flush()
+        await db.commit()
         
         logger.info(f"Feedback submitted by {current_user.email}")
         await db.refresh(feedback)
         return FeedbackResponse(
-            id=str(feedback.id),
-            user_id=str(feedback.user_id),
-            case_id=str(feedback.case_id) if feedback.case_id else None,
+            id=feedback.id,
+            user_id=feedback.user_id,
+            case_id=feedback.case_id,
             feedback_type=feedback.feedback_type,
-            feedback_data=feedback.feedback_data,
-            comment=feedback.comment,
+            exercise_name=feedback.exercise_name,
+            cue_type=feedback.cue_type,
+            cpt_code=feedback.cpt_code,
+            example_number=feedback.example_number,
+            rating=feedback.rating,
+            comments=feedback.comments,
+            context_json=feedback.context_json,
             created_at=feedback.created_at
         )
     except Exception as e:

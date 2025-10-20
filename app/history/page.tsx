@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { noteNinjasAPI, CaseListItem } from "@/lib/api";
 
 interface CaseHistory {
   id: string;
@@ -21,27 +22,53 @@ export default function HistoryPage() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   useEffect(() => {
-    const userAuth = sessionStorage.getItem("note-ninjas-user");
-    if (userAuth) {
-      try {
-        const userData = JSON.parse(userAuth);
-        setUserName(userData.name);
-        setUserEmail(userData.email);
-
-        // Load case history
-        const historyKey = `note-ninjas-history-${userData.email}`;
-        const storedHistory = localStorage.getItem(historyKey);
-        if (storedHistory) {
-          setCaseHistory(JSON.parse(storedHistory));
-        }
-      } catch (error) {
-        console.error("Error loading user data:", error);
+    const loadCases = async () => {
+      const userAuth = sessionStorage.getItem("note-ninjas-user");
+      if (!userAuth) {
+        // Not logged in, redirect to login
+        console.warn('⚠️ User not logged in, redirecting to login');
         router.push("/note-ninjas");
+        return;
       }
-    } else {
-      router.push("/note-ninjas");
-    }
-    setIsLoading(false);
+      
+      if (userAuth) {
+        try {
+          const userData = JSON.parse(userAuth);
+          setUserName(userData.name);
+          setUserEmail(userData.email);
+
+          // Fetch cases from backend
+          try {
+            const cases = await noteNinjasAPI.getCases();
+            
+            // Convert backend cases to the format expected by the UI
+            const formattedCases: CaseHistory[] = cases.map((c: CaseListItem) => ({
+              id: c.id,
+              name: c.name,
+              timestamp: new Date(c.created_at).getTime(),
+              caseData: null // Will load full case when selected
+            }));
+            
+            setCaseHistory(formattedCases);
+          } catch (error) {
+            console.error("Error loading cases from backend:", error);
+            
+            // Fallback to localStorage if backend fails
+            const historyKey = `note-ninjas-history-${userData.email}`;
+            const storedHistory = localStorage.getItem(historyKey);
+            if (storedHistory) {
+              setCaseHistory(JSON.parse(storedHistory));
+            }
+          }
+        } catch (error) {
+          console.error("Error loading user data:", error);
+          router.push("/note-ninjas");
+        }
+      }
+      setIsLoading(false);
+    };
+    
+    loadCases();
   }, [router]);
 
   const handleStartEdit = (id: string, currentName: string) => {
@@ -49,17 +76,24 @@ export default function HistoryPage() {
     setEditName(currentName);
   };
 
-  const handleSaveEdit = (id: string) => {
+  const handleSaveEdit = async (id: string) => {
     if (!editName.trim() || !userEmail) return;
 
-    const historyKey = `note-ninjas-history-${userEmail}`;
-    const updatedHistory = caseHistory.map((item) =>
-      item.id === id ? { ...item, name: editName.trim() } : item
-    );
-    setCaseHistory(updatedHistory);
-    localStorage.setItem(historyKey, JSON.stringify(updatedHistory));
-    setEditingId(null);
-    setEditName("");
+    try {
+      // Update case name in backend
+      await noteNinjasAPI.updateCaseName(id, editName.trim());
+      
+      // Update local state
+      const updatedHistory = caseHistory.map((item) =>
+        item.id === id ? { ...item, name: editName.trim() } : item
+      );
+      setCaseHistory(updatedHistory);
+      setEditingId(null);
+      setEditName("");
+    } catch (error) {
+      console.error("Error updating case name:", error);
+      alert("Failed to update case name. Please try again.");
+    }
   };
 
   const handleCancelEdit = () => {
@@ -67,19 +101,53 @@ export default function HistoryPage() {
     setEditName("");
   };
 
-  const handleDeleteConfirm = (id: string) => {
+  const handleDeleteConfirm = async (id: string) => {
     if (!userEmail) return;
 
-    const historyKey = `note-ninjas-history-${userEmail}`;
-    const updatedHistory = caseHistory.filter((item) => item.id !== id);
-    setCaseHistory(updatedHistory);
-    localStorage.setItem(historyKey, JSON.stringify(updatedHistory));
-    setDeleteConfirmId(null);
+    try {
+      // Delete case from backend
+      await noteNinjasAPI.deleteCase(id);
+      
+      // Update local state
+      const updatedHistory = caseHistory.filter((item) => item.id !== id);
+      setCaseHistory(updatedHistory);
+      setDeleteConfirmId(null);
+    } catch (error) {
+      console.error("Error deleting case:", error);
+      alert("Failed to delete case. Please try again.");
+    }
   };
 
-  const handleSelectCase = (caseData: any) => {
-    sessionStorage.setItem("note-ninjas-case", JSON.stringify(caseData));
-    router.push("/note-ninjas/suggestions");
+  const handleSelectCase = async (item: CaseHistory) => {
+    try {
+      // Fetch full case data from backend if not already loaded
+      if (!item.caseData) {
+        const fullCase = await noteNinjasAPI.getCase(item.id);
+        
+        // Convert backend case format to frontend format
+        const caseData = {
+          caseId: fullCase.id,
+          caseName: fullCase.name,
+          patientCondition: fullCase.input_json.patient_condition,
+          desiredOutcome: fullCase.input_json.desired_outcome,
+          treatmentProgression: fullCase.input_json.treatment_progression || "",
+          inputMode: fullCase.input_json.input_mode || "simple",
+          sessionId: fullCase.input_json.session_id || `session_${Date.now()}`,
+          userInput: fullCase.input_json,
+          recommendations: fullCase.output_json,
+          isStreaming: false
+        };
+        
+        sessionStorage.setItem("note-ninjas-case", JSON.stringify(caseData));
+      } else {
+        sessionStorage.setItem("note-ninjas-case", JSON.stringify(item.caseData));
+      }
+      
+      router.push("/note-ninjas/suggestions");
+    } catch (error) {
+      console.error("Error loading case:", error);
+      alert("Failed to load case. Please try again.");
+    }
   };
 
   if (isLoading) {
@@ -224,7 +292,7 @@ export default function HistoryPage() {
                   // View Mode
                   <>
                     <div
-                      onClick={() => handleSelectCase(item.caseData)}
+                      onClick={() => handleSelectCase(item)}
                       className="cursor-pointer mb-3"
                     >
                       <h3 className="font-semibold text-gray-900 mb-2 hover:text-purple-600 transition-colors">

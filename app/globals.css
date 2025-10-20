@@ -50,10 +50,16 @@ body {
   z-index: 10 !important;
 }
 
-/* Ensure gray exercises are not clickable */
-.text-gray-400 {
+/* Ensure gray exercises are not clickable (only span elements in descriptions) */
+.text-gray-600 span.text-gray-400,
+.text-gray-700 span.text-gray-400 {
   pointer-events: none !important;
   cursor: default !important;
+}
+
+/* Ensure buttons are always clickable */
+button {
+  pointer-events: auto !important;
 }
 
 /* Glossy glass shimmer effect for loading cards */
@@ -72,11 +78,12 @@ body {
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.4),
+    rgba(255, 255, 255, 0.8),
     transparent
   );
-  animation: shimmer 2s infinite;
-  z-index: 1;
+  animation: shimmer 1.2s infinite;
+  z-index: 2;
+  pointer-events: none;
 }
 
 @keyframes shimmer {
@@ -90,8 +97,11 @@ body {
 
 /* Glass morphism effect for loading state */
 .glass-card {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.1));
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 
+    0 8px 32px 0 rgba(31, 38, 135, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  position: relative;
 }

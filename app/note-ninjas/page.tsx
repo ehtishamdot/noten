@@ -20,6 +20,7 @@ export default function NoteNinjas() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [caseHistory, setCaseHistory] = useState<CaseHistory[]>([]);
+  const [hasLoadedPrefill, setHasLoadedPrefill] = useState(false);
   const [formData, setFormData] = useState({
     patientCondition: "",
     desiredOutcome: "",
@@ -73,6 +74,7 @@ export default function NoteNinjas() {
         const parsedData = JSON.parse(storedFormData);
         console.log("Parsed form data:", parsedData);
         setFormData(parsedData);
+        setHasLoadedPrefill(true);
       } catch (error) {
         console.error("Error parsing stored form data:", error);
       }
@@ -81,29 +83,61 @@ export default function NoteNinjas() {
     if (storedInputMode) {
       setInputMode(storedInputMode as "simple" | "detailed");
     }
+    if (!storedFormData) {
+      setHasLoadedPrefill(true);
+    }
   }, []);
 
   // Save form data to sessionStorage whenever it changes
   useEffect(() => {
+    if (!hasLoadedPrefill) return;
     sessionStorage.setItem("note-ninjas-form-data", JSON.stringify(formData));
-  }, [formData]);
+  }, [formData, hasLoadedPrefill]);
 
   // Save input mode to sessionStorage whenever it changes
   useEffect(() => {
     sessionStorage.setItem("note-ninjas-input-mode", inputMode);
   }, [inputMode]);
 
-  const handleLogin = (name: string, email: string) => {
-    const userData = { name, email };
-    sessionStorage.setItem("note-ninjas-user", JSON.stringify(userData));
-    setUserName(name);
-    setIsAuthenticated(true);
+  const handleLogin = async (name: string, email: string) => {
+    try {
+      // Call backend login API
+      const response = await noteNinjasAPI.login(name, email);
+      
+      // Save user data and token
+      const userData = { 
+        id: response.user.id,
+        name: response.user.name, 
+        email: response.user.email 
+      };
+      sessionStorage.setItem("note-ninjas-user", JSON.stringify(userData));
+      setUserName(name);
+      setIsAuthenticated(true);
 
-    // Load case history for this user
-    const historyKey = `note-ninjas-history-${email}`;
-    const storedHistory = localStorage.getItem(historyKey);
-    if (storedHistory) {
-      setCaseHistory(JSON.parse(storedHistory));
+      console.log('✅ Logged in successfully:', userData);
+
+      // Load case history from backend
+      try {
+        const cases = await noteNinjasAPI.getCases();
+        const formattedCases = cases.map((c) => ({
+          id: c.id,
+          name: c.name,
+          timestamp: new Date(c.created_at).getTime(),
+          caseData: null
+        }));
+        setCaseHistory(formattedCases);
+      } catch (error) {
+        console.error('Error loading case history:', error);
+        // Fallback to localStorage
+        const historyKey = `note-ninjas-history-${email}`;
+        const storedHistory = localStorage.getItem(historyKey);
+        if (storedHistory) {
+          setCaseHistory(JSON.parse(storedHistory));
+        }
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      alert('Login failed. Please try again.');
     }
   };
 
@@ -238,35 +272,51 @@ export default function NoteNinjas() {
       setIsProcessing(true);
 
       // Save case data for suggestions page with streaming flag
-      const userInputStr = formData.patientCondition || `${formData.age} year old with ${formData.diagnosis}. Desired outcome: ${formData.desiredOutcome}`;
+      const patientConditionFinal = inputMode === "detailed"
+        ? `${formData.age} year old ${
+            formData.gender?.toLowerCase() || "patient"
+          } with ${formData.diagnosis}${
+            formData.comorbidities
+              ? `, comorbidities: ${formData.comorbidities}`
+              : ""
+          }, severity: ${formData.severity}${
+            formData.dateOfOnset ? `, onset: ${formData.dateOfOnset}` : ""
+          }${
+            formData.priorLevelOfFunction
+              ? `, prior function: ${formData.priorLevelOfFunction}`
+              : ""
+          }${
+            formData.workLifeRequirements
+              ? `, work/life needs: ${formData.workLifeRequirements}`
+              : ""
+          }`
+        : formData.patientCondition;
       
       const caseData = {
         isStreaming: true,
         sessionId: `session_${Date.now()}`,
-        userInput: userInputStr,
-        ...formData,
+        // Store data for UI
+        patientCondition: patientConditionFinal,
+        desiredOutcome: formData.desiredOutcome,
+        treatmentProgression: formData.treatmentProgression,
         inputMode,
-        // Create combined condition string for detailed mode
-        patientCondition:
-          inputMode === "detailed"
-            ? `${formData.age} year old ${
-                formData.gender?.toLowerCase() || "patient"
-              } with ${formData.diagnosis}${
-                formData.comorbidities
-                  ? `, comorbidities: ${formData.comorbidities}`
-                  : ""
-              }, severity: ${formData.severity}${
-                formData.dateOfOnset ? `, onset: ${formData.dateOfOnset}` : ""
-              }${
-                formData.priorLevelOfFunction
-                  ? `, prior function: ${formData.priorLevelOfFunction}`
-                  : ""
-              }${
-                formData.workLifeRequirements
-                  ? `, work/life needs: ${formData.workLifeRequirements}`
-                  : ""
-              }`
-            : formData.patientCondition,
+        // Store userInput for API (snake_case format for DB)
+        userInput: {
+          patient_condition: patientConditionFinal,
+          desired_outcome: formData.desiredOutcome,
+          treatment_progression: formData.treatmentProgression || "",
+          input_mode: inputMode,
+          session_id: `session_${Date.now()}`,
+          // Include detailed fields if available
+          age: formData.age,
+          gender: formData.gender,
+          diagnosis: formData.diagnosis,
+          comorbidities: formData.comorbidities,
+          severity: formData.severity,
+          date_of_onset: formData.dateOfOnset,
+          prior_level_of_function: formData.priorLevelOfFunction,
+          work_life_requirements: formData.workLifeRequirements,
+        },
       };
 
       sessionStorage.setItem("note-ninjas-case", JSON.stringify(caseData));

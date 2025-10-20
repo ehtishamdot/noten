@@ -3,17 +3,25 @@
 import { useState } from "react";
 
 interface LoginPageProps {
-  onLogin: (name: string, email: string) => void;
+  onLogin: (name: string, email: string) => Promise<void>;
 }
 
 export default function LoginPage({ onLogin }: LoginPageProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (name.trim() && email.trim()) {
-      onLogin(name.trim(), email.trim());
+      setIsLoading(true);
+      try {
+        await onLogin(name.trim(), email.trim());
+      } catch (error) {
+        console.error("Login error:", error);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -74,10 +82,17 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
             <button
               type="submit"
-              disabled={!isValid}
-              className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              disabled={!isValid || isLoading}
+              className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
             >
-              Get Started
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
+                  Logging in...
+                </>
+              ) : (
+                "Get Started"
+              )}
             </button>
           </form>
         </div>

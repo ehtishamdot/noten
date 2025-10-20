@@ -14,7 +14,7 @@ interface HistorySidebarProps {
   isOpen: boolean;
   onToggle: () => void;
   history: CaseHistory[];
-  onSelect: (caseData: any) => void;
+  onSelect: (item: CaseHistory) => void;
 }
 
 export default function HistorySidebar({
@@ -25,8 +25,9 @@ export default function HistorySidebar({
 }: HistorySidebarProps) {
   const router = useRouter();
 
-  const handleSelectCase = (caseData: any) => {
-    onSelect(caseData);
+  const handleSelectCase = async (item: CaseHistory) => {
+    onSelect(item);
+    // Navigate to suggestions page with the case
     router.push("/note-ninjas/suggestions");
   };
 
@@ -90,7 +91,7 @@ export default function HistorySidebar({
                 history.map((item) => (
                   <div
                     key={item.id}
-                    onClick={() => handleSelectCase(item.caseData)}
+                    onClick={() => handleSelectCase(item)}
                     className="bg-gray-50 rounded-lg p-3 hover:bg-purple-50 transition-colors border border-gray-200 cursor-pointer hover:border-purple-300"
                   >
                     <h3 className="font-medium text-gray-900 text-sm mb-1">

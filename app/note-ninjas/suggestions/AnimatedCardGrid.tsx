@@ -43,7 +43,7 @@ export default function AnimatedCardGrid({
     if (allSuggestionIds.size > 0) {
       setAnimatedCards(allSuggestionIds);
     }
-  }, [suggestions.length]); // Only depend on length to prevent unnecessary re-renders
+  }, [suggestions.length, fastMode]); // Include fastMode to ensure cards stay visible
 
   const handleCardAnimationComplete = (suggestionId: string) => {
     setCompletedCards(prev => new Set([...prev, suggestionId]));
@@ -87,6 +87,7 @@ export default function AnimatedCardGrid({
             renderDescription={() => renderDescription?.(index) || suggestion.description}
             skipTypewriter={!isFirstTimeGeneration}
             fastMode={fastMode}
+            streamComplete={streamComplete}
           />
         ))}
       </div>

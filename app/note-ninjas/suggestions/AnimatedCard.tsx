@@ -14,6 +14,7 @@ interface AnimatedCardProps {
   renderDescription: () => string;
   skipTypewriter?: boolean;
   fastMode?: boolean;
+  streamComplete?: boolean;
 }
 
 const AnimatedCard = memo(function AnimatedCard({
@@ -26,7 +27,8 @@ const AnimatedCard = memo(function AnimatedCard({
   onDescriptionClick,
   renderDescription,
   skipTypewriter = false,
-  fastMode = false
+  fastMode = false,
+  streamComplete = false
 }: AnimatedCardProps) {
   const hasCompletedRef = useRef(false);
   const hasStartedRef = useRef(false);
@@ -58,19 +60,15 @@ const AnimatedCard = memo(function AnimatedCard({
     }
   }, [onAnimationComplete]);
 
-  // Check if content is fully loaded (not placeholder content)
-  const isContentLoaded = description && 
-    description !== "Generating recommendations..." && 
-    description !== "Loading..." &&
-    description.length > 50; // Ensure we have substantial content
+  // Simple approach - no glass effect, just normal cards
 
   return (
     <div
       className={`
-        bg-white p-6 rounded-lg shadow-md border border-gray-200 
+        bg-white
+        p-6 rounded-lg shadow-md border border-gray-200 
         transform transition-all duration-500 ease-out
         ${showCard ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95'}
-        ${!isContentLoaded ? 'glass-shimmer' : ''}
       `}
     >
       <div className="flex justify-between items-start mb-4">
