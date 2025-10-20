@@ -41,24 +41,41 @@ export default function NoteNinjas() {
 
   // Check authentication and load case history on component mount
   useEffect(() => {
-    const userAuth = sessionStorage.getItem("note-ninjas-user");
-    if (userAuth) {
-      try {
-        const userData = JSON.parse(userAuth);
-        setUserName(userData.name);
-        setIsAuthenticated(true);
+    const loadUserData = async () => {
+      const userAuth = sessionStorage.getItem("note-ninjas-user");
+      if (userAuth) {
+        try {
+          const userData = JSON.parse(userAuth);
+          setUserName(userData.name);
+          setIsAuthenticated(true);
 
-        // Load case history for this user
-        const historyKey = `note-ninjas-history-${userData.email}`;
-        const storedHistory = localStorage.getItem(historyKey);
-        if (storedHistory) {
-          setCaseHistory(JSON.parse(storedHistory));
+          // Load case history from backend
+          try {
+            const cases = await noteNinjasAPI.getCases();
+            const formattedCases = cases.map((c) => ({
+              id: c.id,
+              name: c.name,
+              timestamp: new Date(c.created_at).getTime(),
+              caseData: null
+            }));
+            setCaseHistory(formattedCases);
+          } catch (error) {
+            console.error('Error loading case history:', error);
+            // Fallback to localStorage
+            const historyKey = `note-ninjas-history-${userData.email}`;
+            const storedHistory = localStorage.getItem(historyKey);
+            if (storedHistory) {
+              setCaseHistory(JSON.parse(storedHistory));
+            }
+          }
+        } catch (error) {
+          console.error("Error parsing user data:", error);
         }
-      } catch (error) {
-        console.error("Error parsing user data:", error);
       }
-    }
-    setIsLoading(false);
+      setIsLoading(false);
+    };
+    
+    loadUserData();
   }, []);
 
   // Load form data from sessionStorage on component mount
