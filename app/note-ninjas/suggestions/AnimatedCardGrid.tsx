@@ -20,6 +20,7 @@ interface AnimatedCardGridProps {
   onDescriptionClick: (index: number, e: React.MouseEvent<HTMLDivElement>) => void;
   isFirstTimeGeneration?: boolean;
   renderDescription?: (index: number) => string;
+  fastMode?: boolean;
 }
 
 export default function AnimatedCardGrid({
@@ -31,30 +32,18 @@ export default function AnimatedCardGrid({
   onDescriptionClick,
   renderDescription,
   isFirstTimeGeneration = false,
+  fastMode = false,
 }: AnimatedCardGridProps) {
   const [animatedCards, setAnimatedCards] = useState<Set<string>>(new Set());
   const [completedCards, setCompletedCards] = useState<Set<string>>(new Set());
-  const processedIds = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    if (isFirstTimeGeneration) {
-      // Animate cards as they come in with staggered delays
-      suggestions.forEach((suggestion, index) => {
-        if (!processedIds.current.has(suggestion.id)) {
-          processedIds.current.add(suggestion.id);
-          setTimeout(() => {
-            setAnimatedCards(prevCards => new Set([...prevCards, suggestion.id]));
-          }, index * 200);
-        }
-      });
-    } else {
-      // Immediately show all cards without animation
-      const allSuggestionIds = new Set(suggestions.map(s => s.id));
-      if (allSuggestionIds.size > 0) {
-        setAnimatedCards(allSuggestionIds);
-      }
+    // Always show all cards immediately to prevent hiding/reappearing
+    const allSuggestionIds = new Set(suggestions.map(s => s.id));
+    if (allSuggestionIds.size > 0) {
+      setAnimatedCards(allSuggestionIds);
     }
-  }, [suggestions, isFirstTimeGeneration]);
+  }, [suggestions.length]); // Only depend on length to prevent unnecessary re-renders
 
   const handleCardAnimationComplete = (suggestionId: string) => {
     setCompletedCards(prev => new Set([...prev, suggestionId]));
@@ -77,13 +66,9 @@ export default function AnimatedCardGrid({
     );
   }
 
-  // Filter out suggestions that don't have real content yet
+  // Keep all suggestions visible, including placeholders
   const validSuggestions = suggestions.filter(suggestion => 
-    suggestion.title !== 'Loading...' && 
-    suggestion.description !== 'Generating recommendations...' &&
-    suggestion.description !== '...' &&
-    suggestion.title &&
-    suggestion.description
+    suggestion.title && suggestion.description
   );
 
   return (
@@ -100,6 +85,8 @@ export default function AnimatedCardGrid({
             onFeedbackClick={() => onFeedbackClick(index)}
             onDescriptionClick={(e) => onDescriptionClick(index, e)}
             renderDescription={() => renderDescription?.(index) || suggestion.description}
+            skipTypewriter={!isFirstTimeGeneration}
+            fastMode={fastMode}
           />
         ))}
       </div>

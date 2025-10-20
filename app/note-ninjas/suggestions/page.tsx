@@ -6,6 +6,17 @@ import AnimatedCardGrid from "./AnimatedCardGrid";
 import { useRouter } from "next/navigation";
 import { noteNinjasAPI } from "@/lib/api";
 import HistorySidebar from "../../components/HistorySidebar";
+import { useStreamingRecommendations } from "@/hooks/useStreamingRecommendations";
+
+// Define subsection configurations
+const SUBSECTION_CONFIGS = [
+  { title: "Manual Therapy Techniques", focus: "mobilizations, soft tissue work" },
+  { title: "Progressive Strengthening Protocol", focus: "strengthening exercises" },
+  { title: "Neuromuscular Re-education", focus: "coordination, balance, proprioception" },
+  { title: "Work-Specific Functional Training", focus: "functional activities for goals" },
+  { title: "Pain Management Modalities", focus: "modalities for pain control" },
+  { title: "Home Exercise Program", focus: "home exercises patient can do" }
+];
 
 interface CaseHistory {
   id: string;
@@ -49,6 +60,10 @@ export default function BrainstormingSuggestions() {
   const [isTyping, setIsTyping] = useState<{[key: number]: boolean}>({});
   const [showCard, setShowCard] = useState<{[key: number]: boolean}>({});
   const [typewriterTexts, setTypewriterTexts] = useState<{[key: string]: string}>({});
+  const [fastMode, setFastMode] = useState(false);
+  
+  // Vercel AI SDK streaming hook
+  const { isStreaming, startStreaming } = useStreamingRecommendations();
 
   const [selectedSuggestion, setSelectedSuggestion] =
     useState<Suggestion | null>(null);
@@ -81,55 +96,99 @@ export default function BrainstormingSuggestions() {
       
       // Start streaming immediately if needed
       if (parsedData.isStreaming && parsedData.sessionId && parsedData.userInput) {
-        console.log("🚀🚀🚀 STARTING STREAMING IMMEDIATELY! 🚀🚀🚀");
+        console.log("🚀🚀🚀 STARTING VERCEL AI SDK STREAMING! 🚀🚀🚀");
         setIsLoadingStream(true);
         
-        const collectedSubsections: any[] = [];
+        // Create placeholder subsections immediately
+        const placeholderSubsections = SUBSECTION_CONFIGS.map((config, index) => ({
+          title: config.title,
+          description: "Generating recommendations...",
+          exercises: [],
+          id: `placeholder-${index}`
+        }));
         
-        noteNinjasAPI.generateRecommendationsStream(
-          parsedData.userInput,
-          {},
+        setStreamedSubsections(placeholderSubsections);
+        
+        // Show all cards immediately with placeholders - no delays
+        for (let i = 0; i < 6; i++) {
+          setShowCard(prev => ({...prev, [i]: true}));
+          setIsTyping(prev => ({...prev, [i]: true}));
+        }
+        
+        // Start streaming with Vercel AI SDK
+        console.log('🚀 About to start streaming with params:', {
+          patientCondition: parsedData.userInput.patient_condition,
+          desiredOutcome: parsedData.userInput.desired_outcome,
+          sessionId: parsedData.sessionId
+        });
+        
+        // Add a timeout to enable fastMode if streaming takes too long
+        const streamingTimeout = setTimeout(() => {
+          console.log('⏰ Streaming timeout - enabling fast mode');
+          setFastMode(true);
+          setStreamComplete(true);
+          setIsLoadingStream(false);
+        }, 10000); // 10 second timeout
+        
+        startStreaming(
+          parsedData.userInput.patient_condition,
+          parsedData.userInput.desired_outcome,
           parsedData.sessionId,
-          (subsection, index) => {
-            console.log(`✅ Received subsection ${index}:`, subsection.title);
-            collectedSubsections.push(subsection);
-            setStreamedSubsections([...collectedSubsections]);
-            
-            // Trigger card appearance animation
-            setTimeout(() => {
-              console.log(`🎬 Showing card ${index}`);
-              setShowCard(prev => ({...prev, [index]: true}));
-              // Start typewriter after card appears
-              setTimeout(() => {
-                console.log(`⌨️ Starting typewriter for card ${index}`);
-                setIsTyping(prev => ({...prev, [index]: true}));
-              }, 300);
-            }, 100);
-          },
-          () => {
-            console.log('✅ Streaming complete!', collectedSubsections.length, 'subsections');
-            setStreamComplete(true);
-            setIsLoadingStream(false);
-            
-            const updatedCaseData = {
-              ...parsedData,
-              isStreaming: false,
-              recommendations: {
-                subsections: collectedSubsections,
-                high_level: [
-                  `Focus on progressive treatment for ${parsedData.patientCondition}`,
-                  `Incorporate activities to achieve: ${parsedData.desiredOutcome}`
-                ],
-                confidence: "high"
-              }
-            };
-            sessionStorage.setItem("note-ninjas-case", JSON.stringify(updatedCaseData));
-            setCaseData(updatedCaseData);
-          },
-          (error) => {
-            console.error('❌ Streaming error:', error);
-            setIsLoadingStream(false);
-            setStreamComplete(true);
+          {
+            onUpdate: (subsection, index) => {
+              console.log(`✅ Received subsection ${index}:`, subsection.title, 'Description:', subsection.description?.substring(0, 50));
+              
+              // Update specific index with real data
+              setStreamedSubsections(prev => {
+                const updated = [...prev];
+                updated[index] = {
+                  ...subsection,
+                  id: `subsection-${index}`
+                };
+                console.log(`🔄 Updated streamedSubsections[${index}]:`, updated[index]);
+                return updated;
+              });
+            },
+            onComplete: () => {
+              console.log('✅ All streaming complete!');
+              clearTimeout(streamingTimeout);
+              setStreamComplete(true);
+              setIsLoadingStream(false);
+              
+              // Enable fast mode to quickly finish all typewriter animations
+              setFastMode(true);
+              
+              // Update case data with final results
+              setStreamedSubsections(prev => {
+                const updatedCaseData = {
+                  ...parsedData,
+                  isStreaming: false,
+                  recommendations: {
+                    subsections: prev,
+                    high_level: [
+                      `Focus on progressive treatment for ${parsedData.patientCondition}`,
+                      `Incorporate activities to achieve: ${parsedData.desiredOutcome}`
+                    ],
+                    confidence: "high"
+                  }
+                };
+                sessionStorage.setItem("note-ninjas-case", JSON.stringify(updatedCaseData));
+                setCaseData(updatedCaseData);
+                
+                // No page refresh needed - exercise links will be clickable automatically
+                
+                return prev;
+              });
+            },
+            onError: (error) => {
+              console.error('❌ Streaming error:', error);
+              console.error('❌ Error details:', error.message, error.stack);
+              clearTimeout(streamingTimeout);
+              setIsLoadingStream(false);
+              setStreamComplete(true);
+              // Enable fast mode on error too
+              setFastMode(true);
+            }
           }
         );
       }
@@ -166,20 +225,27 @@ export default function BrainstormingSuggestions() {
 
   // Use backend recommendations if available
   const backendSuggestions = useMemo(() => {
-    return (caseData?.isStreaming && !streamComplete)
+    const result = (caseData?.isStreaming && !streamComplete)
       ? streamedSubsections
       : (caseData?.recommendations?.subsections || []);
+    console.log('📊 backendSuggestions calculation:', {
+      isStreaming: caseData?.isStreaming,
+      streamComplete,
+      streamedSubsectionsLength: streamedSubsections.length,
+      recommendationsSubsectionsLength: caseData?.recommendations?.subsections?.length,
+      resultLength: result.length,
+      result
+    });
+    return result;
   }, [caseData, streamComplete, streamedSubsections]);
   
-  console.log('Backend suggestions:', backendSuggestions);
-  console.log('Streamed subsections:', streamedSubsections);
-  console.log('Is streaming:', caseData?.isStreaming, 'Stream complete:', streamComplete);
+  // Debug logs removed to prevent unnecessary re-renders
   
   const suggestions: Suggestion[] = useMemo(() => {
     if (!backendSuggestions || backendSuggestions.length === 0) return [];
     
     return backendSuggestions
-      .filter((sub: any) => sub.title && sub.description && sub.title !== "Loading..." && sub.description !== "Generating recommendations...")
+      .filter((sub: any) => sub && sub.title && sub.description && sub.title !== "Loading..." && sub.description !== "Generating recommendations...")
       .map((sub: any, idx: number) => ({
         id: sub.title?.toLowerCase().replace(/\s+/g, "-") || `subsection-${idx}`,
         title: sub.title,
@@ -189,8 +255,7 @@ export default function BrainstormingSuggestions() {
       }));
   }, [backendSuggestions]);
   
-  console.log('Mapped suggestions count:', suggestions.length);
-  console.log('Suggestions:', suggestions);
+  // Debug logs removed to prevent unnecessary re-renders
   
   // Typewriter effect
   useEffect(() => {
@@ -358,16 +423,34 @@ export default function BrainstormingSuggestions() {
     let description = suggestion.description;
     const exercises = suggestion.exercises || [];
 
-    // Replace exercise names with clickable spans
+    // Replace exercise names with clickable spans (only if exercise has complete data)
     exercises.forEach((exercise) => {
+      if (!exercise || !exercise.name) return;
+      
+      // Check if exercise has complete data (has cues, description, etc.)
+      const isComplete = exercise.cues && 
+                        exercise.cues.length > 0 && 
+                        exercise.description && 
+                        exercise.description.length > 0;
+      
       const regex = new RegExp(
         `\\b${exercise.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
         "gi"
       );
-      description = description.replace(
-        regex,
-        `<span class="exercise-link cursor-pointer text-purple-600 hover:text-purple-800 font-medium underline decoration-purple-300 hover:decoration-purple-500" data-exercise-id="${exercise.name}">${exercise.name}</span>`
-      );
+      
+      if (isComplete) {
+        // Clickable - purple with hover
+        description = description.replace(
+          regex,
+          `<span class="exercise-link cursor-pointer text-purple-600 hover:text-purple-800 font-medium underline decoration-purple-300 hover:decoration-purple-500" data-exercise-id="${exercise.name}" style="pointer-events: auto; position: relative; z-index: 10;">${exercise.name}</span>`
+        );
+      } else {
+        // Not clickable yet - gray with no pointer events
+        description = description.replace(
+          regex,
+          `<span class="text-gray-400 font-medium" style="pointer-events: none; cursor: default;">${exercise.name}</span>`
+        );
+      }
     });
 
     return description;
@@ -554,6 +637,8 @@ export default function BrainstormingSuggestions() {
             onFeedbackClick={(index) => openFeedbackModal(suggestions[index]?.title || "Suggestion", "suggestion", suggestions[index]?.description)}
             onDescriptionClick={(index, e) => handleExerciseClick(e, suggestions[index])}
             renderDescription={(index) => renderDescriptionWithClickableExercises(suggestions[index])}
+            isFirstTimeGeneration={caseData?.isStreaming === true}
+            fastMode={fastMode}
           />
 
           {/* Exercise Modal */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, memo } from 'react';
 import TypewriterText from './TypewriterText';
 
 interface AnimatedCardProps {
@@ -12,9 +12,11 @@ interface AnimatedCardProps {
   onFeedbackClick: () => void;
   onDescriptionClick: (e: React.MouseEvent<HTMLDivElement>) => void;
   renderDescription: () => string;
+  skipTypewriter?: boolean;
+  fastMode?: boolean;
 }
 
-export default function AnimatedCard({
+const AnimatedCard = memo(function AnimatedCard({
   title,
   description,
   index,
@@ -22,14 +24,16 @@ export default function AnimatedCard({
   onAnimationComplete,
   onFeedbackClick,
   onDescriptionClick,
-  renderDescription
+  renderDescription,
+  skipTypewriter = false,
+  fastMode = false
 }: AnimatedCardProps) {
   const hasCompletedRef = useRef(false);
   const hasStartedRef = useRef(false);
 
   // Start animation immediately when startAnimation becomes true
   const showCard = startAnimation;
-  const startTypewriter = startAnimation;
+  const startTypewriter = startAnimation && !skipTypewriter;
 
   useEffect(() => {
     // Reset completion state when animation restarts
@@ -38,8 +42,14 @@ export default function AnimatedCard({
       hasStartedRef.current = false;
     } else {
       hasStartedRef.current = true;
+      
+      // If skipping typewriter, immediately mark as complete
+      if (skipTypewriter && !hasCompletedRef.current) {
+        hasCompletedRef.current = true;
+        onAnimationComplete();
+      }
     }
-  }, [startAnimation]);
+  }, [startAnimation, skipTypewriter, onAnimationComplete]);
 
   const handleTypewriterComplete = useCallback(() => {
     if (!hasCompletedRef.current && hasStartedRef.current) {
@@ -48,12 +58,19 @@ export default function AnimatedCard({
     }
   }, [onAnimationComplete]);
 
+  // Check if content is fully loaded (not placeholder content)
+  const isContentLoaded = description && 
+    description !== "Generating recommendations..." && 
+    description !== "Loading..." &&
+    description.length > 50; // Ensure we have substantial content
+
   return (
     <div
       className={`
         bg-white p-6 rounded-lg shadow-md border border-gray-200 
         transform transition-all duration-500 ease-out
         ${showCard ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95'}
+        ${!isContentLoaded ? 'glass-shimmer' : ''}
       `}
     >
       <div className="flex justify-between items-start mb-4">
@@ -75,15 +92,21 @@ export default function AnimatedCard({
         className="text-gray-600 leading-relaxed min-h-[100px]"
         onClick={onDescriptionClick}
       >
-        {startTypewriter ? (
+        {(skipTypewriter || fastMode) && showCard ? (
+          // Show content immediately without typewriter effect when fastMode or skipTypewriter
+          <div dangerouslySetInnerHTML={{ __html: renderDescription() }} />
+        ) : startTypewriter ? (
+          // Show with typewriter effect
           <TypewriterText 
             text={description}
-            speed={10}
+            speed={30}
             onComplete={handleTypewriterComplete}
             renderAsHtml={true}
             htmlContent={renderDescription()}
+            fastMode={fastMode}
           />
         ) : (
+          // Show loading skeleton
           <div className="space-y-2">
             <div className="h-4 animate-pulse bg-gray-100 rounded w-full" />
             <div className="h-4 animate-pulse bg-gray-100 rounded w-5/6" />
@@ -93,4 +116,6 @@ export default function AnimatedCard({
       </div>
     </div>
   );
-}
+});
+
+export default AnimatedCard;

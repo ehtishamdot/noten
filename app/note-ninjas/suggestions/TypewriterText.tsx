@@ -8,6 +8,7 @@ interface TypewriterTextProps {
   onComplete?: () => void;
   renderAsHtml?: boolean;
   htmlContent?: string;
+  fastMode?: boolean; // New prop for fast completion
 }
 
 export default function TypewriterText({ 
@@ -15,15 +16,21 @@ export default function TypewriterText({
   speed = 20, 
   onComplete,
   renderAsHtml = false,
-  htmlContent
+  htmlContent,
+  fastMode = false
 }: TypewriterTextProps) {
   const [displayedText, setDisplayedText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
-  const contentRef = useRef<HTMLSpanElement>(null);
+  const [animationComplete, setAnimationComplete] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  // Use fast speed when fastMode is enabled
+  const currentSpeed = fastMode ? 5 : speed;
 
   useEffect(() => {
     if (renderAsHtml && htmlContent) {
-      // For HTML content, we'll reveal it character by character
+      // For HTML content, calculate total text length
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = htmlContent;
       const plainText = tempDiv.textContent || tempDiv.innerText || '';
@@ -31,11 +38,14 @@ export default function TypewriterText({
       if (currentIndex < plainText.length) {
         const timeout = setTimeout(() => {
           setCurrentIndex(prev => prev + 1);
-        }, speed);
+        }, currentSpeed);
 
         return () => clearTimeout(timeout);
-      } else if (onComplete && currentIndex === plainText.length && plainText.length > 0) {
-        onComplete();
+      } else if (!animationComplete && currentIndex === plainText.length && plainText.length > 0) {
+        setAnimationComplete(true);
+        if (onComplete) {
+          onComplete();
+        }
       }
     } else {
       // Regular text typewriter effect
@@ -43,78 +53,72 @@ export default function TypewriterText({
         const timeout = setTimeout(() => {
           setDisplayedText(prev => prev + text[currentIndex]);
           setCurrentIndex(prev => prev + 1);
-        }, speed);
+        }, currentSpeed);
 
         return () => clearTimeout(timeout);
-      } else if (onComplete && currentIndex === text.length && text.length > 0) {
-        onComplete();
+      } else if (!animationComplete && currentIndex === text.length && text.length > 0) {
+        setAnimationComplete(true);
+        if (onComplete) {
+          onComplete();
+        }
       }
     }
-  }, [currentIndex, text, speed, onComplete, renderAsHtml, htmlContent]);
+  }, [currentIndex, text, currentSpeed, onComplete, renderAsHtml, htmlContent, animationComplete]);
 
   // Reset when text changes
   useEffect(() => {
     setDisplayedText('');
     setCurrentIndex(0);
+    setAnimationComplete(false);
   }, [text, htmlContent]);
 
-  // For HTML content, we need to progressively reveal it
+  // When fastMode is enabled, immediately complete the animation
   useEffect(() => {
-    if (renderAsHtml && htmlContent && contentRef.current) {
+    if (fastMode && !animationComplete) {
+      if (renderAsHtml && htmlContent) {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlContent;
+        const plainText = tempDiv.textContent || tempDiv.innerText || '';
+        setCurrentIndex(plainText.length);
+      } else {
+        setDisplayedText(text);
+        setCurrentIndex(text.length);
+      }
+      setAnimationComplete(true);
+      if (onComplete) {
+        onComplete();
+      }
+    }
+  }, [fastMode, animationComplete, renderAsHtml, htmlContent, text, onComplete]);
+
+  // Update overlay position based on current index
+  useEffect(() => {
+    if (renderAsHtml && htmlContent && contentRef.current && overlayRef.current && !animationComplete) {
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = htmlContent;
       const plainText = tempDiv.textContent || tempDiv.innerText || '';
       
-      // Create a version with only the visible characters
-      if (currentIndex > 0) {
-        const visibleText = plainText.substring(0, currentIndex);
-        
-        // Find and replace text in HTML while preserving tags
-        let processedHtml = htmlContent;
-        let textIndex = 0;
-        
-        // Simple approach: wrap visible content in a span and hide the rest
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(htmlContent, 'text/html');
-        const walker = document.createTreeWalker(
-          doc.body,
-          NodeFilter.SHOW_TEXT,
-          null
-        );
-
-        let node;
-        let totalLength = 0;
-        const nodes: { node: Text; start: number; end: number }[] = [];
-        
-        while (node = walker.nextNode()) {
-          const textNode = node as Text;
-          const start = totalLength;
-          const end = totalLength + textNode.textContent!.length;
-          nodes.push({ node: textNode, start, end });
-          totalLength = end;
-        }
-
-        // Update text nodes based on current index
-        nodes.forEach(({ node, start, end }) => {
-          if (start >= currentIndex) {
-            // Hide text that comes after current index
-            node.textContent = '';
-          } else if (end > currentIndex) {
-            // Partially show text
-            node.textContent = node.textContent!.substring(0, currentIndex - start);
-          }
-          // Text before current index remains unchanged
-        });
-
-        contentRef.current.innerHTML = doc.body.innerHTML;
+      // Calculate what percentage of text is visible
+      const percentVisible = (currentIndex / plainText.length) * 100;
+      
+      // Update overlay to reveal text progressively
+      if (percentVisible < 100) {
+        overlayRef.current.style.width = `${100 - percentVisible}%`;
       } else {
-        contentRef.current.innerHTML = '';
+        overlayRef.current.style.display = 'none';
       }
     }
-  }, [currentIndex, renderAsHtml, htmlContent]);
+  }, [currentIndex, renderAsHtml, htmlContent, animationComplete]);
 
   if (renderAsHtml && htmlContent) {
-    return <span ref={contentRef} />;
+    // For HTML content with exercise links, always render fully without overlay
+    // This ensures exercise links are always clickable
+    return (
+      <div 
+        ref={contentRef}
+        dangerouslySetInnerHTML={{ __html: htmlContent }}
+      />
+    );
   }
 
   return <span>{displayedText}</span>;
