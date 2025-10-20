@@ -637,7 +637,7 @@ export default function NoteNinjas() {
                       placeholder="Full overhead function for work and sports"
                     />
                     <p className="mt-1 text-sm text-gray-500">
-                      What was the patient's function like before this
+                      What was the patient&apos;s function like before this
                       condition?
                     </p>
                   </div>
@@ -701,8 +701,8 @@ export default function NoteNinjas() {
                   placeholder="progressed from 130° to 135° in week 1 with resistance band exercises, but progress stalled"
                 />
                 <p className="mt-2 text-sm text-gray-500">
-                  Include what's been tried, what worked, what didn't, and where
-                  you're stuck
+                  Include what&apos;s been tried, what worked, what didn&apos;t, and where
+                  you&apos;re stuck
                 </p>
               </div>
 

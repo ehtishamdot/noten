@@ -266,6 +266,7 @@ export default function BrainstormingSuggestions() {
         console.error("Error parsing user data:", error);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSelectCase = async (item: CaseHistory) => {
@@ -813,7 +814,7 @@ export default function BrainstormingSuggestions() {
                                 </button>
                               </div>
                               <p className="text-gray-700 text-sm leading-relaxed italic">
-                                "{doc}"
+                                &quot;{doc}&quot;
                               </p>
                             </div>
                           ))}
