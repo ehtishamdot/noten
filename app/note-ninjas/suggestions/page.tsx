@@ -54,15 +54,10 @@ export default function BrainstormingSuggestions() {
   const router = useRouter();
   const [caseData, setCaseData] = useState<any>(null);
   const [userName, setUserName] = useState("");
-  const [isLoadingStream, setIsLoadingStream] = useState(false);
-  const [streamedSubsections, setStreamedSubsections] = useState<any[]>([]);
-  const [streamComplete, setStreamComplete] = useState(false);
-  const [isTyping, setIsTyping] = useState<{[key: number]: boolean}>({});
-  const [showCard, setShowCard] = useState<{[key: number]: boolean}>({});
-  const [typewriterTexts, setTypewriterTexts] = useState<{[key: string]: string}>({});
-  const [fastMode, setFastMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [recommendations, setRecommendations] = useState<any[]>([]);
   
-  // Vercel AI SDK streaming hook
+  // Parallel API calls hook
   const { isStreaming, startStreaming } = useStreamingRecommendations();
 
   const [selectedSuggestion, setSelectedSuggestion] =
@@ -114,43 +109,20 @@ export default function BrainstormingSuggestions() {
       
       // Simple approach - no complex reload logic
       
-      // Start streaming immediately if needed
+      // Start API calls immediately if needed
       if (parsedData.isStreaming && parsedData.sessionId && parsedData.userInput) {
-        console.log("🚀🚀🚀 STARTING VERCEL AI SDK STREAMING! 🚀🚀🚀");
-        setIsLoadingStream(true);
+        console.log("🚀 Starting parallel API calls!");
+        setIsLoading(true);
         
-        // Create placeholder subsections immediately
-        const placeholderSubsections = SUBSECTION_CONFIGS.map((config, index) => ({
-          title: config.title,
-          description: "Generating recommendations...",
-          exercises: [],
-          id: `placeholder-${index}`
-        }));
+        // Initialize empty recommendations array
+        const initialRecommendations = Array(6).fill(null);
+        setRecommendations(initialRecommendations);
         
-        setStreamedSubsections(placeholderSubsections);
-        
-        // Show all cards immediately with placeholders - no delays
-        for (let i = 0; i < 6; i++) {
-          setShowCard(prev => ({...prev, [i]: true}));
-          setIsTyping(prev => ({...prev, [i]: true}));
-        }
-        
-        // Start streaming with Vercel AI SDK
-        console.log('🚀 About to start streaming with params:', {
+        console.log('🚀 About to start parallel calls with params:', {
           patientCondition: parsedData.userInput.patient_condition,
           desiredOutcome: parsedData.userInput.desired_outcome,
           sessionId: parsedData.sessionId
         });
-        
-        // Add a timeout to enable fastMode if streaming takes too long
-        const streamingTimeout = setTimeout(() => {
-          console.log('⏰ Streaming timeout - enabling fast mode');
-          setFastMode(true);
-          setStreamComplete(true);
-          setIsLoadingStream(false);
-          // Keep streamedSubsections intact - don't clear them
-          console.log('🔒 Preserving streamedSubsections during timeout:', streamedSubsections.length);
-        }, 10000); // 10 second timeout
         
         startStreaming(
           parsedData.userInput.patient_condition,
@@ -158,38 +130,31 @@ export default function BrainstormingSuggestions() {
           parsedData.sessionId,
           {
             onUpdate: (subsection, index) => {
-              console.log(`✅ Received subsection ${index}:`, subsection.title, 'Description:', subsection.description?.substring(0, 50));
+              console.log(`✅ Received subsection ${index}:`, subsection.title);
               
               // Update specific index with real data
-              setStreamedSubsections(prev => {
+              setRecommendations(prev => {
                 const updated = [...prev];
                 updated[index] = {
                   ...subsection,
                   id: `subsection-${index}`
                 };
-                console.log(`🔄 Updated streamedSubsections[${index}]:`, updated[index]);
                 return updated;
               });
             },
             onComplete: () => {
-              console.log('✅ All streaming complete!');
-              clearTimeout(streamingTimeout);
-              setStreamComplete(true);
-              setIsLoadingStream(false);
-              
-              // Enable fast mode to quickly finish all typewriter animations
-              setFastMode(true);
+              console.log('✅ All API calls complete!');
+              setIsLoading(false);
               
               // Save case to backend
               (async () => {
                 try {
-                  // Get current subsections
-                  setStreamedSubsections(prev => {
+                  setRecommendations(prev => {
                     const updatedCaseData = {
                       ...parsedData,
                       isStreaming: false,
                       recommendations: {
-                        subsections: prev,
+                        subsections: prev.filter(Boolean),
                         high_level: [
                           `Focus on progressive treatment for ${parsedData.patientCondition}`,
                           `Incorporate activities to achieve: ${parsedData.desiredOutcome}`
@@ -225,8 +190,6 @@ export default function BrainstormingSuggestions() {
                       setCaseData(finalCaseData);
                     }).catch(error => {
                       console.error('❌ Error saving case to backend:', error);
-                      // If unauthorized, will auto-redirect to login
-                      // Still save to sessionStorage even if backend fails
                       sessionStorage.setItem("note-ninjas-case", JSON.stringify(updatedCaseData));
                       setCaseData(updatedCaseData);
                     });
@@ -239,13 +202,8 @@ export default function BrainstormingSuggestions() {
               })();
             },
             onError: (error) => {
-              console.error('❌ Streaming error:', error);
-              console.error('❌ Error details:', error.message, error.stack);
-              clearTimeout(streamingTimeout);
-              setIsLoadingStream(false);
-              setStreamComplete(true);
-              // Enable fast mode on error too
-              setFastMode(true);
+              console.error('❌ API calls error:', error);
+              setIsLoading(false);
             }
           }
         );
@@ -303,15 +261,14 @@ export default function BrainstormingSuggestions() {
     }
   };
 
-  // Use backend recommendations if available
+  // Use recommendations from state or fallback to caseData
   const backendSuggestions = useMemo(() => {
-    // Simple approach - use streamedSubsections if available, otherwise use caseData
-    return streamedSubsections.length > 0 
-      ? streamedSubsections 
+    // Use recommendations from API calls if available, otherwise use caseData
+    const validRecommendations = recommendations.filter(Boolean);
+    return validRecommendations.length > 0 
+      ? validRecommendations 
       : (caseData?.recommendations?.subsections || []);
-  }, [streamedSubsections, caseData?.recommendations?.subsections]);
-  
-  // Debug logs removed to prevent unnecessary re-renders
+  }, [recommendations, caseData?.recommendations?.subsections]);
   
   const suggestions: Suggestion[] = useMemo(() => {
     if (!backendSuggestions || backendSuggestions.length === 0) return [];
@@ -321,62 +278,11 @@ export default function BrainstormingSuggestions() {
       .map((sub: any, idx: number) => ({
         id: sub.title?.toLowerCase().replace(/\s+/g, "-") || `subsection-${idx}`,
         title: sub.title,
-        description: sub.description || "Generating recommendations...", // Keep placeholder text
+        description: sub.description || "Loading...",
         exercises: sub.exercises || [],
         cptCodes: sub.exercises?.flatMap((ex: any) => ex.cpt_codes || []) || []
       }));
   }, [backendSuggestions]);
-  
-  // Debug logs removed to prevent unnecessary re-renders
-  
-  // Typewriter effect
-  useEffect(() => {
-    const intervals: NodeJS.Timeout[] = [];
-    
-    suggestions.forEach((suggestion, idx) => {
-      if (isTyping[idx] && suggestion.title) {
-        let currentIndex = 0;
-        const fullText = suggestion.title;
-        const key = `title-${idx}`;
-        
-        const interval = setInterval(() => {
-          if (currentIndex <= fullText.length) {
-            setTypewriterTexts(prev => ({
-              ...prev,
-              [key]: fullText.substring(0, currentIndex)
-            }));
-            currentIndex++;
-          } else {
-            clearInterval(interval);
-          }
-        }, 30);
-        
-        intervals.push(interval);
-      }
-      
-      if (isTyping[idx] && suggestion.description) {
-        let currentIndex = 0;
-        const fullText = suggestion.description;
-        const key = `desc-${idx}`;
-        
-        const interval = setInterval(() => {
-          if (currentIndex <= fullText.length) {
-            setTypewriterTexts(prev => ({
-              ...prev,
-              [key]: fullText.substring(0, currentIndex)
-            }));
-            currentIndex++;
-          } else {
-            clearInterval(interval);
-          }
-        }, 15);
-        
-        intervals.push(interval);
-      }
-    });
-    
-    return () => intervals.forEach(clearInterval);
-  }, [isTyping, suggestions]);
 
 
   const handleCreateNewCase = () => {
@@ -681,9 +587,7 @@ export default function BrainstormingSuggestions() {
           {/* Suggestion Cards */}
           <AnimatedCardGrid
             suggestions={suggestions}
-            isLoadingStream={isLoadingStream}
-            streamComplete={streamComplete}
-            streamedSubsectionsCount={streamedSubsections.length}
+            isLoadingStream={isLoading}
             onFeedbackClick={(index) => openFeedbackModal(
               suggestions[index]?.title ? `Title: ${suggestions[index]?.title}` : "Title",
               "title",
@@ -691,8 +595,6 @@ export default function BrainstormingSuggestions() {
             )}
             onDescriptionClick={(index, e) => handleExerciseClick(e, suggestions[index])}
             renderDescription={(index) => renderDescriptionWithClickableExercises(suggestions[index])}
-            isFirstTimeGeneration={caseData?.isStreaming === true}
-            fastMode={fastMode}
           />
 
           {/* Exercise Modal */}

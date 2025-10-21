@@ -1,5 +1,5 @@
 import { openai } from '@ai-sdk/openai';
-import { streamText } from 'ai';
+import { generateText } from 'ai';
 
 export const runtime = 'edge';
 
@@ -76,14 +76,34 @@ Format:
 
 Return ONLY JSON. Make cues detailed and comprehensive. Documentation examples MUST include "show of skill" with specific cue mentioned.`;
 
-    const result = await streamText({
+    const result = await generateText({
       model: openai('gpt-4o-mini'),
       system: "Expert OT. Generate patient-specific exercises with DETAILED cues (1-2 sentences each). Description must mention all exercise names. Documentation MUST include 'show of skill' with specific cue used. Return ONLY valid JSON.",
       prompt,
       temperature: 0.8,
     });
 
-    return result.toTextStreamResponse();
+    // Parse the generated text as JSON
+    let cleanedText = result.text.trim();
+    if (cleanedText.startsWith('```json')) {
+      cleanedText = cleanedText.replace(/^```json\s*/, '').replace(/```\s*$/, '');
+    } else if (cleanedText.startsWith('```')) {
+      cleanedText = cleanedText.replace(/^```\s*/, '').replace(/```\s*$/, '');
+    }
+    
+    try {
+      const parsedData = JSON.parse(cleanedText);
+      return new Response(JSON.stringify(parsedData), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (parseError) {
+      console.error('Failed to parse AI response as JSON:', parseError);
+      return new Response(JSON.stringify({ error: 'Failed to parse AI response' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
   } catch (error: any) {
     console.error('API route error:', error);
     return new Response(JSON.stringify({ error: error.message || 'Internal server error' }), {

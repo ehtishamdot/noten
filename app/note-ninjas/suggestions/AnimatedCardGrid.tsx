@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
-import AnimatedCard from './AnimatedCard';
+import SimpleCard from './SimpleCard';
 
 interface Suggestion {
   id: string;
@@ -11,44 +10,31 @@ interface Suggestion {
   cptCodes: any[];
 }
 
-interface AnimatedCardGridProps {
+interface CardGridProps {
   suggestions: Suggestion[];
   isLoadingStream: boolean;
-  streamComplete: boolean;
-  streamedSubsectionsCount: number;
   onFeedbackClick: (index: number) => void;
   onDescriptionClick: (index: number, e: React.MouseEvent<HTMLDivElement>) => void;
-  isFirstTimeGeneration?: boolean;
   renderDescription?: (index: number) => string;
-  fastMode?: boolean;
 }
+
+// Predefined subsection titles that match the backend
+const EXPECTED_TITLES = [
+  "Manual Therapy Techniques",
+  "Progressive Strengthening Protocol",
+  "Neuromuscular Re-education",
+  "Work-Specific Functional Training",
+  "Pain Management Modalities",
+  "Home Exercise Program"
+];
 
 export default function AnimatedCardGrid({
   suggestions,
   isLoadingStream,
-  streamComplete,
-  streamedSubsectionsCount,
   onFeedbackClick,
   onDescriptionClick,
   renderDescription,
-  isFirstTimeGeneration = false,
-  fastMode = false,
-}: AnimatedCardGridProps) {
-  const [animatedCards, setAnimatedCards] = useState<Set<string>>(new Set());
-  const [completedCards, setCompletedCards] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    // Always show all cards immediately to prevent hiding/reappearing
-    const allSuggestionIds = new Set(suggestions.map(s => s.id));
-    if (allSuggestionIds.size > 0) {
-      setAnimatedCards(allSuggestionIds);
-    }
-  }, [suggestions, fastMode]); // Include fastMode to ensure cards stay visible
-
-  const handleCardAnimationComplete = (suggestionId: string) => {
-    setCompletedCards(prev => new Set([...prev, suggestionId]));
-  };
-
+}: CardGridProps) {
   // Show initial loading only when no suggestions are available yet
   if (isLoadingStream && suggestions.length === 0) {
     return (
@@ -66,43 +52,63 @@ export default function AnimatedCardGrid({
     );
   }
 
-  // Keep all suggestions visible, including placeholders
-  const validSuggestions = suggestions.filter(suggestion => 
-    suggestion.title && suggestion.description
-  );
+  // Create a consistent 6-card grid - always show all 6 positions
+  const displayCards = EXPECTED_TITLES.map((expectedTitle, index) => {
+    // Find the matching suggestion by index (since suggestions array indices match)
+    const suggestion = suggestions[index];
+    
+    // If we have a real suggestion with data, use it
+    if (suggestion && suggestion.title && suggestion.description) {
+      return suggestion;
+    }
+    
+    // Otherwise, return a skeleton placeholder
+    return {
+      id: `skeleton-${index}`,
+      title: expectedTitle,
+      description: '',
+      exercises: [],
+      cptCodes: [],
+      isLoading: true
+    } as Suggestion & { isLoading?: boolean };
+  });
 
   return (
     <div className="w-full">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {validSuggestions.map((suggestion, index) => (
-          <AnimatedCard
-            key={suggestion.id}
-            title={suggestion.title}
-            description={suggestion.description}
-            index={index}
-            startAnimation={animatedCards.has(suggestion.id)}
-            onAnimationComplete={() => handleCardAnimationComplete(suggestion.id)}
-            onFeedbackClick={() => onFeedbackClick(index)}
-            onDescriptionClick={(e) => onDescriptionClick(index, e)}
-            renderDescription={() => renderDescription?.(index) || suggestion.description}
-            skipTypewriter={!isFirstTimeGeneration}
-            fastMode={fastMode}
-            streamComplete={streamComplete}
-          />
-        ))}
+        {displayCards.map((card, index) => {
+          const isLoading = 'isLoading' in card && card.isLoading;
+          
+          return (
+            <div key={card.id} className="min-h-[200px]">
+              {isLoading ? (
+                // Skeleton loading state
+                <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 animate-pulse">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+                    <div className="w-5 h-5 bg-gray-200 rounded"></div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="h-4 bg-gray-200 rounded w-full"></div>
+                    <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+                    <div className="h-4 bg-gray-200 rounded w-4/6"></div>
+                  </div>
+                </div>
+              ) : (
+                // Real card with data
+                <SimpleCard
+                  title={card.title}
+                  description={card.description}
+                  index={index}
+                  onFeedbackClick={() => onFeedbackClick(index)}
+                  onDescriptionClick={(e) => onDescriptionClick(index, e)}
+                  renderDescription={() => renderDescription?.(index) || card.description}
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
-
-      {/* Show a simple completion message when all done */}
-      {streamComplete && validSuggestions.length > 0 && (
-        <div className="mt-6 text-center">
-          <div className="inline-flex items-center px-4 py-2 bg-green-50 text-green-700 rounded-full text-sm font-medium">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            All recommendations ready!
-          </div>
-        </div>
-      )}
     </div>
   );
 }
