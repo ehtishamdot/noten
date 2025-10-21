@@ -229,9 +229,37 @@ export default function NoteNinjas() {
     }
   };
 
-  const handleSelectCase = (caseData: any) => {
-    sessionStorage.setItem("note-ninjas-case", JSON.stringify(caseData));
-    setIsSidebarOpen(false);
+  const handleSelectCase = async (item: CaseHistory) => {
+    try {
+      // Fetch full case data from backend if not already loaded
+      if (!item.caseData) {
+        const fullCase = await noteNinjasAPI.getCase(item.id);
+        
+        // Convert backend case format to frontend format
+        const caseData = {
+          caseId: fullCase.id,
+          caseName: fullCase.name,
+          patientCondition: fullCase.input_json.patient_condition,
+          desiredOutcome: fullCase.input_json.desired_outcome,
+          treatmentProgression: fullCase.input_json.treatment_progression || "",
+          inputMode: fullCase.input_json.input_mode || "simple",
+          sessionId: fullCase.input_json.session_id || `session_${Date.now()}`,
+          userInput: fullCase.input_json,
+          recommendations: fullCase.output_json,
+          isStreaming: false
+        };
+        
+        sessionStorage.setItem("note-ninjas-case", JSON.stringify(caseData));
+      } else {
+        sessionStorage.setItem("note-ninjas-case", JSON.stringify(item.caseData));
+      }
+      
+      setIsSidebarOpen(false);
+      // Navigate to suggestions page
+      router.push("/note-ninjas/suggestions");
+    } catch (error) {
+      console.error("Error loading case:", error);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {

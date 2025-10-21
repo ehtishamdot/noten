@@ -27,8 +27,6 @@ export default function HistorySidebar({
 
   const handleSelectCase = async (item: CaseHistory) => {
     onSelect(item);
-    // Navigate to suggestions page with the case
-    router.push("/note-ninjas/suggestions");
   };
 
   return (

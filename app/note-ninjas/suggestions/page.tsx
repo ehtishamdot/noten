@@ -6,16 +6,13 @@ import AnimatedCardGrid from "./AnimatedCardGrid";
 import { useRouter } from "next/navigation";
 import { noteNinjasAPI } from "@/lib/api";
 import HistorySidebar from "../../components/HistorySidebar";
+import { MultiStepLoader } from "../../components/MultiStepLoader";
 import { useStreamingRecommendations } from "@/hooks/useStreamingRecommendations";
 
-// Define subsection configurations
-const SUBSECTION_CONFIGS = [
-  { title: "Manual Therapy Techniques", focus: "mobilizations, soft tissue work" },
-  { title: "Progressive Strengthening Protocol", focus: "strengthening exercises" },
-  { title: "Neuromuscular Re-education", focus: "coordination, balance, proprioception" },
-  { title: "Work-Specific Functional Training", focus: "functional activities for goals" },
-  { title: "Pain Management Modalities", focus: "modalities for pain control" },
-  { title: "Home Exercise Program", focus: "home exercises patient can do" }
+const loadingStates = [
+  { text: "Considering patient condition…" },
+  { text: "Generating treatment options…" },
+  { text: "Finalizing details…" },
 ];
 
 interface CaseHistory {
@@ -104,10 +101,7 @@ export default function BrainstormingSuggestions() {
     const storedData = sessionStorage.getItem("note-ninjas-case");
     if (storedData) {
       const parsedData = JSON.parse(storedData);
-      // Loaded case data
       setCaseData(parsedData);
-      
-      // Simple approach - no complex reload logic
       
       // Start API calls immediately if needed
       if (parsedData.isStreaming && parsedData.sessionId && parsedData.userInput) {
@@ -129,7 +123,7 @@ export default function BrainstormingSuggestions() {
           parsedData.userInput.desired_outcome,
           parsedData.sessionId,
           {
-            onUpdate: (subsection, index) => {
+            onUpdate: (subsection: any, index: number) => {
               console.log(`✅ Received subsection ${index}:`, subsection.title);
               
               // Update specific index with real data
@@ -201,7 +195,7 @@ export default function BrainstormingSuggestions() {
                 }
               })();
             },
-            onError: (error) => {
+            onError: (error: Error) => {
               console.error('❌ API calls error:', error);
               setIsLoading(false);
             }
@@ -439,6 +433,10 @@ export default function BrainstormingSuggestions() {
     let description = suggestion.description;
     const exercises = suggestion.exercises || [];
 
+    // Clean up extra quotes in description (e.g., 'Exercise Name' '' -> Exercise Name)
+    description = description.replace(/['"]([^'"]+)['"][\s]*['"]{2}/g, '$1');
+    description = description.replace(/['"]([^'"]+)['"]/g, '$1');
+
     // Replace exercise names with clickable spans (only if exercise has complete data)
     exercises.forEach((exercise) => {
       if (!exercise || !exercise.name) return;
@@ -494,8 +492,11 @@ export default function BrainstormingSuggestions() {
     );
   }
 
+  console.log("Case data loaded:", suggestions);
+
   return (
     <>
+      <MultiStepLoader loadingStates={loadingStates} loading={isLoading} duration={3000} loop={false} />
       <HistorySidebar
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -589,7 +590,7 @@ export default function BrainstormingSuggestions() {
             suggestions={suggestions}
             isLoadingStream={isLoading}
             onFeedbackClick={(index) => openFeedbackModal(
-              suggestions[index]?.title ? `Title: ${suggestions[index]?.title}` : "Title",
+              suggestions[index]?.title ? `Recommendation: ${suggestions[index]?.title}` : "Title",
               "title",
               suggestions[index]?.title || ""
             )}
@@ -609,7 +610,7 @@ export default function BrainstormingSuggestions() {
                         {selectedExercise.name}
                       </h2>
                       <button
-                        onClick={() => openFeedbackModal(`Title: ${selectedExercise.name}`, "title", selectedExercise.name)}
+                        onClick={() => openFeedbackModal(`Recommendation: ${selectedExercise.name}`, "title", selectedExercise.name)}
                         className="text-gray-400 hover:text-purple-600 transition-colors"
                         title="Feedback on title"
                         aria-label="Feedback on title"
@@ -804,7 +805,7 @@ export default function BrainstormingSuggestions() {
                     <div>
                       <h2 className="text-xl font-semibold text-gray-900">Case Details</h2>
                       {caseData.sessionId && (
-                        <p className="text-xs text-gray-500 mt-1">Session ID: {caseData.sessionId.substring(0, 16)}...</p>
+                        <p className="text-xs text-gray-500 mt-1">Session ID: {caseData.sessionId.replace('session_', '')}</p>
                       )}
                     </div>
                     <button
