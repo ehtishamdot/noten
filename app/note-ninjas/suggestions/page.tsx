@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import AnimatedCardGrid from "./AnimatedCardGrid";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { noteNinjasAPI } from "@/lib/api";
 import HistorySidebar from "../../components/HistorySidebar";
 import { MultiStepLoader } from "../../components/MultiStepLoader";
@@ -48,9 +48,11 @@ interface Suggestion {
 
 export default function BrainstormingSuggestions() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [caseData, setCaseData] = useState<any>(null);
   const [userName, setUserName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false); // For generation (MultiStepLoader)
   const [loadingStage, setLoadingStage] = useState(0); // Track which loading stage we're on
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [progressionText, setProgressionText] = useState("");
@@ -97,7 +99,66 @@ export default function BrainstormingSuggestions() {
     
     loadHistory();
     
-    // Get case data from sessionStorage
+    // Get user data from sessionStorage
+    const userAuth = sessionStorage.getItem("note-ninjas-user");
+    if (userAuth) {
+      try {
+        const userData = JSON.parse(userAuth);
+        setUserName(userData.name);
+        setUserEmail(userData.email);
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+      }
+    }
+    
+    // Check if caseId is in URL params (from history selection)
+    const caseId = searchParams.get('caseId');
+    if (caseId) {
+      console.log('📍 Loading case from URL param:', caseId);
+      
+      // Fetch case data from backend
+      (async () => {
+        try {
+          setIsLoading(true); // Show circular loader for case loading
+          const fullCase = await noteNinjasAPI.getCase(caseId);
+          
+          // Convert backend case format to frontend format
+          const caseData = {
+            caseId: fullCase.id,
+            caseName: fullCase.name,
+            patientCondition: fullCase.input_json.patient_condition,
+            desiredOutcome: fullCase.input_json.desired_outcome,
+            treatmentProgression: fullCase.input_json.treatment_progression || "",
+            inputMode: fullCase.input_json.input_mode || "simple",
+            sessionId: fullCase.input_json.session_id || `session_${Date.now()}`,
+            userInput: fullCase.input_json,
+            recommendations: fullCase.output_json,
+            progressionText: fullCase.output_json?.progression_overview || "",
+            isStreaming: false
+          };
+          
+          // Load progression text from saved data
+          if (caseData.progressionText) {
+            setProgressionText(caseData.progressionText);
+          }
+          
+          sessionStorage.setItem("note-ninjas-case", JSON.stringify(caseData));
+          setCaseData(caseData);
+          setIsLoading(false);
+          
+          console.log('✅ Case loaded from API:', caseData.caseName);
+        } catch (error) {
+          console.error('❌ Error loading case from API:', error);
+          setIsLoading(false);
+          alert('Failed to load case from server. Please try again.');
+          router.push("/note-ninjas");
+        }
+      })();
+      
+      return; // Don't check sessionStorage if we're loading from URL
+    }
+    
+    // Get case data from sessionStorage (for new cases)
     const storedData = sessionStorage.getItem("note-ninjas-case");
     if (storedData) {
       const parsedData = JSON.parse(storedData);
@@ -115,7 +176,7 @@ export default function BrainstormingSuggestions() {
         hasCalledAPI.current = true; // Mark as called to prevent duplicates
         
         console.log("🚀 Starting unified API call!");
-        setIsLoading(true);
+        setIsGenerating(true); // Show MultiStepLoader for generation
         setLoadingStage(0); // Stage 0: Considering patient condition
         
         // Initialize empty recommendations array
@@ -184,7 +245,7 @@ export default function BrainstormingSuggestions() {
             setRecommendations(formattedSubsections);
             
             // Complete loading
-            setIsLoading(false);
+            setIsGenerating(false);
             setLoadingStage(0); // Reset for next time
             
             // Save case to backend
@@ -228,7 +289,7 @@ export default function BrainstormingSuggestions() {
             
           } catch (error) {
             console.error('❌ API call error:', error);
-            setIsLoading(false);
+            setIsGenerating(false);
             setLoadingStage(0);
             alert('Failed to generate recommendations. Please try again.');
           }
@@ -238,109 +299,13 @@ export default function BrainstormingSuggestions() {
       // Redirect back if no case data
       router.push("/note-ninjas");
     }
-
-    // Get user data from sessionStorage
-    const userAuth = sessionStorage.getItem("note-ninjas-user");
-    if (userAuth) {
-      try {
-        const userData = JSON.parse(userAuth);
-        setUserName(userData.name);
-        setUserEmail(userData.email);
-      } catch (error) {
-        console.error("Error parsing user data:", error);
-      }
-    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchParams]);
 
   const handleSelectCase = async (item: CaseHistory) => {
-    try {
-      // Fetch full case data from backend if not already loaded
-      if (!item.caseData) {
-        const fullCase = await noteNinjasAPI.getCase(item.id);
-        
-        // Convert backend case format to frontend format
-        const caseData = {
-          caseId: fullCase.id,
-          caseName: fullCase.name,
-          patientCondition: fullCase.input_json.patient_condition,
-          desiredOutcome: fullCase.input_json.desired_outcome,
-          treatmentProgression: fullCase.input_json.treatment_progression || "",
-          inputMode: fullCase.input_json.input_mode || "simple",
-          sessionId: fullCase.input_json.session_id || `session_${Date.now()}`,
-          userInput: fullCase.input_json,
-          recommendations: fullCase.output_json,
-          progressionText: fullCase.output_json?.progression_overview || "",
-          isStreaming: false
-        };
-        
-        // Load progression text from saved data
-        if (caseData.progressionText) {
-          setProgressionText(caseData.progressionText);
-        } else {
-          // Generate progression text if not saved
-          fetch('/api/generate-progression', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              patientCondition: caseData.patientCondition,
-              desiredOutcome: caseData.desiredOutcome,
-              treatmentProgression: caseData.treatmentProgression || ''
-            })
-          })
-          .then(res => res.json())
-          .then(data => {
-            if (data.progression) {
-              setProgressionText(data.progression);
-            }
-          })
-          .catch(error => console.error('Error fetching progression text:', error));
-        }
-        
-        sessionStorage.setItem("note-ninjas-case", JSON.stringify(caseData));
-        setCaseData(caseData);
-      } else {
-        sessionStorage.setItem("note-ninjas-case", JSON.stringify(item.caseData));
-        setCaseData(item.caseData);
-        
-        // Load progression text from cached data or generate if not present
-        if (item.caseData.progressionText) {
-          setProgressionText(item.caseData.progressionText);
-        } else if (item.caseData.recommendations?.progression_overview) {
-          setProgressionText(item.caseData.recommendations.progression_overview);
-        } else {
-          // Generate progression text if not saved
-          fetch('/api/generate-progression', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              patientCondition: item.caseData.patientCondition,
-              desiredOutcome: item.caseData.desiredOutcome,
-              treatmentProgression: item.caseData.treatmentProgression || ''
-            })
-          })
-          .then(res => res.json())
-          .then(data => {
-            if (data.progression) {
-              setProgressionText(data.progression);
-            }
-          })
-          .catch(error => console.error('Error fetching progression text:', error));
-        }
-      }
-      
-      setIsSidebarOpen(false);
-    } catch (error) {
-      console.error("Error loading first historical case:", error);
-      // Try to use cached data if available
-      if (item.caseData) {
-        sessionStorage.setItem("note-ninjas-case", JSON.stringify(item.caseData));
-        setCaseData(item.caseData);
-        setIsSidebarOpen(false);
-      } else {
-        alert("Failed to load case from server. Please try again.");
-      }
-    }
+    // Navigate with case ID in URL - let the useEffect handle loading
+    setIsSidebarOpen(false);
+    router.push(`/note-ninjas/suggestions?caseId=${item.id}`);
   };
 
   // Use recommendations from state or fallback to caseData
@@ -591,7 +556,10 @@ export default function BrainstormingSuggestions() {
   if (!caseData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-600">Loading suggestions...</div>
+        <div className="flex flex-col items-center gap-3">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-500 border-t-transparent"></div>
+          <div className="text-gray-600">Loading suggestions...</div>
+        </div>
       </div>
     );
   }
@@ -601,7 +569,27 @@ export default function BrainstormingSuggestions() {
 
   return (
     <>
-      <MultiStepLoader loadingStates={loadingStates} loading={isLoading} currentStage={loadingStage} duration={3000} loop={false} />
+      {/* MultiStepLoader for generation */}
+      <MultiStepLoader 
+        loadingStates={loadingStates} 
+        loading={isGenerating} 
+        currentStage={loadingStage} 
+        duration={3000} 
+        loop={false} 
+      />
+      
+      {/* Circular loader for case loading */}
+      {isLoading && !isGenerating && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-8 shadow-xl">
+            <div className="flex flex-col items-center gap-4">
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-500 border-t-transparent"></div>
+              <div className="text-gray-900 font-medium">Loading case...</div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <HistorySidebar
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -693,7 +681,7 @@ export default function BrainstormingSuggestions() {
           {/* Suggestion Cards */}
           <AnimatedCardGrid
             suggestions={suggestions}
-            isLoadingStream={isLoading}
+            isLoadingStream={isGenerating}
             onFeedbackClick={(index) => openFeedbackModal(
               suggestions[index]?.title ? `Recommendation: ${suggestions[index]?.title}` : "Title",
               "title",
