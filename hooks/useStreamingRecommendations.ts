@@ -19,16 +19,17 @@ export function useStreamingRecommendations() {
   const startStreaming = async (
     patientCondition: string,
     desiredOutcome: string,
+    treatmentProgression: string,
     sessionId: string,
     options: UseParallelOptions
-  ) => {
+  ): Promise<void> => {
     setIsLoading(true);
     const { onUpdate, onComplete, onError } = options;
     
     try {
       // Start all 6 subsections in parallel
       const promises = Array.from({ length: 6 }, (_, index) =>
-        fetchSingleSubsection(index, patientCondition, desiredOutcome, sessionId, onUpdate)
+        fetchSingleSubsection(index, patientCondition, desiredOutcome, treatmentProgression, sessionId, onUpdate)
       );
       
       await Promise.all(promises);
@@ -47,6 +48,7 @@ async function fetchSingleSubsection(
   index: number,
   patientCondition: string,
   desiredOutcome: string,
+  treatmentProgression: string,
   sessionId: string,
   onUpdate: (subsection: SubsectionData, index: number) => void
 ) {
@@ -58,6 +60,7 @@ async function fetchSingleSubsection(
     body: JSON.stringify({
       patientCondition,
       desiredOutcome,
+      treatmentProgression,
       sessionId,
       subsectionIndex: index
     }),

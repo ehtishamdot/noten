@@ -15,7 +15,7 @@ const SUBSECTION_CONFIGS = [
 
 export async function POST(req: Request) {
   try {
-    const { patientCondition, desiredOutcome, sessionId, subsectionIndex } = await req.json();
+    const { patientCondition, desiredOutcome, treatmentProgression, sessionId, subsectionIndex } = await req.json();
     
     if (!process.env.OPENAI_API_KEY) {
       return new Response(JSON.stringify({ error: 'OpenAI API key not configured' }), {
@@ -26,9 +26,14 @@ export async function POST(req: Request) {
     
     const config = SUBSECTION_CONFIGS[subsectionIndex];
   
-    const prompt = `Generate 1 OT treatment subsection for: ${patientCondition} | Goal: ${desiredOutcome}
+    const prompt = `Generate 1 OT treatment subsection for:
+Patient: ${patientCondition}
+Goal: ${desiredOutcome}
+${treatmentProgression ? `Current Progress/Challenges: ${treatmentProgression}` : ''}
 
 Subsection: ${config.title} - ${config.focus}
+
+IMPORTANT: Generate exercises that are HIGHLY SPECIFIC to this patient's exact condition, goals, and any mentioned challenges. ${treatmentProgression ? 'Consider what has been tried and provide alternative or advanced approaches.' : ''}
 
 Create 2-3 patient-specific exercises. Description MUST mention all exercise names naturally.
 
@@ -81,6 +86,7 @@ Return ONLY JSON. Make cues detailed and comprehensive. Documentation examples M
       system: "Expert OT. Generate patient-specific exercises with DETAILED cues (1-2 sentences each). Description must mention all exercise names. Documentation MUST include 'show of skill' with specific cue used. Return ONLY valid JSON.",
       prompt,
       temperature: 0.8,
+      maxTokens: 2000, // Limit tokens for faster response while maintaining quality
     });
 
     // Parse the generated text as JSON

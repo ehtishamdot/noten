@@ -20,14 +20,14 @@ const SimpleCard = memo(function SimpleCard({
   renderDescription,
 }: SimpleCardProps) {
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+    <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 h-full flex flex-col">
       <div className="flex justify-between items-start mb-4">
         <h3 className="text-lg font-semibold text-gray-800">
           {title}
         </h3>
         <button
           onClick={onFeedbackClick}
-          className="text-gray-400 hover:text-gray-600 transition-colors"
+          className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0 ml-2"
           title="Provide feedback"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -37,7 +37,7 @@ const SimpleCard = memo(function SimpleCard({
       </div>
       
       <div 
-        className="text-gray-600 leading-relaxed min-h-[100px]"
+        className="text-gray-600 leading-relaxed flex-grow"
         onClick={onDescriptionClick}
         dangerouslySetInnerHTML={{ __html: renderDescription() }}
       />

@@ -94,19 +94,30 @@ export const MultiStepLoader = ({
   loading,
   duration = 2000,
   loop = true,
+  currentStage,
 }: {
   loadingStates: LoadingState[];
   loading?: boolean;
   duration?: number;
   loop?: boolean;
+  currentStage?: number;
 }) => {
   const [currentState, setCurrentState] = useState(0);
 
+  // Use provided currentStage if available, otherwise auto-progress
   useEffect(() => {
     if (!loading) {
       setCurrentState(0);
       return;
     }
+    
+    // If currentStage is provided, use it directly
+    if (currentStage !== undefined) {
+      setCurrentState(currentStage);
+      return;
+    }
+    
+    // Otherwise, auto-progress (fallback behavior)
     const timeout = setTimeout(() => {
       setCurrentState((prevState) =>
         loop
@@ -118,7 +129,7 @@ export const MultiStepLoader = ({
     }, duration);
 
     return () => clearTimeout(timeout);
-  }, [currentState, loading, loop, loadingStates.length, duration]);
+  }, [currentState, loading, loop, loadingStates.length, duration, currentStage]);
   return (
     <AnimatePresence mode="wait">
       {loading && (

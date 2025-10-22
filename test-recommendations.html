@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Recommendations API</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { color: #9333EA; }
+        h2 { color: #333; margin-top: 0; }
+        button {
+            background: #9333EA;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 10px 10px 0;
+        }
+        button:hover { background: #7c3aed; }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .loading {
+            display: none;
+            color: #9333EA;
+            margin: 10px 0;
+        }
+        .loading.show { display: block; }
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .subsection {
+            background: white;
+            border: 2px solid #9333EA;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .subsection h3 {
+            color: #9333EA;
+            margin-top: 0;
+        }
+        .exercise {
+            background: #f3e8ff;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            color: #28a745;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 5px 0;
+            font-family: inherit;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #9333EA;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #9333EA;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <h1>🥷 Test Recommendations API</h1>
+    
+    <div class="container">
+        <h2>Test Case Input</h2>
+        <label for="patientCondition">Patient Condition:</label>
+        <textarea id="patientCondition" rows="2">21 year old female with torn rotator cuff</textarea>
+        
+        <label for="desiredOutcome">Desired Outcome:</label>
+        <textarea id="desiredOutcome" rows="2">increase right shoulder abduction painless arc to 150° in 3-4 weeks</textarea>
+        
+        <label for="treatmentProgression">Treatment Progression (Optional):</label>
+        <textarea id="treatmentProgression" rows="3">progressed from 130° to 135° in week 1 with resistance band exercises, but progress stalled</textarea>
+        
+        <button onclick="testSingleSubsection()">Test Single Subsection (Manual Therapy)</button>
+        <button onclick="testAllSubsections()">Test All 6 Subsections</button>
+        <button onclick="testProgression()">Test Progression Text</button>
+        <button onclick="clearResults()">Clear Results</button>
+        
+        <div class="loading" id="loading">⏳ Loading...</div>
+    </div>
+
+    <div class="container" id="statsContainer" style="display:none;">
+        <h2>Response Statistics</h2>
+        <div class="stats" id="stats"></div>
+    </div>
+
+    <div class="container" id="progressionContainer" style="display:none;">
+        <h2>Progression Text</h2>
+        <div id="progressionResult"></div>
+    </div>
+
+    <div class="container" id="resultsContainer" style="display:none;">
+        <h2>Subsection Results</h2>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        let startTime;
+        let responseTimes = [];
+
+        function getInputs() {
+            return {
+                patientCondition: document.getElementById('patientCondition').value,
+                desiredOutcome: document.getElementById('desiredOutcome').value,
+                treatmentProgression: document.getElementById('treatmentProgression').value,
+                sessionId: `test_${Date.now()}`
+            };
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('show', show);
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+            document.getElementById('progressionResult').innerHTML = '';
+            document.getElementById('stats').innerHTML = '';
+            document.getElementById('resultsContainer').style.display = 'none';
+            document.getElementById('progressionContainer').style.display = 'none';
+            document.getElementById('statsContainer').style.display = 'none';
+            responseTimes = [];
+        }
+
+        async function testSingleSubsection() {
+            const inputs = getInputs();
+            showLoading(true);
+            clearResults();
+            document.getElementById('resultsContainer').style.display = 'block';
+            
+            startTime = Date.now();
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/generate-recommendations`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ...inputs,
+                        subsectionIndex: 0
+                    })
+                });
+
+                const elapsed = Date.now() - startTime;
+                const data = await response.json();
+
+                if (!response.ok) throw new Error(data.error || 'API Error');
+
+                displaySubsection(data, 0, elapsed);
+                updateStats([{ time: elapsed, data }]);
+                
+            } catch (error) {
+                document.getElementById('results').innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function testAllSubsections() {
+            const inputs = getInputs();
+            showLoading(true);
+            clearResults();
+            document.getElementById('resultsContainer').style.display = 'block';
+            document.getElementById('statsContainer').style.display = 'block';
+            
+            const results = document.getElementById('results');
+            results.innerHTML = '<div class="success">Starting parallel API calls...</div>';
+            
+            const subsectionTitles = [
+                'Manual Therapy Techniques',
+                'Progressive Strengthening Protocol',
+                'Neuromuscular Re-education',
+                'Work-Specific Functional Training',
+                'Pain Management Modalities',
+                'Home Exercise Program'
+            ];
+
+            startTime = Date.now();
+            responseTimes = [];
+
+            try {
+                const promises = Array.from({ length: 6 }, async (_, index) => {
+                    const subStartTime = Date.now();
+                    const response = await fetch(`${API_BASE}/api/generate-recommendations`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            ...inputs,
+                            subsectionIndex: index
+                        })
+                    });
+
+                    const elapsed = Date.now() - subStartTime;
+                    const data = await response.json();
+
+                    if (!response.ok) throw new Error(data.error || `API Error for subsection ${index}`);
+
+                    return { index, data, time: elapsed, title: subsectionTitles[index] };
+                });
+
+                const allResults = await Promise.all(promises);
+                const totalTime = Date.now() - startTime;
+
+                results.innerHTML = '<div class="success">✅ All subsections loaded successfully!</div>';
+                
+                allResults.sort((a, b) => a.index - b.index).forEach(result => {
+                    displaySubsection(result.data, result.index, result.time);
+                });
+
+                updateStats(allResults, totalTime);
+
+            } catch (error) {
+                results.innerHTML += `<div class="error">Error: ${error.message}</div>`;
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function testProgression() {
+            const inputs = getInputs();
+            showLoading(true);
+            document.getElementById('progressionContainer').style.display = 'block';
+            
+            startTime = Date.now();
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/generate-progression`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(inputs)
+                });
+
+                const elapsed = Date.now() - startTime;
+                const data = await response.json();
+
+                if (!response.ok) throw new Error(data.error || 'API Error');
+
+                document.getElementById('progressionResult').innerHTML = `
+                    <div class="success">✅ Generated in ${elapsed}ms</div>
+                    <div style="margin-top: 15px; padding: 15px; background: white; border-left: 4px solid #9333EA; line-height: 1.6;">
+                        ${data.progression}
+                    </div>
+                `;
+                
+            } catch (error) {
+                document.getElementById('progressionResult').innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function displaySubsection(data, index, time) {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = 'subsection';
+            
+            let html = `
+                <h3>${data.title} <span style="color: #666; font-size: 14px;">(${time}ms)</span></h3>
+                <p><strong>Description:</strong> ${data.description}</p>
+                ${data.rationale ? `<p><strong>Rationale:</strong> ${data.rationale}</p>` : ''}
+                <p><strong>Exercises (${data.exercises?.length || 0}):</strong></p>
+            `;
+
+            if (data.exercises && data.exercises.length > 0) {
+                data.exercises.forEach(exercise => {
+                    html += `
+                        <div class="exercise">
+                            <strong>${exercise.name}</strong>
+                            <p>${exercise.description}</p>
+                            <p><strong>Cues:</strong></p>
+                            <ul>
+                                ${exercise.cues.map(cue => `<li>${cue}</li>`).join('')}
+                            </ul>
+                            ${exercise.cpt_codes && exercise.cpt_codes.length > 0 ? 
+                                `<p><strong>CPT Code:</strong> ${exercise.cpt_codes[0].code} - ${exercise.cpt_codes[0].description}</p>` 
+                                : ''}
+                        </div>
+                    `;
+                });
+            }
+
+            div.innerHTML = html;
+            results.appendChild(div);
+        }
+
+        function updateStats(results, totalTime) {
+            const stats = document.getElementById('stats');
+            const times = results.map(r => r.time);
+            const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
+            const maxTime = Math.max(...times);
+            const minTime = Math.min(...times);
+
+            stats.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${results.length}</div>
+                    <div class="stat-label">Subsections</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${totalTime ? totalTime : maxTime}ms</div>
+                    <div class="stat-label">Total Time</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${Math.round(avgTime)}ms</div>
+                    <div class="stat-label">Average Time</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${maxTime}ms</div>
+                    <div class="stat-label">Slowest</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${minTime}ms</div>
+                    <div class="stat-label">Fastest</div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

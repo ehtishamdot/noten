@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import AnimatedCardGrid from "./AnimatedCardGrid";
 
 import { useRouter } from "next/navigation";
 import { noteNinjasAPI } from "@/lib/api";
 import HistorySidebar from "../../components/HistorySidebar";
 import { MultiStepLoader } from "../../components/MultiStepLoader";
-import { useStreamingRecommendations } from "@/hooks/useStreamingRecommendations";
 
 const loadingStates = [
   { text: "Considering patient condition…" },
@@ -52,10 +51,10 @@ export default function BrainstormingSuggestions() {
   const [caseData, setCaseData] = useState<any>(null);
   const [userName, setUserName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingStage, setLoadingStage] = useState(0); // Track which loading stage we're on
   const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [progressionText, setProgressionText] = useState("");
   
-  // Parallel API calls hook
-  const { isStreaming, startStreaming } = useStreamingRecommendations();
 
   const [selectedSuggestion, setSelectedSuggestion] =
     useState<Suggestion | null>(null);
@@ -77,6 +76,7 @@ export default function BrainstormingSuggestions() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [caseHistory, setCaseHistory] = useState<CaseHistory[]>([]);
   const [userEmail, setUserEmail] = useState("");
+  const hasCalledAPI = useRef(false); // Prevent duplicate API calls
 
   useEffect(() => {
     // Load case history from backend
@@ -103,104 +103,129 @@ export default function BrainstormingSuggestions() {
       const parsedData = JSON.parse(storedData);
       setCaseData(parsedData);
       
+      // Load progression text if it exists in saved data
+      if (parsedData.progressionText) {
+        setProgressionText(parsedData.progressionText);
+      } else if (parsedData.recommendations?.progression_overview) {
+        setProgressionText(parsedData.recommendations.progression_overview);
+      }
+      
       // Start API calls immediately if needed
-      if (parsedData.isStreaming && parsedData.sessionId && parsedData.userInput) {
-        console.log("🚀 Starting parallel API calls!");
+      if (parsedData.isStreaming && parsedData.sessionId && parsedData.userInput && !hasCalledAPI.current) {
+        hasCalledAPI.current = true; // Mark as called to prevent duplicates
+        
+        console.log("🚀 Starting unified API call!");
         setIsLoading(true);
+        setLoadingStage(0); // Stage 0: Considering patient condition
         
         // Initialize empty recommendations array
         const initialRecommendations = Array(6).fill(null);
         setRecommendations(initialRecommendations);
         
-        console.log('🚀 About to start parallel calls with params:', {
+        console.log('🚀 API call params:', {
           patientCondition: parsedData.userInput.patient_condition,
           desiredOutcome: parsedData.userInput.desired_outcome,
           sessionId: parsedData.sessionId
         });
         
-        startStreaming(
-          parsedData.userInput.patient_condition,
-          parsedData.userInput.desired_outcome,
-          parsedData.sessionId,
-          {
-            onUpdate: (subsection: any, index: number) => {
-              console.log(`✅ Received subsection ${index}:`, subsection.title);
-              
-              // Update specific index with real data
-              setRecommendations(prev => {
-                const updated = [...prev];
-                updated[index] = {
-                  ...subsection,
-                  id: `subsection-${index}`
-                };
-                return updated;
-              });
-            },
-            onComplete: () => {
-              console.log('✅ All API calls complete!');
-              setIsLoading(false);
-              
-              // Save case to backend
-              (async () => {
-                try {
-                  setRecommendations(prev => {
-                    const updatedCaseData = {
-                      ...parsedData,
-                      isStreaming: false,
-                      recommendations: {
-                        subsections: prev.filter(Boolean),
-                        high_level: [
-                          `Focus on progressive treatment for ${parsedData.patientCondition}`,
-                          `Incorporate activities to achieve: ${parsedData.desiredOutcome}`
-                        ],
-                        confidence: "high"
-                      }
-                    };
-                    
-                    // Check if user is logged in before saving
-                    const userAuth = sessionStorage.getItem("note-ninjas-user");
-                    if (!userAuth) {
-                      console.warn('⚠️ User not logged in, skipping backend save');
-                      sessionStorage.setItem("note-ninjas-case", JSON.stringify(updatedCaseData));
-                      setCaseData(updatedCaseData);
-                      return prev;
-                    }
-                    
-                    // Save to backend async
-                    noteNinjasAPI.createCase(
-                      parsedData.userInput,
-                      updatedCaseData.recommendations
-                    ).then(caseResponse => {
-                      console.log('✅ Case saved to backend:', caseResponse.id);
-                      
-                      // Update case data with ID
-                      const finalCaseData = {
-                        ...updatedCaseData,
-                        caseId: caseResponse.id,
-                        caseName: caseResponse.name
-                      };
-                      
-                      sessionStorage.setItem("note-ninjas-case", JSON.stringify(finalCaseData));
-                      setCaseData(finalCaseData);
-                    }).catch(error => {
-                      console.error('❌ Error saving case to backend:', error);
-                      sessionStorage.setItem("note-ninjas-case", JSON.stringify(updatedCaseData));
-                      setCaseData(updatedCaseData);
-                    });
-                    
-                    return prev;
-                  });
-                } catch (error) {
-                  console.error('❌ Error in onComplete:', error);
-                }
-              })();
-            },
-            onError: (error: Error) => {
-              console.error('❌ API calls error:', error);
-              setIsLoading(false);
+        // Single unified API call
+        (async () => {
+          try {
+            // Stage 0: Show "Considering patient condition" for 5 seconds
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            
+            setLoadingStage(1); // Stage 1: Generating treatment options
+            console.log('🔄 Calling API endpoint...');
+            
+            const response = await fetch('/api/generate-all-recommendations', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                patientCondition: parsedData.userInput.patient_condition,
+                desiredOutcome: parsedData.userInput.desired_outcome,
+                treatmentProgression: parsedData.userInput.treatment_progression || '',
+                sessionId: parsedData.sessionId
+              })
+            });
+            
+            console.log('📡 Response received, status:', response.status);
+            
+            if (!response.ok) {
+              const errorText = await response.text();
+              console.error('❌ API error response:', errorText);
+              throw new Error(`API call failed: ${response.status} - ${errorText}`);
             }
+            
+            const data = await response.json();
+            console.log('✅ All recommendations received!');
+            console.log('📦 Full API response:', data);
+            console.log('📦 First subsection:', data.subsections[0]);
+            console.log('📦 First exercise of first subsection:', data.subsections[0]?.exercises?.[0]);
+            
+            setLoadingStage(2); // Move to finalizing
+            
+            // Set progression text
+            if (data.progression_overview) {
+              setProgressionText(data.progression_overview);
+            }
+            
+            // Set all subsections
+            const formattedSubsections = data.subsections.map((sub: any, index: number) => ({
+              ...sub,
+              id: `subsection-${index}`
+            }));
+            setRecommendations(formattedSubsections);
+            
+            // Complete loading
+            setIsLoading(false);
+            setLoadingStage(0); // Reset for next time
+            
+            // Save case to backend
+            const updatedCaseData = {
+              ...parsedData,
+              isStreaming: false,
+              progressionText: data.progression_overview,
+              recommendations: data
+            };
+            
+            // Check if user is logged in before saving
+            const userAuth = sessionStorage.getItem("note-ninjas-user");
+            if (!userAuth) {
+              console.warn('⚠️ User not logged in, skipping backend save');
+              sessionStorage.setItem("note-ninjas-case", JSON.stringify(updatedCaseData));
+              setCaseData(updatedCaseData);
+              return;
+            }
+            
+            // Save to backend async
+            noteNinjasAPI.createCase(
+              parsedData.userInput,
+              updatedCaseData.recommendations
+            ).then(caseResponse => {
+              console.log('✅ Case saved to backend:', caseResponse.id);
+              
+              // Update case data with ID
+              const finalCaseData = {
+                ...updatedCaseData,
+                caseId: caseResponse.id,
+                caseName: caseResponse.name
+              };
+              
+              sessionStorage.setItem("note-ninjas-case", JSON.stringify(finalCaseData));
+              setCaseData(finalCaseData);
+            }).catch(error => {
+              console.error('❌ Error saving case to backend:', error);
+              sessionStorage.setItem("note-ninjas-case", JSON.stringify(updatedCaseData));
+              setCaseData(updatedCaseData);
+            });
+            
+          } catch (error) {
+            console.error('❌ API call error:', error);
+            setIsLoading(false);
+            setLoadingStage(0);
+            alert('Failed to generate recommendations. Please try again.');
           }
-        );
+        })();
       }
     } else {
       // Redirect back if no case data
@@ -238,20 +263,76 @@ export default function BrainstormingSuggestions() {
           sessionId: fullCase.input_json.session_id || `session_${Date.now()}`,
           userInput: fullCase.input_json,
           recommendations: fullCase.output_json,
+          progressionText: fullCase.output_json?.progression_overview || "",
           isStreaming: false
         };
+        
+        // Load progression text from saved data
+        if (caseData.progressionText) {
+          setProgressionText(caseData.progressionText);
+        } else {
+          // Generate progression text if not saved
+          fetch('/api/generate-progression', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              patientCondition: caseData.patientCondition,
+              desiredOutcome: caseData.desiredOutcome,
+              treatmentProgression: caseData.treatmentProgression || ''
+            })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.progression) {
+              setProgressionText(data.progression);
+            }
+          })
+          .catch(error => console.error('Error fetching progression text:', error));
+        }
         
         sessionStorage.setItem("note-ninjas-case", JSON.stringify(caseData));
         setCaseData(caseData);
       } else {
         sessionStorage.setItem("note-ninjas-case", JSON.stringify(item.caseData));
         setCaseData(item.caseData);
+        
+        // Load progression text from cached data or generate if not present
+        if (item.caseData.progressionText) {
+          setProgressionText(item.caseData.progressionText);
+        } else if (item.caseData.recommendations?.progression_overview) {
+          setProgressionText(item.caseData.recommendations.progression_overview);
+        } else {
+          // Generate progression text if not saved
+          fetch('/api/generate-progression', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              patientCondition: item.caseData.patientCondition,
+              desiredOutcome: item.caseData.desiredOutcome,
+              treatmentProgression: item.caseData.treatmentProgression || ''
+            })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.progression) {
+              setProgressionText(data.progression);
+            }
+          })
+          .catch(error => console.error('Error fetching progression text:', error));
+        }
       }
       
       setIsSidebarOpen(false);
     } catch (error) {
-      console.error("Error loading case:", error);
-      alert("Failed to load case. Please try again.");
+      console.error("Error loading first historical case:", error);
+      // Try to use cached data if available
+      if (item.caseData) {
+        sessionStorage.setItem("note-ninjas-case", JSON.stringify(item.caseData));
+        setCaseData(item.caseData);
+        setIsSidebarOpen(false);
+      } else {
+        alert("Failed to load case from server. Please try again.");
+      }
     }
   };
 
@@ -316,6 +397,20 @@ export default function BrainstormingSuggestions() {
   };
 
   const openExerciseModal = (exercise: Exercise) => {
+    console.log('Opening exercise modal with data:', {
+      name: exercise.name,
+      hasDescription: !!exercise.description,
+      hasCues: !!exercise.cues,
+      cuesIsArray: Array.isArray(exercise.cues),
+      cuesCount: exercise.cues?.length,
+      hasDocExamples: !!exercise.documentation_examples,
+      docExamplesIsArray: Array.isArray(exercise.documentation_examples),
+      docExamplesCount: exercise.documentation_examples?.length,
+      hasCPTCodes: !!exercise.cpt_codes,
+      cptCodesIsArray: Array.isArray(exercise.cpt_codes),
+      cptCodesCount: exercise.cpt_codes?.length,
+      fullExercise: exercise
+    });
     setSelectedExercise(exercise);
     setShowExerciseModal(true);
   };
@@ -441,11 +536,13 @@ export default function BrainstormingSuggestions() {
     exercises.forEach((exercise) => {
       if (!exercise || !exercise.name) return;
       
-      // Check if exercise has complete data (has cues, description, etc.)
-      const isComplete = exercise.cues && 
-                        exercise.cues.length > 0 && 
-                        exercise.description && 
-                        exercise.description.length > 0;
+      // Check if exercise has any meaningful data - be more lenient
+      const isComplete = exercise.name && exercise.description;
+      
+      // Debug log (can be removed later)
+      if (!isComplete) {
+        console.log('Exercise not clickable:', exercise.name, 'description:', !!exercise.description);
+      }
       
       const regex = new RegExp(
         `\\b${exercise.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
@@ -493,10 +590,11 @@ export default function BrainstormingSuggestions() {
   }
 
   console.log("Case data loaded:", suggestions);
+  console.log("First suggestion exercises:", suggestions[0]?.exercises);
 
   return (
     <>
-      <MultiStepLoader loadingStates={loadingStates} loading={isLoading} duration={3000} loop={false} />
+      <MultiStepLoader loadingStates={loadingStates} loading={isLoading} currentStage={loadingStage} duration={3000} loop={false} />
       <HistorySidebar
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -564,16 +662,16 @@ export default function BrainstormingSuggestions() {
             </h3>
             <div className="w-16 h-1 bg-purple-500 mx-auto mt-2 mb-6"></div>
             <div className="max-w-3xl mx-auto">
-              <p className="text-gray-700 text-base leading-relaxed">
-                Based on your case, start with gentle range of motion exercises
-                and pain-free strengthening. A typical progression begins with
-                passive and active-assisted ROM, advances to active ROM with
-                resistance band exercises, then progresses to functional
-                overhead activities. Since progress has stalled, consider
-                modifying exercise parameters (frequency, resistance, range) or
-                introducing manual therapy to address underlying restrictions
-                before advancing strengthening protocols.
-              </p>
+              {progressionText ? (
+                <p className="text-gray-700 text-base leading-relaxed">
+                  {progressionText}
+                </p>
+              ) : (
+                <div className="flex items-center justify-center py-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-2 border-purple-500 border-t-transparent"></div>
+                  <span className="ml-3 text-gray-600">Generating progression plan...</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -664,106 +762,171 @@ export default function BrainstormingSuggestions() {
                     </div>
 
                     {/* Cues Section */}
-                    {selectedExercise.cues && selectedExercise.cues.length > 0 && (
+                    {selectedExercise.cues && (
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900 mb-3">
                           Cues
                         </h3>
                         <ul className="space-y-2">
-                          {selectedExercise.cues.map((cue, index) => (
-                            <li key={index} className="flex items-start justify-between gap-3 group hover:bg-gray-50 p-2 rounded transition-colors">
-                              <div className="flex items-start gap-2 flex-1">
-                                <span className="inline-block w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></span>
-                                <span className="text-gray-700 flex-1">{cue}</span>
-                              </div>
-                              <div className="flex gap-1  transition-opacity">
-                                <button
-                                  onClick={() => openFeedbackModal(`${selectedExercise.name} - Cue ${index + 1}`, "cue", cue)}
-                                  className="text-gray-400 hover:text-purple-600 transition-colors p-1"
-                                  title="Feedback on this cue"
-                                >
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-                                  </svg>
-                                </button>
-                              </div>
-                            </li>
-                          ))}
+                          {Array.isArray(selectedExercise.cues) ? (
+                            selectedExercise.cues.map((cue, index) => (
+                              <li key={index} className="flex items-start justify-between gap-3 group hover:bg-gray-50 p-2 rounded transition-colors">
+                                <div className="flex items-start gap-2 flex-1">
+                                  <span className="inline-block w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></span>
+                                  <span className="text-gray-700 flex-1">{cue}</span>
+                                </div>
+                                <div className="flex gap-1  transition-opacity">
+                                  <button
+                                    onClick={() => openFeedbackModal(`${selectedExercise.name} - Cue ${index + 1}`, "cue", cue)}
+                                    className="text-gray-400 hover:text-purple-600 transition-colors p-1"
+                                    title="Feedback on this cue"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                                    </svg>
+                                  </button>
+                                </div>
+                              </li>
+                            ))
+                          ) : (
+                            // Handle object format {verbal, tactile, visual}
+                            Object.entries(selectedExercise.cues as any).map(([type, cue], index) => (
+                              <li key={index} className="flex items-start justify-between gap-3 group hover:bg-gray-50 p-2 rounded transition-colors">
+                                <div className="flex items-start gap-2 flex-1">
+                                  <span className="inline-block w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></span>
+                                  <div className="flex-1">
+                                    <span className="font-medium text-purple-600 capitalize">{type}: </span>
+                                    <span className="text-gray-700">{cue as string}</span>
+                                  </div>
+                                </div>
+                                <div className="flex gap-1 transition-opacity">
+                                  <button
+                                    onClick={() => openFeedbackModal(`${selectedExercise.name} - ${type} Cue`, "cue", cue as string)}
+                                    className="text-gray-400 hover:text-purple-600 transition-colors p-1"
+                                    title="Feedback on this cue"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                                    </svg>
+                                  </button>
+                                </div>
+                              </li>
+                            ))
+                          )}
                         </ul>
                       </div>
                     )}
 
                     {/* Documentation Examples */}
-                    {selectedExercise.documentation_examples && selectedExercise.documentation_examples.length > 0 && (
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                          Documentation
-                        </h3>
-                        <div className="space-y-4">
-                          {selectedExercise.documentation_examples.map((doc, index) => (
-                            <div key={index} className="bg-gray-50 rounded-lg p-4 relative group hover:bg-gray-100 transition-colors">
-                              <div className="flex justify-between items-start mb-2">
-                                <span className="text-sm font-medium text-purple-600">
-                                  Example {index + 1}
-                                </span>
-                                <button
-                                  onClick={() => openFeedbackModal(`${selectedExercise.name} - Documentation Example ${index + 1}`, "documentation", doc)}
-                                  className="text-gray-400 hover:text-purple-600 transition-colors "
-                                  title="Feedback on this example"
-                                >
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-                                  </svg>
-                                </button>
+                    {selectedExercise.documentation_examples && (() => {
+                      let docs;
+                      if (typeof selectedExercise.documentation_examples === 'string') {
+                        docs = [selectedExercise.documentation_examples];
+                      } else if (Array.isArray(selectedExercise.documentation_examples)) {
+                        docs = selectedExercise.documentation_examples;
+                      } else {
+                        docs = [selectedExercise.documentation_examples];
+                      }
+                      
+                      if (docs.length === 0 || (docs.length === 1 && !docs[0])) return null;
+                      
+                      return (
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                            Documentation
+                          </h3>
+                          <div className="space-y-4">
+                            {docs.map((doc, index) => (
+                              <div key={index} className="bg-gray-50 rounded-lg p-4 relative group hover:bg-gray-100 transition-colors">
+                                <div className="flex justify-between items-start mb-2">
+                                  <span className="text-sm font-medium text-purple-600">
+                                    Example {index + 1}
+                                  </span>
+                                  <button
+                                    onClick={() => openFeedbackModal(`${selectedExercise.name} - Documentation Example ${index + 1}`, "documentation", doc)}
+                                    className="text-gray-400 hover:text-purple-600 transition-colors "
+                                    title="Feedback on this example"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                                    </svg>
+                                  </button>
+                                </div>
+                                <p className="text-gray-700 text-sm leading-relaxed italic">
+                                  &quot;{doc}&quot;
+                                </p>
                               </div>
-                              <p className="text-gray-700 text-sm leading-relaxed italic">
-                                &quot;{doc}&quot;
-                              </p>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
 
                     {/* Billing Codes */}
-                    {selectedExercise.cpt_codes && selectedExercise.cpt_codes.length > 0 && (
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                          Billing Codes
-                        </h3>
-                        <div className="space-y-3">
-                          {selectedExercise.cpt_codes.map((billing, index) => (
-                            <div
-                              key={index}
-                              className="bg-green-50 rounded-lg p-4 border border-green-200 group hover:bg-green-100 transition-colors"
-                            >
-                              <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center gap-3">
-                                  <span className="font-semibold text-green-800 text-lg">
-                                    CPT {billing.code}
-                                  </span>
-                                  <span className="text-green-700 font-medium">
-                                    {billing.description}
-                                  </span>
+                    {selectedExercise.cpt_codes && (() => {
+                      console.log('🔍 CPT Codes raw:', selectedExercise.cpt_codes);
+                      
+                      let codes;
+                      if (typeof selectedExercise.cpt_codes === 'string') {
+                        // Parse string format: "97140 - Description text"
+                        const match = selectedExercise.cpt_codes.match(/^(\d+)\s*-\s*(.+)$/);
+                        if (match) {
+                          codes = [{ code: match[1], description: match[2], notes: '' }];
+                        } else {
+                          codes = [{ code: selectedExercise.cpt_codes, description: '', notes: '' }];
+                        }
+                      } else if (Array.isArray(selectedExercise.cpt_codes)) {
+                        codes = selectedExercise.cpt_codes;
+                      } else {
+                        codes = [selectedExercise.cpt_codes];
+                      }
+                      
+                      console.log('🔍 CPT Codes processed:', codes);
+                      
+                      if (codes.length === 0) return null;
+                      const validCodes = codes.filter(c => c && (c.code || c.description));
+                      console.log('🔍 Valid CPT Codes:', validCodes);
+                      if (validCodes.length === 0) return null;
+                      
+                      return (
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                            Billing Codes
+                          </h3>
+                          <div className="space-y-3">
+                            {validCodes.map((billing, index) => (
+                              <div
+                                key={index}
+                                className="bg-green-50 rounded-lg p-4 border border-green-200 group hover:bg-green-100 transition-colors"
+                              >
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex items-center gap-3">
+                                    <span className="font-semibold text-green-800 text-lg">
+                                      CPT {billing.code}
+                                    </span>
+                                    <span className="text-green-700 font-medium">
+                                      {billing.description}
+                                    </span>
+                                  </div>
+                                  <button
+                                    onClick={() => openFeedbackModal(`CPT ${billing.code} - ${billing.description}`, "cpt_code", `${billing.code}: ${billing.description} - ${billing.notes}`)}
+                                    className="text-green-600 hover:text-green-800 transition-colors "
+                                    title="Feedback on this CPT code"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                                    </svg>
+                                  </button>
                                 </div>
-                                <button
-                                  onClick={() => openFeedbackModal(`CPT ${billing.code} - ${billing.description}`, "cpt_code", `${billing.code}: ${billing.description} - ${billing.notes}`)}
-                                  className="text-green-600 hover:text-green-800 transition-colors "
-                                  title="Feedback on this CPT code"
-                                >
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-                                  </svg>
-                                </button>
+                                <p className="text-green-700 text-sm">
+                                  {billing.notes}
+                                </p>
                               </div>
-                              <p className="text-green-700 text-sm">
-                                {billing.notes}
-                              </p>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
 
                     {/* Notes */}
                     {selectedExercise.notes && (
@@ -804,9 +967,6 @@ export default function BrainstormingSuggestions() {
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <h2 className="text-xl font-semibold text-gray-900">Case Details</h2>
-                      {caseData.sessionId && (
-                        <p className="text-xs text-gray-500 mt-1">Session ID: {caseData.sessionId.replace('session_', '')}</p>
-                      )}
                     </div>
                     <button
                       onClick={() => setShowCaseDetailsModal(false)}

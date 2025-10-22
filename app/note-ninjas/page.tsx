@@ -258,7 +258,15 @@ export default function NoteNinjas() {
       // Navigate to suggestions page
       router.push("/note-ninjas/suggestions");
     } catch (error) {
-      console.error("Error loading case:", error);
+      console.error("Error loading historical case:", error);
+      // Try to use cached data if available
+      if (item.caseData) {
+        sessionStorage.setItem("note-ninjas-case", JSON.stringify(item.caseData));
+        setIsSidebarOpen(false);
+        router.push("/note-ninjas/suggestions");
+      } else {
+        alert("Failed to load case from server. Please try again.");
+      }
     }
   };
 
