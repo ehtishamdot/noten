@@ -86,7 +86,6 @@ Return ONLY JSON. Make cues detailed and comprehensive. Documentation examples M
       system: "Expert OT. Generate patient-specific exercises with DETAILED cues (1-2 sentences each). Description must mention all exercise names. Documentation MUST include 'show of skill' with specific cue used. Return ONLY valid JSON.",
       prompt,
       temperature: 0.8,
-      maxTokens: 2000, // Limit tokens for faster response while maintaining quality
     });
 
     // Parse the generated text as JSON

@@ -34,7 +34,6 @@ Return ONLY the paragraph text without any JSON formatting or additional explana
       system: "You are an expert PT/OT providing clinical guidance. Write concise, actionable treatment progression recommendations in a professional tone.",
       prompt,
       temperature: 0.7,
-      maxTokens: 200, // Limit response length for faster generation
     });
 
     return new Response(JSON.stringify({ progression: result.text.trim() }), {

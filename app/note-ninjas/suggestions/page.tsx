@@ -24,13 +24,13 @@ interface CaseHistory {
 interface Exercise {
   name: string;
   description: string;
-  cues: string[];
-  documentation_examples: string[];
+  cues: string[] | { verbal: string; tactile: string; visual: string };
+  documentation_examples: string[] | string;
   cpt_codes: {
     code: string;
     description: string;
     notes: string;
-  }[];
+  }[] | string;
   notes: string;
 }
 
@@ -402,13 +402,13 @@ export default function BrainstormingSuggestions() {
       hasDescription: !!exercise.description,
       hasCues: !!exercise.cues,
       cuesIsArray: Array.isArray(exercise.cues),
-      cuesCount: exercise.cues?.length,
+      cuesCount: Array.isArray(exercise.cues) ? exercise.cues.length : 'N/A',
       hasDocExamples: !!exercise.documentation_examples,
       docExamplesIsArray: Array.isArray(exercise.documentation_examples),
-      docExamplesCount: exercise.documentation_examples?.length,
+      docExamplesCount: Array.isArray(exercise.documentation_examples) ? exercise.documentation_examples.length : 'N/A',
       hasCPTCodes: !!exercise.cpt_codes,
       cptCodesIsArray: Array.isArray(exercise.cpt_codes),
-      cptCodesCount: exercise.cpt_codes?.length,
+      cptCodesCount: Array.isArray(exercise.cpt_codes) ? exercise.cpt_codes.length : 'N/A',
       fullExercise: exercise
     });
     setSelectedExercise(exercise);
