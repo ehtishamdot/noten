@@ -168,6 +168,9 @@ export default function BrainstormingSuggestions() {
             
             setLoadingStage(2); // Move to finalizing
             
+            // Wait to show "Finalizing details" stage
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
             // Set progression text
             if (data.progression_overview) {
               setProgressionText(data.progression_overview);
