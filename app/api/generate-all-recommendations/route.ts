@@ -88,7 +88,6 @@ Return ONLY JSON. Make cues detailed and comprehensive. Documentation examples M
     system: "Expert OT/PT. Generate patient-specific exercises with DETAILED cues (1-2 sentences each). Description must mention all exercise names. Documentation MUST include 'show of skill' with specific cue used. CRITICAL: Each exercise MUST have a DIFFERENT and APPROPRIATE CPT code - DO NOT repeat the same CPT code for multiple exercises. Return ONLY valid JSON.",
     prompt,
     temperature: 0.8,
-    maxTokens: 2000,
   });
 
   // Parse the generated text as JSON
@@ -129,7 +128,6 @@ Return ONLY the paragraph text without any JSON formatting or additional explana
     system: "You are an expert PT/OT providing clinical guidance. Write concise, actionable treatment progression recommendations in a professional tone.",
     prompt,
     temperature: 0.7,
-    maxTokens: 200,
   });
 
   return result.text.trim();
