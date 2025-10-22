@@ -131,13 +131,9 @@ export default function BrainstormingSuggestions() {
         // Single unified API call
         (async () => {
           try {
-            // Stage 0: Show "Considering patient condition" for 5 seconds
-            await new Promise(resolve => setTimeout(resolve, 5000));
-            
-            setLoadingStage(1); // Stage 1: Generating treatment options
+            // Start API call immediately (don't wait)
             console.log('🔄 Calling API endpoint...');
-            
-            const response = await fetch('/api/generate-all-recommendations', {
+            const apiPromise = fetch('/api/generate-all-recommendations', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -147,6 +143,14 @@ export default function BrainstormingSuggestions() {
                 sessionId: parsedData.sessionId
               })
             });
+            
+            // Stage 0: Show "Considering patient condition" for 5 seconds while API is processing
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            
+            setLoadingStage(1); // Stage 1: Generating treatment options
+            
+            // Wait for API response
+            const response = await apiPromise;
             
             console.log('📡 Response received, status:', response.status);
             
