@@ -30,7 +30,7 @@ Write in a professional, clinical tone as if advising another PT/OT. Be specific
 Return ONLY the paragraph text without any JSON formatting or additional explanations.`;
 
     const result = await generateText({
-      model: openai('gpt-4o-mini'),
+      model: openai('gpt-4o'),
       system: "You are an expert PT/OT providing clinical guidance. Write concise, actionable treatment progression recommendations in a professional tone.",
       prompt,
       temperature: 0.7,

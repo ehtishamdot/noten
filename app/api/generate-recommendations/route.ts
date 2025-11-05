@@ -40,41 +40,85 @@ Create 2-3 patient-specific exercises. Description MUST mention all exercise nam
 Each exercise needs:
 - name: Specific exercise name
 - description: 2-3 detailed sentences about technique and positioning
-- cues: EXACTLY 3 detailed cues (each cue should be 1-2 full sentences explaining the technique clearly)
-  * Verbal cue: What to say to the patient (detailed instruction)
-  * Tactile cue: How to physically guide or touch the patient (detailed technique)
-  * Visual cue: What to show or how to demonstrate (detailed visual feedback)
-- documentation_examples: 1 detailed clinical note (2-3 sentences) that includes a "show of skill" - meaning you MUST mention at least one specific cue the PT/OT used during the session and briefly explain why that cue was chosen or how it helped the patient
-- cpt_codes: 1 appropriate CPT code with full details
+- cues: Object with exactly 3 cue types:
+  * verbal: What to say to the patient (1-2 detailed sentences). Consider including "having the patient look in the mirror to [observe/ensure x] about [form/movement/posture] while [doing y]" when appropriate for visual feedback.
+  * tactile: How to physically guide or touch the patient (1-2 detailed sentences)
+  * visual: What to show or how to demonstrate (1-2 detailed sentences). Consider mirror-based observation techniques when applicable.
+- documentation_examples: Array with 1 detailed clinical note (2-3 sentences) following one of these patient-focused formats:
+  * [What task did the patient do? What cues were provided? What was the result?]
+  * [What task did the patient do? What was the result? What cues were provided?]
+  * [What task did the patient do? What occurred part-way through that prompted therapist intervention? What was the therapist intervention? What happened after intervention?]
+  NOTE: Focus on what the PATIENT did, not just what the therapist said/did. Include specific "show of skill" - mention at least one specific cue used and its effect.
+- cpt_codes: Array with 1 CPT code object. Use ONLY codes from this list and select based on decision rules below:
+
+  ALLOWED CPT CODES:
+  * 97110 — Therapeutic Exercise
+  * 97112 — Neuromuscular Re-education
+  * 97530 — Therapeutic Activities
+  * 97140 — Manual Therapy Techniques
+  * 97535 — Self-Care/Home Management Training
+  * 97116 — Gait Training Therapy
+  * 97032 — Electrical Stimulation, Manual (Attended)
+  * G0283 / 97014 — Electrical Stimulation (Unattended)
+  * 97035 — Ultrasound Therapy
+  * 97113 — Aquatic Therapy
+  * 97542 — Wheelchair Management Training
+  * 97010 — Hot/Cold Pack Therapy
+
+  DECISION RULES (choose the SINGLE BEST match):
+  * 97110: Strength, active exercise, stretching, ROM, endurance, reps and sets
+  * 97112: Motor control, proprioception, balance, posture, stabilization, PNF, coordinated movement training
+  * 97530: Functional and multi-joint tasks tied to real-world activity (sit to stand, lifting, reaching, step training)
+  * 97140: Therapist performs hands-on soft tissue mobilization, joint mobilization, manual stretching, IASTM
+  * 97535: Teaching self-management, posture, ergonomics, ADLs, home exercise program education
+  * 97116: Gait pattern training, walking mechanics, stair training, assistive device training
+  * 97032: Therapist applies and attends e-stim
+  * G0283 / 97014: Unattended e-stim
+  * 97035: Ultrasound intervention
+  * 97113: Exercise or therapy performed in water
+  * 97542: Wheelchair propulsion, safety, mechanics, or maneuver training
+  * 97010: Heat or cold pack application
+
+  DISAMBIGUATION RULES:
+  * If exercise is primarily strength/ROM/stretching → 97110
+  * If primary goal is neuromuscular control or proprioception → 97112
+  * If the movement is task-based and functional → 97530
+  * If therapist is physically performing movement or mobilization → 97140
+  * If performed in a pool → 97113
+  * If walking mechanics are the focus → 97116
+  * If the patient is being taught independent management skills → 97535
+  * If e-stim is attended → 97032
+  * If e-stim is unattended → G0283 or 97014
+
+  Each CPT code object should contain:
+  * code: The CPT code number (string) - MUST be from the allowed list above
+  * description: The official CPT title from the list above
+  * notes: Billing notes (e.g., "Per 15 minutes", "One or more regions")
 - notes: 1 sentence about contraindications
 
-Example cue format:
-"Verbal: Instruct the patient to relax their shoulder muscles completely and breathe deeply, explaining that they should feel a gentle stretch but no sharp pain as you perform the mobilization technique."
+CRITICAL: Each exercise MUST have a DIFFERENT and APPROPRIATE CPT code based on the exercise type. DO NOT use 97110 for all exercises. Never invent codes - only use the allowed codes listed above.
 
-Example documentation with "show of skill":
-"Patient completed glenohumeral mobilization exercises in supine position for 15 minutes with grade III mobilizations. Therapist used tactile cueing by placing hand on patient's scapula to promote proper positioning and prevent compensation, which helped patient achieve better isolation of the target motion. Patient tolerated well with reported pain reduction from 6/10 to 3/10."
-
-Format:
+Format example (NOTE: Each exercise must have DIFFERENT CPT code appropriate to exercise type):
 {
   "title": "${config.title}",
   "description": "Start with [Exercise 1 name] to address X, then [Exercise 2 name] for Y, and optionally [Exercise 3 name] to improve Z.",
   "rationale": "Clinical rationale for this approach",
   "exercises": [
     {
-      "name": "Specific Exercise Name",
-      "description": "Detailed description of how to perform this exercise. Patient positioning and setup. Progression and modifications as needed.",
-      "cues": [
-        "Verbal: Detailed instruction to give the patient explaining what to do and what they should feel during the exercise.",
-        "Tactile: Detailed explanation of where and how to place your hands to guide the patient through proper form and positioning.",
-        "Visual: Detailed description of what to show the patient, such as using mirrors, diagrams, or demonstrating the movement yourself."
-      ],
-      "documentation_examples": [
-        "Comprehensive clinical note documenting the exercise performed, patient positioning, number of repetitions or duration, patient response and tolerance, and measurable outcomes achieved. MUST include a specific cue that was used (verbal, tactile, or visual) and explain why it was chosen or how it benefited the patient."
-      ],
-      "cpt_codes": [
-        {"code": "97XXX", "description": "Full billing code description", "notes": "Specific billing notes and time requirements"}
-      ],
-      "notes": "Detailed contraindication or precaution to consider for this specific exercise"
+      "name": "Upper Trap Soft Tissue Mobilization",
+      "description": "Description here",
+      "cues": {"verbal": "Inform patient they may feel mild discomfort. Ask them to report if pain exceeds 5/10.", "tactile": "Apply graduated pressure with fingertips along upper trapezius fibers, maintaining contact for 30-60 seconds per tender point.", "visual": "Demonstrate on yourself first, showing the direction and depth of pressure."},
+      "documentation_examples": ["Patient received soft tissue mobilization to bilateral upper trapezius. Therapist applied sustained pressure with verbal cueing to monitor pain levels, ensuring discomfort remained below 5/10. Patient reported decreased tension and improved cervical rotation by 10 degrees post-treatment."],
+      "cpt_codes": [{"code": "97140", "description": "Manual Therapy Techniques", "notes": "One or more regions"}],
+      "notes": "Avoid over recent fractures or in presence of acute inflammation."
+    },
+    {
+      "name": "Resistance Band Shoulder External Rotation",
+      "description": "Description here",
+      "cues": {"verbal": "Instruct patient to look in the mirror to ensure elbow stays tucked at their side while rotating arm outward, preventing shoulder hiking.", "tactile": "Place hand on patient's shoulder to provide stability and prevent compensatory elevation.", "visual": "Demonstrate proper form in mirror, emphasizing elbow position at 90 degrees."},
+      "documentation_examples": ["Patient performed 3 sets of 10 repetitions of resistance band external rotation with elbow at 90 degrees. Therapist cued patient to use mirror feedback to maintain proper elbow position and avoid shoulder elevation. Patient successfully completed exercise with improved scapular stability and no compensatory patterns."],
+      "cpt_codes": [{"code": "97110", "description": "Therapeutic Exercise", "notes": "Per 15 minutes"}],
+      "notes": "Avoid if acute rotator cuff tear is suspected."
     }
   ]
 }
@@ -82,8 +126,8 @@ Format:
 Return ONLY JSON. Make cues detailed and comprehensive. Documentation examples MUST include "show of skill" with specific cue mentioned.`;
 
     const result = await generateText({
-      model: openai('gpt-4o-mini'),
-      system: "Expert OT. Generate patient-specific exercises with DETAILED cues (1-2 sentences each). Description must mention all exercise names. Documentation MUST include 'show of skill' with specific cue used. Return ONLY valid JSON.",
+      model: openai('gpt-4o'),
+      system: "Expert OT/PT. Generate patient-specific exercises with DETAILED cues (1-2 sentences each). Description must mention all exercise names. Documentation MUST include 'show of skill' with specific cue used. CRITICAL: Each exercise MUST have a DIFFERENT and APPROPRIATE CPT code - DO NOT repeat the same CPT code for multiple exercises. Return ONLY valid JSON.",
       prompt,
       temperature: 0.8,
     });

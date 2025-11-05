@@ -941,7 +941,18 @@ function BrainstormingSuggestionsContent() {
                     {/* Notes */}
                     {selectedExercise.notes && (
                       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                        <h4 className="font-semibold text-yellow-900 mb-2">Clinical Notes:</h4>
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-semibold text-yellow-900">Clinical Notes:</h4>
+                          <button
+                            onClick={() => openFeedbackModal(`${selectedExercise.name} - Clinical Notes`, "clinical_notes", selectedExercise.notes)}
+                            className="text-yellow-600 hover:text-purple-600 transition-colors"
+                            title="Feedback on clinical notes"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                            </svg>
+                          </button>
+                        </div>
                         <p className="text-yellow-800 text-sm">{selectedExercise.notes}</p>
                       </div>
                     )}
