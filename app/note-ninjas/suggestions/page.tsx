@@ -1155,6 +1155,44 @@ export default function BrainstormingSuggestions() {
                         </div>
                       </div>
 
+                      {/* Clinical Notes */}
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                          Clinical Notes
+                        </h3>
+                        <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                          <div className="flex items-start gap-3">
+                            <p className="text-gray-700 leading-relaxed flex-1">
+                              This section provides important clinical considerations, contraindications, adaptations, and safety information specific to this exercise for the patient's condition.
+                            </p>
+                            <button
+                              onClick={() =>
+                                openFeedbackModal(
+                                  selectedExercise,
+                                  "Clinical Notes"
+                                )
+                              }
+                              className="text-gray-400 hover:text-purple-600 transition-colors flex-shrink-0"
+                              title="Provide feedback"
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
                       {/* Billing Codes */}
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900 mb-3">

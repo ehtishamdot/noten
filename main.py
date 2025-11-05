@@ -107,6 +107,15 @@ class GenerateCuesResponse(BaseModel):
     cues: list[str] = Field(default_factory=list, description="Generated cue list")
 
 
+class GenerateCPTRequest(BaseModel):
+    title: str = Field(..., description="Exercise or intervention title")
+    description: str = Field(..., description="Exercise or intervention description")
+
+
+class GenerateCPTResponse(BaseModel):
+    cpt_code: str = Field(..., description="CPT code")
+    cpt_title: str = Field(..., description="Official CPT code title")
+
 
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
@@ -147,6 +156,10 @@ async def generate_cues(payload: GenerateCuesRequest):
         prompt = (
             "You are an OT assistant. Generate 4-5 concise clinician-facing cue statements for the exercise described. "
             "Prefer short, actionable phrasing. Include a mix of verbal, tactile, and visual cues where appropriate.\n\n"
+            "IMPORTANT: Consider the option of using mirror cues where appropriate. For example:\n"
+            "- 'Visual: Have patient look in mirror to observe proper form while performing the movement'\n"
+            "- 'Visual: Use mirror to ensure shoulder alignment remains level during the exercise'\n"
+            "- 'Visual: Patient observes scapular movement in mirror to ensure proper retraction'\n\n"
             f"Subsection: {payload.subsection_title or 'N/A'}\n"
             f"Exercise Description: {payload.description}\n"
             f"Documentation Exemplar: {payload.documentation or 'N/A'}\n\n"
@@ -197,6 +210,93 @@ async def generate_cues(payload: GenerateCuesRequest):
         logger.error(f"Error generating cues: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate cues")
 
+
+@app.post("/generate_cpt", response_model=GenerateCPTResponse)
+async def generate_cpt(payload: GenerateCPTRequest):
+    """
+    Generate the best CPT code for a given exercise or intervention.
+    Uses GPT-4 with strict prompt to ensure accuracy.
+    """
+    try:
+        client = OpenAI()
+        prompt = f"""You are a Physical Therapy CPT coding assistant.
+Given an exercise or intervention title and description, return the single best CPT code and its official title.
+Only choose from the list below.
+Never invent codes or output anything not in this list.
+Pick one code per input.
+If unsure, use the decision rules.
+
+Allowed CPT Codes:
+97110 — Therapeutic Exercise
+97112 — Neuromuscular Re-education
+97530 — Therapeutic Activities
+97140 — Manual Therapy Techniques
+97535 — Self-Care/Home Management Training
+97116 — Gait Training Therapy
+97032 — Electrical Stimulation, Manual (Attended)
+G0283 / 97014 — Electrical Stimulation (Unattended)
+97035 — Ultrasound Therapy
+97113 — Aquatic Therapy
+97542 — Wheelchair Management Training
+97010 — Hot/Cold Pack Therapy
+
+Decision Rules:
+97110: Strength, active exercise, stretching, ROM, endurance, reps and sets
+97112: Motor control, proprioception, balance, posture, stabilization, PNF, coordinated movement training
+97530: Functional and multi-joint tasks tied to real-world activity (sit to stand, lifting, reaching, step training)
+97140: Therapist performs hands-on soft tissue mobilization, joint mobilization, manual stretching, IASTM
+97535: Teaching self-management, posture, ergonomics, ADLs, home exercise program education
+97116: Gait pattern training, walking mechanics, stair training, assistive device training
+97032: Therapist applies and attends e-stim
+G0283 / 97014: Unattended e-stim
+97035: Ultrasound intervention
+97113: Exercise or therapy performed in water
+97542: Wheelchair propulsion, safety, mechanics, or maneuver training
+97010: Heat or cold pack application (note: often unbillable for Medicare, but still classify)
+
+Disambiguation rules:
+If exercise is primarily strength/ROM/stretching → 97110
+If primary goal is neuromuscular control or proprioception → 97112
+If the movement is task-based and functional → 97530
+If therapist is physically performing movement or mobilization → 97140
+If performed in a pool → 97113
+If walking mechanics are the focus → 97116
+If the patient is being taught independent management skills → 97535
+If e-stim is attended → 97032
+If e-stim is unattended → G0283 or 97014
+
+Input:
+Title: {payload.title}
+Description: {payload.description}
+
+Output format:
+No extra text. No rationale. No quotes. Only the CPT code and title in format {{"cpt_code": "*code*", "cpt_title": "*title*"}}"""
+
+        chat = client.chat.completions.create(
+            model="gpt-4",  # Using GPT-4 for higher accuracy
+            messages=[
+                {"role": "system", "content": "You are a Physical Therapy CPT coding expert. Return JSON only with cpt_code and cpt_title."},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.0,  # Deterministic for coding accuracy
+            response_format={"type": "json_object"}
+        )
+
+        content = chat.choices[0].message.content or '{}'
+        import json as _json
+        try:
+            result = _json.loads(content)
+            cpt_code = result.get('cpt_code', '97110')
+            cpt_title = result.get('cpt_title', 'Therapeutic Exercise')
+            return GenerateCPTResponse(cpt_code=cpt_code, cpt_title=cpt_title)
+        except Exception as parse_err:
+            logger.error(f"Error parsing CPT response: {parse_err}")
+            # Fallback to 97110 (Therapeutic Exercise) as safe default
+            return GenerateCPTResponse(cpt_code="97110", cpt_title="Therapeutic Exercise")
+
+    except Exception as e:
+        logger.error(f"Error generating CPT code: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate CPT code")
 
 
 @app.post("/feedback", response_model=FeedbackResponse)

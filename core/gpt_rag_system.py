@@ -78,7 +78,14 @@ Return only this JSON (no prose outside the JSON):
 Formatting Rules
 • Keep language clinical, concise, and specific.
 • Cues must be 4–5 concise items per exercise (no fewer than 4).
-• documentation uses skilled-terminology (instructed, facilitated, assessed, progressed, response).
+• documentation must focus on PATIENT actions and outcomes, following one of these formats:
+  - [What task did the patient do? What cues were provided? What was the result?]
+  - [What task did the patient do? What was the result? What cues were provided?]
+  - [What task did the patient do? What occurred part-way through that prompted therapist intervention? What was the therapist intervention? What happened after intervention?]
+  Examples:
+  - "Mr. Smith was transferred from the bed to a wheelchair using a hoyer lift with sling for participation in bathing and grooming tasks. Provided a verbal explanation of the transfer process to Mr. Smith, ensuring his understanding and cooperation. Mr. Smith able to assist with positioning the sling and provided verbal feedback to ensure comfort and minimize pressure on sensitive areas."
+  - "Patient ambulated 75 feet and demonstrated O2 desaturation to 86%. Therapist paused activity, provided seated rest, instructed pursed-lip breathing, and monitored recovery to 94% before resuming."
+  - "Patient demonstrated orthostatic hypotension with drop in BP from 130/80 to 95/60 upon standing. Therapist provided support, guided safe return to seated, and reassessed after 2 minutes."
 • Provide 6–8 exercises total (aim for at least 6). You may exceed 8 if the case is complex or the user requests more.
 • If any required field can't be grounded, set it to null and explain in notes.
 
