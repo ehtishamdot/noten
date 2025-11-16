@@ -277,3 +277,5 @@ checkpoints/
 # Any other large files you might have
 *.pdf
 *.png > 1MB  # Note: Git doesn't support size-based ignoring, but this is a reminder
+ecosystem.config.js
+PORT=*
