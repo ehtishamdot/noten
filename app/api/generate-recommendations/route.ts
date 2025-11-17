@@ -108,7 +108,7 @@ Format example (NOTE: Each exercise must have DIFFERENT CPT code appropriate to 
       "name": "Upper Trap Soft Tissue Mobilization",
       "description": "Description here",
       "cues": {"verbal": "Inform patient they may feel mild discomfort. Ask them to report if pain exceeds 5/10.", "tactile": "Apply graduated pressure with fingertips along upper trapezius fibers, maintaining contact for 30-60 seconds per tender point.", "visual": "Demonstrate on yourself first, showing the direction and depth of pressure."},
-      "documentation_examples": ["Patient received soft tissue mobilization to bilateral upper trapezius. Therapist applied sustained pressure with verbal cueing to monitor pain levels, ensuring discomfort remained below 5/10. Patient reported decreased tension and improved cervical rotation by 10 degrees post-treatment."],
+      "documentation_examples": ["Patient received soft tissue mobilization to bilateral upper trapezius with therapist applying graduated pressure. Therapist provided verbal cue to report if pain exceeds 5/10. Patient maintained appropriate pain level and reported decreased tension with improved cervical rotation by 10 degrees post-treatment."],
       "cpt_codes": [{"code": "97140", "description": "Manual Therapy Techniques", "notes": "One or more regions"}],
       "notes": "Avoid over recent fractures or in presence of acute inflammation."
     },

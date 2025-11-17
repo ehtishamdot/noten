@@ -25,15 +25,36 @@ export default function NoteNinjas() {
     patientCondition: "",
     desiredOutcome: "",
     treatmentProgression: "",
-    // Detailed mode fields
+    // Detailed mode fields - common
+    patientType: "",
     age: "",
     gender: "",
+    // Acute injury or trauma fields
     diagnosis: "",
+    dateOfInjury: "",
+    mechanismOfInjury: "",
     comorbidities: "",
     severity: "",
-    dateOfOnset: "",
     priorLevelOfFunction: "",
     workLifeRequirements: "",
+    // Post-surgical recovery fields
+    typeOfSurgery: "",
+    dateOfSurgery: "",
+    surgicalIndication: "",
+    currentPostOpPhase: "",
+    preOperativeFunction: "",
+    // Chronic or progressive condition fields
+    duration: "",
+    progressionPattern: "",
+    currentBaselineFunction: "",
+    priorBaseline: "",
+    // Functional or developmental support fields
+    primaryConcern: "",
+    currentAbilitiesLimitations: "",
+    environmentalContext: "",
+    dailyActivityGoals: "",
+    // Legacy field for backward compatibility
+    dateOfOnset: "",
   });
   const [isProcessing, setIsProcessing] = useState(false);
   const [showAutoFillDropdown, setShowAutoFillDropdown] = useState(false);
@@ -252,12 +273,14 @@ export default function NoteNinjas() {
     } else {
       setFormData({
         ...formData,
+        patientType: "acute",
         age: "21",
         gender: "Female",
         diagnosis: "Torn rotator cuff",
+        dateOfInjury: "3 months ago",
+        mechanismOfInjury: "Overhead reaching while playing volleyball",
         comorbidities: "None reported",
         severity: "Moderate - affecting daily activities",
-        dateOfOnset: "3 months ago",
         priorLevelOfFunction: "Full overhead function for work and sports",
         workLifeRequirements:
           "Overhead lifting required for job, recreational volleyball player",
@@ -278,37 +301,105 @@ export default function NoteNinjas() {
     if (inputMode === "simple") {
       isValid = !!(formData.patientCondition && formData.desiredOutcome);
     } else {
-      isValid = !!(
+      // Common required fields for all detailed paths
+      const commonFieldsValid = !!(
+        formData.patientType &&
         formData.age &&
-        formData.diagnosis &&
-        formData.severity &&
         formData.desiredOutcome
       );
+
+      // Path-specific required fields
+      let pathFieldsValid = false;
+      switch (formData.patientType) {
+        case "acute":
+          pathFieldsValid = !!(formData.diagnosis && formData.severity);
+          break;
+        case "post-surgical":
+          pathFieldsValid = !!(formData.typeOfSurgery);
+          break;
+        case "chronic":
+          pathFieldsValid = !!(formData.diagnosis);
+          break;
+        case "functional":
+          pathFieldsValid = !!(formData.primaryConcern);
+          break;
+        default:
+          pathFieldsValid = false;
+      }
+
+      isValid = commonFieldsValid && pathFieldsValid;
     }
 
     if (isValid) {
       setIsProcessing(true);
 
       // Save case data for suggestions page with streaming flag
-      const patientConditionFinal = inputMode === "detailed"
-        ? `${formData.age} year old ${
-            formData.gender?.toLowerCase() || "patient"
-          } with ${formData.diagnosis}${
-            formData.comorbidities
-              ? `, comorbidities: ${formData.comorbidities}`
-              : ""
-          }, severity: ${formData.severity}${
-            formData.dateOfOnset ? `, onset: ${formData.dateOfOnset}` : ""
-          }${
-            formData.priorLevelOfFunction
-              ? `, prior function: ${formData.priorLevelOfFunction}`
-              : ""
-          }${
-            formData.workLifeRequirements
-              ? `, work/life needs: ${formData.workLifeRequirements}`
-              : ""
-          }`
-        : formData.patientCondition;
+      let patientConditionFinal = formData.patientCondition;
+
+      if (inputMode === "detailed") {
+        const gender = formData.gender?.toLowerCase() || "patient";
+        const age = formData.age;
+
+        switch (formData.patientType) {
+          case "acute":
+            patientConditionFinal = `${age} year old ${gender} with ${formData.diagnosis}${
+              formData.dateOfInjury ? `, date of injury: ${formData.dateOfInjury}` : ""
+            }${
+              formData.mechanismOfInjury ? `, mechanism: ${formData.mechanismOfInjury}` : ""
+            }${
+              formData.comorbidities ? `, comorbidities: ${formData.comorbidities}` : ""
+            }, severity: ${formData.severity}${
+              formData.priorLevelOfFunction ? `, prior function: ${formData.priorLevelOfFunction}` : ""
+            }${
+              formData.workLifeRequirements ? `, work/life needs: ${formData.workLifeRequirements}` : ""
+            }`;
+            break;
+
+          case "post-surgical":
+            patientConditionFinal = `${age} year old ${gender}, post-surgical recovery from ${formData.typeOfSurgery}${
+              formData.dateOfSurgery ? `, date of surgery: ${formData.dateOfSurgery}` : ""
+            }${
+              formData.surgicalIndication ? `, indication: ${formData.surgicalIndication}` : ""
+            }${
+              formData.comorbidities ? `, comorbidities: ${formData.comorbidities}` : ""
+            }${
+              formData.currentPostOpPhase ? `, current phase: ${formData.currentPostOpPhase}` : ""
+            }${
+              formData.preOperativeFunction ? `, pre-op function: ${formData.preOperativeFunction}` : ""
+            }${
+              formData.workLifeRequirements ? `, work/life needs: ${formData.workLifeRequirements}` : ""
+            }`;
+            break;
+
+          case "chronic":
+            patientConditionFinal = `${age} year old ${gender} with ${formData.diagnosis}${
+              formData.duration ? `, duration: ${formData.duration}` : ""
+            }${
+              formData.progressionPattern ? `, progression: ${formData.progressionPattern}` : ""
+            }${
+              formData.comorbidities ? `, comorbidities: ${formData.comorbidities}` : ""
+            }${
+              formData.currentBaselineFunction ? `, current baseline: ${formData.currentBaselineFunction}` : ""
+            }${
+              formData.priorBaseline ? `, prior baseline: ${formData.priorBaseline}` : ""
+            }${
+              formData.workLifeRequirements ? `, work/life needs: ${formData.workLifeRequirements}` : ""
+            }`;
+            break;
+
+          case "functional":
+            patientConditionFinal = `${age} year old ${gender}, functional/developmental support needed for: ${formData.primaryConcern}${
+              formData.currentAbilitiesLimitations ? `, abilities/limitations: ${formData.currentAbilitiesLimitations}` : ""
+            }${
+              formData.environmentalContext ? `, environment: ${formData.environmentalContext}` : ""
+            }${
+              formData.comorbidities ? `, comorbidities: ${formData.comorbidities}` : ""
+            }${
+              formData.dailyActivityGoals ? `, daily goals: ${formData.dailyActivityGoals}` : ""
+            }`;
+            break;
+        }
+      }
       
       const caseData = {
         isStreaming: true,
@@ -513,174 +604,532 @@ export default function NoteNinjas() {
                     Patient Details
                   </h3>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Age */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Age *
-                      </label>
-                      <input
-                        type="number"
-                        value={formData.age}
-                        onChange={(e) =>
-                          handleInputChange("age", e.target.value)
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
-                        placeholder="21"
-                        min="1"
-                        max="120"
-                        required
-                      />
-                    </div>
-
-                    {/* Gender */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Gender
-                      </label>
-                      <select
-                        value={formData.gender}
-                        onChange={(e) =>
-                          handleInputChange("gender", e.target.value)
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
-                      >
-                        <option value="">Select gender</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Diagnosis */}
+                  {/* Patient Type Selection */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Primary Diagnosis *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.diagnosis}
-                      onChange={(e) =>
-                        handleInputChange("diagnosis", e.target.value)
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
-                      placeholder="Torn rotator cuff"
-                      required
-                    />
-                  </div>
-
-                  {/* Comorbidities */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Co-morbidities (comma-separated)
-                    </label>
-                    <textarea
-                      value={formData.comorbidities}
-                      onChange={(e) =>
-                        handleInputChange("comorbidities", e.target.value)
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
-                      rows={2}
-                      placeholder="Diabetes, hypertension, previous surgeries, etc."
-                    />
-                    <p className="mt-1 text-sm text-gray-500">
-                      List any relevant medical conditions or previous injuries
-                    </p>
-                  </div>
-
-                  {/* Severity */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Severity/Functional Impact *
+                      Patient Type *
                     </label>
                     <select
-                      value={formData.severity}
+                      value={formData.patientType}
                       onChange={(e) =>
-                        handleInputChange("severity", e.target.value)
+                        handleInputChange("patientType", e.target.value)
                       }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
                       required
                     >
-                      <option value="">Select severity level</option>
-                      <option value="Mild - minimal impact on daily activities">
-                        Mild - minimal impact on daily activities
-                      </option>
-                      <option value="Moderate - affecting daily activities">
-                        Moderate - affecting daily activities
-                      </option>
-                      <option value="Severe - significantly limiting function">
-                        Severe - significantly limiting function
-                      </option>
-                      <option value="Complete loss of function">
-                        Complete loss of function
-                      </option>
+                      <option value="">Select patient type</option>
+                      <option value="acute">Acute injury or trauma</option>
+                      <option value="post-surgical">Post-surgical recovery</option>
+                      <option value="chronic">Chronic or progressive condition</option>
+                      <option value="functional">Functional or developmental support</option>
                     </select>
                   </div>
 
-                  {/* Date of Onset */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Date of Onset
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.dateOfOnset}
-                      onChange={(e) =>
-                        handleInputChange("dateOfOnset", e.target.value)
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
-                      placeholder="3 months ago"
-                    />
-                    <p className="mt-1 text-sm text-gray-500">
-                      When did the condition/injury begin?
-                    </p>
-                  </div>
+                  {/* Common Fields - Age and Gender */}
+                  {formData.patientType && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Age */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Age *
+                        </label>
+                        <input
+                          type="number"
+                          value={formData.age}
+                          onChange={(e) =>
+                            handleInputChange("age", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          placeholder="21"
+                          min="1"
+                          max="120"
+                          required
+                        />
+                      </div>
 
-                  {/* Prior Level of Function */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Prior Level of Function
-                    </label>
-                    <textarea
-                      value={formData.priorLevelOfFunction}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "priorLevelOfFunction",
-                          e.target.value
-                        )
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
-                      rows={2}
-                      placeholder="Full overhead function for work and sports"
-                    />
-                    <p className="mt-1 text-sm text-gray-500">
-                      What was the patient&apos;s function like before this
-                      condition?
-                    </p>
-                  </div>
+                      {/* Gender */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Gender
+                        </label>
+                        <select
+                          value={formData.gender}
+                          onChange={(e) =>
+                            handleInputChange("gender", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                        >
+                          <option value="">Select gender</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
 
-                  {/* Work/Life Requirements */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Work/Life Requirements
-                    </label>
-                    <textarea
-                      value={formData.workLifeRequirements}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "workLifeRequirements",
-                          e.target.value
-                        )
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
-                      rows={2}
-                      placeholder="Overhead lifting required for job, recreational volleyball player"
-                    />
-                    <p className="mt-1 text-sm text-gray-500">
-                      What activities does the patient need to return to?
-                    </p>
-                  </div>
+                  {/* Acute Injury or Trauma Path */}
+                  {formData.patientType === "acute" && (
+                    <>
+                      {/* Primary Diagnosis */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Primary Diagnosis *
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.diagnosis}
+                          onChange={(e) =>
+                            handleInputChange("diagnosis", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          placeholder="Torn rotator cuff"
+                          required
+                        />
+                      </div>
+
+                      {/* Date of Injury */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Date of Injury
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.dateOfInjury}
+                          onChange={(e) =>
+                            handleInputChange("dateOfInjury", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          placeholder="3 months ago"
+                        />
+                      </div>
+
+                      {/* Mechanism of Injury */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Mechanism of Injury
+                        </label>
+                        <textarea
+                          value={formData.mechanismOfInjury}
+                          onChange={(e) =>
+                            handleInputChange("mechanismOfInjury", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          rows={2}
+                          placeholder="Fall during sports, motor vehicle accident, etc."
+                        />
+                      </div>
+
+                      {/* Co-morbidities */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Co-morbidities
+                        </label>
+                        <textarea
+                          value={formData.comorbidities}
+                          onChange={(e) =>
+                            handleInputChange("comorbidities", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          rows={2}
+                          placeholder="Diabetes, hypertension, previous injuries, etc."
+                        />
+                      </div>
+
+                      {/* Severity/Functional Impact */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Severity/Functional Impact *
+                        </label>
+                        <select
+                          value={formData.severity}
+                          onChange={(e) =>
+                            handleInputChange("severity", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          required
+                        >
+                          <option value="">Select severity level</option>
+                          <option value="Mild - minimal impact on daily activities">
+                            Mild - minimal impact on daily activities
+                          </option>
+                          <option value="Moderate - affecting daily activities">
+                            Moderate - affecting daily activities
+                          </option>
+                          <option value="Severe - significantly limiting function">
+                            Severe - significantly limiting function
+                          </option>
+                          <option value="Complete loss of function">
+                            Complete loss of function
+                          </option>
+                        </select>
+                      </div>
+
+                      {/* Prior Level of Function */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Prior Level of Function
+                        </label>
+                        <textarea
+                          value={formData.priorLevelOfFunction}
+                          onChange={(e) =>
+                            handleInputChange("priorLevelOfFunction", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          rows={2}
+                          placeholder="Full overhead function for work and sports"
+                        />
+                      </div>
+
+                      {/* Work/Life Requirements */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Work/Life Requirements
+                        </label>
+                        <textarea
+                          value={formData.workLifeRequirements}
+                          onChange={(e) =>
+                            handleInputChange("workLifeRequirements", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          rows={2}
+                          placeholder="Overhead lifting required for job, recreational volleyball player"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {/* Post-Surgical Recovery Path */}
+                  {formData.patientType === "post-surgical" && (
+                    <>
+                      {/* Type of Surgery/Procedure */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Type of Surgery/Procedure *
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.typeOfSurgery}
+                          onChange={(e) =>
+                            handleInputChange("typeOfSurgery", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          placeholder="Total knee replacement, ACL reconstruction, etc."
+                          required
+                        />
+                      </div>
+
+                      {/* Date of Surgery */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Date of Surgery
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.dateOfSurgery}
+                          onChange={(e) =>
+                            handleInputChange("dateOfSurgery", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          placeholder="2 weeks ago"
+                        />
+                      </div>
+
+                      {/* Surgical Indication */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Surgical Indication
+                        </label>
+                        <textarea
+                          value={formData.surgicalIndication}
+                          onChange={(e) =>
+                            handleInputChange("surgicalIndication", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          rows={2}
+                          placeholder="Reason for surgery, pre-operative diagnosis"
+                        />
+                      </div>
+
+                      {/* Co-morbidities */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Co-morbidities
+                        </label>
+                        <textarea
+                          value={formData.comorbidities}
+                          onChange={(e) =>
+                            handleInputChange("comorbidities", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          rows={2}
+                          placeholder="Diabetes, hypertension, previous surgeries, etc."
+                        />
+                      </div>
+
+                      {/* Current Post-Op Phase */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Current Post-Op Phase
+                        </label>
+                        <select
+                          value={formData.currentPostOpPhase}
+                          onChange={(e) =>
+                            handleInputChange("currentPostOpPhase", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                        >
+                          <option value="">Select phase</option>
+                          <option value="Protection">Protection</option>
+                          <option value="Early mobilization">Early mobilization</option>
+                          <option value="Strengthening">Strengthening</option>
+                          <option value="Return to function">Return to function</option>
+                        </select>
+                      </div>
+
+                      {/* Pre-operative Function */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Pre-operative Function
+                        </label>
+                        <textarea
+                          value={formData.preOperativeFunction}
+                          onChange={(e) =>
+                            handleInputChange("preOperativeFunction", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          rows={2}
+                          placeholder="Functional status before surgery"
+                        />
+                      </div>
+
+                      {/* Work/Life Requirements */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Work/Life Requirements
+                        </label>
+                        <textarea
+                          value={formData.workLifeRequirements}
+                          onChange={(e) =>
+                            handleInputChange("workLifeRequirements", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          rows={2}
+                          placeholder="Activities patient needs to return to"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {/* Chronic or Progressive Condition Path */}
+                  {formData.patientType === "chronic" && (
+                    <>
+                      {/* Primary Diagnosis */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Primary Diagnosis *
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.diagnosis}
+                          onChange={(e) =>
+                            handleInputChange("diagnosis", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          placeholder="Parkinson's disease, multiple sclerosis, etc."
+                          required
+                        />
+                      </div>
+
+                      {/* Duration */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Duration
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.duration}
+                          onChange={(e) =>
+                            handleInputChange("duration", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          placeholder="5 years, 18 months, etc."
+                        />
+                      </div>
+
+                      {/* Progression Pattern */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Progression Pattern
+                        </label>
+                        <select
+                          value={formData.progressionPattern}
+                          onChange={(e) =>
+                            handleInputChange("progressionPattern", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                        >
+                          <option value="">Select pattern</option>
+                          <option value="Rapidly declining">Rapidly declining</option>
+                          <option value="Slowly worsening">Slowly worsening</option>
+                          <option value="Stable">Stable</option>
+                          <option value="Slowly improving">Slowly improving</option>
+                          <option value="Rapidly improving">Rapidly improving</option>
+                          <option value="Fluctuating">Fluctuating</option>
+                        </select>
+                      </div>
+
+                      {/* Co-morbidities */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Co-morbidities
+                        </label>
+                        <textarea
+                          value={formData.comorbidities}
+                          onChange={(e) =>
+                            handleInputChange("comorbidities", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          rows={2}
+                          placeholder="Related conditions, complications, etc."
+                        />
+                      </div>
+
+                      {/* Current Baseline Function */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Current Baseline Function
+                        </label>
+                        <textarea
+                          value={formData.currentBaselineFunction}
+                          onChange={(e) =>
+                            handleInputChange("currentBaselineFunction", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          rows={2}
+                          placeholder="Current functional abilities and limitations"
+                        />
+                      </div>
+
+                      {/* Prior Baseline */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Prior Baseline
+                        </label>
+                        <textarea
+                          value={formData.priorBaseline}
+                          onChange={(e) =>
+                            handleInputChange("priorBaseline", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          rows={2}
+                          placeholder="Previous level of function for comparison"
+                        />
+                      </div>
+
+                      {/* Work/Life Requirements */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Work/Life Requirements
+                        </label>
+                        <textarea
+                          value={formData.workLifeRequirements}
+                          onChange={(e) =>
+                            handleInputChange("workLifeRequirements", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          rows={2}
+                          placeholder="Important activities and roles in daily life"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {/* Functional or Developmental Support Path */}
+                  {formData.patientType === "functional" && (
+                    <>
+                      {/* Primary Concern */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Primary Concern *
+                        </label>
+                        <textarea
+                          value={formData.primaryConcern}
+                          onChange={(e) =>
+                            handleInputChange("primaryConcern", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          rows={2}
+                          placeholder="Main functional limitation or developmental need"
+                          required
+                        />
+                      </div>
+
+                      {/* Current Abilities and Limitations */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Current Abilities and Limitations
+                        </label>
+                        <textarea
+                          value={formData.currentAbilitiesLimitations}
+                          onChange={(e) =>
+                            handleInputChange("currentAbilitiesLimitations", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          rows={3}
+                          placeholder="What the patient can and cannot do currently"
+                        />
+                      </div>
+
+                      {/* Environmental Context */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Environmental Context
+                        </label>
+                        <textarea
+                          value={formData.environmentalContext}
+                          onChange={(e) =>
+                            handleInputChange("environmentalContext", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          rows={3}
+                          placeholder="Home setup, support system, assistive devices currently used"
+                        />
+                      </div>
+
+                      {/* Co-morbidities */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Co-morbidities
+                        </label>
+                        <textarea
+                          value={formData.comorbidities}
+                          onChange={(e) =>
+                            handleInputChange("comorbidities", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          rows={2}
+                          placeholder="Related conditions or concerns"
+                        />
+                      </div>
+
+                      {/* Daily Activity Goals */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Daily Activity Goals
+                        </label>
+                        <textarea
+                          value={formData.dailyActivityGoals}
+                          onChange={(e) =>
+                            handleInputChange("dailyActivityGoals", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          rows={2}
+                          placeholder="Specific daily activities patient wants to improve"
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 
