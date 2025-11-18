@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { noteNinjasAPI } from "@/lib/api";
 import HistorySidebar from "../../components/HistorySidebar";
 import { MultiStepLoader } from "../../components/MultiStepLoader";
+import Logo from "../../components/Logo";
 
 const loadingStates = [
   { text: "Considering patient condition…" },
@@ -522,10 +523,10 @@ function BrainstormingSuggestionsContent() {
       );
       
       if (isComplete) {
-        // Clickable - purple with hover
+        // Clickable - teal with hover
         description = description.replace(
           regex,
-          `<span class="exercise-link cursor-pointer text-purple-600 hover:text-purple-800 font-medium underline decoration-purple-300 hover:decoration-purple-500" data-exercise-id="${exercise.name}" style="pointer-events: auto; position: relative; z-index: 10;">${exercise.name}</span>`
+          `<span class="exercise-link cursor-pointer text-teal-600 hover:text-teal-800 font-medium underline decoration-teal-300 hover:decoration-teal-500" data-exercise-id="${exercise.name}" style="pointer-events: auto; position: relative; z-index: 10;">${exercise.name}</span>`
         );
       } else {
         // Not clickable yet - gray with no pointer events
@@ -557,7 +558,7 @@ function BrainstormingSuggestionsContent() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-500 border-t-transparent"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-teal-500 border-t-transparent"></div>
           <div className="text-gray-600">Loading suggestions...</div>
         </div>
       </div>
@@ -598,7 +599,7 @@ function BrainstormingSuggestionsContent() {
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
           <div className="bg-white rounded-lg p-8 shadow-xl">
             <div className="flex flex-col items-center gap-4">
-              <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-500 border-t-transparent"></div>
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-teal-500 border-t-transparent"></div>
               <div className="text-gray-900 font-medium">Loading case...</div>
             </div>
           </div>
@@ -614,7 +615,7 @@ function BrainstormingSuggestionsContent() {
       <main className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-4xl mx-auto px-4">
           {/* Header */}
-          <div className="bg-purple-50 rounded-lg shadow-sm p-4 mb-6 border border-purple-100">
+          <div className="bg-teal-50 rounded-lg shadow-sm p-4 mb-6 border border-teal-100">
             <div className="flex items-start justify-between mb-2">
               <button
                 onClick={() => router.push("/note-ninjas")}
@@ -638,14 +639,9 @@ function BrainstormingSuggestionsContent() {
             </div>
 
             <div className="text-center">
-              <div className="flex items-center justify-center gap-3 mb-2">
-                <span className="text-2xl">🥷</span>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  Note Ninjas App
-                </h1>
-              </div>
+              <Logo size="sm" className="mb-2" />
               <p className="text-gray-700 text-sm">
-                The Brainstorming Partner for PTs and OTs
+                The PT/OT Brainstorming Partner
               </p>
             </div>
           </div>
@@ -658,7 +654,7 @@ function BrainstormingSuggestionsContent() {
               </h2>
               <button
                 onClick={() => setShowCaseDetailsModal(true)}
-                className="px-4 py-2 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 transition-colors"
+                className="px-4 py-2 bg-teal-600 text-white text-sm rounded-md hover:bg-teal-700 transition-colors"
               >
                 View Details
               </button>
@@ -670,7 +666,7 @@ function BrainstormingSuggestionsContent() {
             <h3 className="text-xl font-semibold text-gray-900 text-center">
               Recommended Starting Point & Progression
             </h3>
-            <div className="w-16 h-1 bg-purple-500 mx-auto mt-2 mb-6"></div>
+            <div className="w-16 h-1 bg-teal-500 mx-auto mt-2 mb-6"></div>
             <div className="max-w-3xl mx-auto">
               {progressionText ? (
                 <p className="text-gray-700 text-base leading-relaxed">
@@ -678,7 +674,7 @@ function BrainstormingSuggestionsContent() {
                 </p>
               ) : (
                 <div className="flex items-center justify-center py-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-2 border-purple-500 border-t-transparent"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-2 border-teal-500 border-t-transparent"></div>
                   <span className="ml-3 text-gray-600">Generating progression plan...</span>
                 </div>
               )}
@@ -690,7 +686,7 @@ function BrainstormingSuggestionsContent() {
             <h3 className="text-xl font-semibold text-gray-900 text-center">
               Specific Techniques to Consider
             </h3>
-            <div className="w-16 h-1 bg-purple-500 mx-auto mt-2 mb-6"></div>
+            <div className="w-16 h-1 bg-teal-500 mx-auto mt-2 mb-6"></div>
           </div>
 
           {/* Suggestion Cards */}
@@ -719,7 +715,7 @@ function BrainstormingSuggestionsContent() {
                       </h2>
                       <button
                         onClick={() => openFeedbackModal(`Recommendation: ${selectedExercise.name}`, "title", selectedExercise.name)}
-                        className="text-gray-400 hover:text-purple-600 transition-colors"
+                        className="text-gray-400 hover:text-teal-600 transition-colors"
                         title="Feedback on title"
                         aria-label="Feedback on title"
                       >
@@ -758,7 +754,7 @@ function BrainstormingSuggestionsContent() {
                         </h3>
                         <button
                           onClick={() => openFeedbackModal(`${selectedExercise.name} - Exercise Description`, "exercise", selectedExercise.description)}
-                          className="text-gray-400 hover:text-purple-600 transition-colors"
+                          className="text-gray-400 hover:text-teal-600 transition-colors"
                           title="Feedback on exercise description"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -782,13 +778,13 @@ function BrainstormingSuggestionsContent() {
                             selectedExercise.cues.map((cue, index) => (
                               <li key={index} className="flex items-start justify-between gap-3 group hover:bg-gray-50 p-2 rounded transition-colors">
                                 <div className="flex items-start gap-2 flex-1">
-                                  <span className="inline-block w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></span>
+                                  <span className="inline-block w-2 h-2 bg-teal-500 rounded-full mt-2 flex-shrink-0"></span>
                                   <span className="text-gray-700 flex-1">{cue}</span>
                                 </div>
                                 <div className="flex gap-1  transition-opacity">
                                   <button
                                     onClick={() => openFeedbackModal(`${selectedExercise.name} - Cue ${index + 1}`, "cue", cue)}
-                                    className="text-gray-400 hover:text-purple-600 transition-colors p-1"
+                                    className="text-gray-400 hover:text-teal-600 transition-colors p-1"
                                     title="Feedback on this cue"
                                   >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -803,16 +799,16 @@ function BrainstormingSuggestionsContent() {
                             Object.entries(selectedExercise.cues as any).map(([type, cue], index) => (
                               <li key={index} className="flex items-start justify-between gap-3 group hover:bg-gray-50 p-2 rounded transition-colors">
                                 <div className="flex items-start gap-2 flex-1">
-                                  <span className="inline-block w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></span>
+                                  <span className="inline-block w-2 h-2 bg-teal-500 rounded-full mt-2 flex-shrink-0"></span>
                                   <div className="flex-1">
-                                    <span className="font-medium text-purple-600 capitalize">{type}: </span>
+                                    <span className="font-medium text-teal-600 capitalize">{type}: </span>
                                     <span className="text-gray-700">{cue as string}</span>
                                   </div>
                                 </div>
                                 <div className="flex gap-1 transition-opacity">
                                   <button
                                     onClick={() => openFeedbackModal(`${selectedExercise.name} - ${type} Cue`, "cue", cue as string)}
-                                    className="text-gray-400 hover:text-purple-600 transition-colors p-1"
+                                    className="text-gray-400 hover:text-teal-600 transition-colors p-1"
                                     title="Feedback on this cue"
                                   >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -849,12 +845,12 @@ function BrainstormingSuggestionsContent() {
                             {docs.map((doc, index) => (
                               <div key={index} className="bg-gray-50 rounded-lg p-4 relative group hover:bg-gray-100 transition-colors">
                                 <div className="flex justify-between items-start mb-2">
-                                  <span className="text-sm font-medium text-purple-600">
+                                  <span className="text-sm font-medium text-teal-600">
                                     Example {index + 1}
                                   </span>
                                   <button
                                     onClick={() => openFeedbackModal(`${selectedExercise.name} - Documentation Example ${index + 1}`, "documentation", doc)}
-                                    className="text-gray-400 hover:text-purple-600 transition-colors "
+                                    className="text-gray-400 hover:text-teal-600 transition-colors "
                                     title="Feedback on this example"
                                   >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -945,7 +941,7 @@ function BrainstormingSuggestionsContent() {
                           <h4 className="font-semibold text-yellow-900">Clinical Notes:</h4>
                           <button
                             onClick={() => openFeedbackModal(`${selectedExercise.name} - Clinical Notes`, "clinical_notes", selectedExercise.notes)}
-                            className="text-yellow-600 hover:text-purple-600 transition-colors"
+                            className="text-yellow-600 hover:text-teal-600 transition-colors"
                             title="Feedback on clinical notes"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -963,7 +959,7 @@ function BrainstormingSuggestionsContent() {
                   <div className="mt-6 pt-4 border-t border-gray-200 flex justify-end">
                     <button
                       onClick={closeExerciseModal}
-                      className="px-6 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+                      className="px-6 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors"
                     >
                       Close
                     </button>
@@ -1060,7 +1056,7 @@ function BrainstormingSuggestionsContent() {
                   <div className="mt-6">
                     <button
                       onClick={() => { handleCreateNewCase(); setShowCaseDetailsModal(false); }}
-                      className="w-full bg-purple-600 text-white py-2.5 px-4 rounded-md font-medium hover:bg-purple-700"
+                      className="w-full bg-teal-600 text-white py-2.5 px-4 rounded-md font-medium hover:bg-teal-700"
                     >
                       Create New Case from Details
                     </button>
@@ -1122,7 +1118,7 @@ function BrainstormingSuggestionsContent() {
                   <textarea
                     value={feedbackComments}
                     onChange={(e) => setFeedbackComments(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                     rows={3}
                     placeholder="Tell us more about your experience..."
                   />
@@ -1137,7 +1133,7 @@ function BrainstormingSuggestionsContent() {
                   </button>
                   <button
                     onClick={submitFeedback}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+                    className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors"
                   >
                     Submit Feedback
                   </button>
@@ -1157,7 +1153,7 @@ export default function BrainstormingSuggestions() {
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-500 border-t-transparent"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-teal-500 border-t-transparent"></div>
           <div className="text-gray-600">Loading...</div>
         </div>
       </div>

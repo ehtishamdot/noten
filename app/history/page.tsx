@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { noteNinjasAPI, CaseListItem } from "@/lib/api";
+import Logo from "../components/Logo";
 
 interface CaseHistory {
   id: string;
@@ -153,7 +154,7 @@ export default function HistoryPage() {
   if (isLoading) {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-purple-500 border-t-transparent"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-teal-500 border-t-transparent"></div>
       </main>
     );
   }
@@ -162,23 +163,18 @@ export default function HistoryPage() {
     <main className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4">
         {/* Header */}
-        <div className="bg-purple-50 rounded-lg shadow-sm p-4 mb-6 border border-purple-100">
+        <div className="bg-teal-50 rounded-lg shadow-sm p-4 mb-6 border border-teal-100">
           <div className="text-center">
-            <div className="flex items-center justify-center gap-3 mb-2">
-              <span className="text-2xl">🥷</span>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Note Ninjas App
-              </h1>
-            </div>
+            <Logo size="sm" className="mb-2" />
             <p className="text-gray-700 text-sm mb-1">
-              The Brainstorming Partner for PTs and OTs
+              The PT/OT Brainstorming Partner
             </p>
             {userName && (
               <p className="text-gray-600 text-xs">
                 Logged in as:{" "}
                 <button
                   onClick={() => router.push("/account")}
-                  className="text-purple-600 hover:text-purple-800 underline"
+                  className="text-teal-600 hover:text-teal-800 underline"
                 >
                   {userName}
                 </button>
@@ -191,7 +187,7 @@ export default function HistoryPage() {
         <div className="mb-6">
           <button
             onClick={() => router.push("/note-ninjas")}
-            className="text-purple-600 hover:text-purple-700 flex items-center text-sm mb-4"
+            className="text-teal-600 hover:text-teal-700 flex items-center text-sm mb-4"
           >
             <svg
               className="w-4 h-4 mr-1"
@@ -239,7 +235,7 @@ export default function HistoryPage() {
                       type="text"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
-                      className="w-full px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      className="w-full px-3 py-2 border border-teal-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                       autoFocus
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
@@ -252,7 +248,7 @@ export default function HistoryPage() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleSaveEdit(item.id)}
-                        className="flex-1 px-3 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                        className="flex-1 px-3 py-2 text-sm bg-teal-600 text-white rounded-lg hover:bg-teal-700"
                       >
                         Save
                       </button>
@@ -295,7 +291,7 @@ export default function HistoryPage() {
                       onClick={() => handleSelectCase(item)}
                       className="cursor-pointer mb-3"
                     >
-                      <h3 className="font-semibold text-gray-900 mb-2 hover:text-purple-600 transition-colors">
+                      <h3 className="font-semibold text-gray-900 mb-2 hover:text-teal-600 transition-colors">
                         {item.name}
                       </h3>
                       <p className="text-xs text-gray-500">
@@ -309,7 +305,7 @@ export default function HistoryPage() {
                     <div className="flex gap-2 pt-3 border-t border-gray-200">
                       <button
                         onClick={() => handleStartEdit(item.id, item.name)}
-                        className="flex-1 px-3 py-2 text-xs text-purple-600 hover:bg-purple-50 rounded-lg transition-colors flex items-center justify-center gap-1"
+                        className="flex-1 px-3 py-2 text-xs text-teal-600 hover:bg-teal-50 rounded-lg transition-colors flex items-center justify-center gap-1"
                       >
                         <svg
                           className="w-3 h-3"

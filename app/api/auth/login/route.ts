@@ -5,11 +5,11 @@ import { ObjectId } from 'mongodb';
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, email } = await req.json();
+    const { email } = await req.json();
 
-    if (!name || !email) {
+    if (!email) {
       return NextResponse.json(
-        { error: 'Name and email are required' },
+        { error: 'Email is required' },
         { status: 400 }
       );
     }
@@ -20,29 +20,18 @@ export async function POST(req: NextRequest) {
     let user = await users.findOne({ email });
 
     if (!user) {
+      // Generate name from email (part before @)
+      const generatedName = email.split('@')[0];
+
       // Create new user
       const result = await users.insertOne({
-        name,
+        name: generatedName,
         email,
         created_at: new Date(),
         updated_at: new Date(),
       });
-      
+
       user = await users.findOne({ _id: result.insertedId });
-    } else {
-      // Update name if changed
-      if (user.name !== name) {
-        await users.updateOne(
-          { _id: user._id },
-          { 
-            $set: { 
-              name, 
-              updated_at: new Date() 
-            } 
-          }
-        );
-        user = await users.findOne({ _id: user._id });
-      }
     }
 
     // Generate session token

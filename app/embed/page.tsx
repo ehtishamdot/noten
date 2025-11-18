@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { noteNinjasAPI } from "@/lib/api";
 import { useRouter } from "next/navigation";
+import Logo from "../components/Logo";
 
 interface CaseHistory {
   id: string;
@@ -66,12 +67,12 @@ export default function EmbedPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50">
       <div className="max-w-4xl mx-auto p-6">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Note Ninjas</h1>
-          <p className="text-gray-600">AI-Powered PT Documentation Assistant</p>
+          <Logo size="lg" className="mb-4" />
+          <p className="text-gray-600">The PT/OT Brainstorming Partner</p>
         </div>
 
         {/* Input Mode Toggle */}
@@ -81,7 +82,7 @@ export default function EmbedPage() {
               onClick={() => setInputMode("simple")}
               className={`px-6 py-3 rounded-lg font-semibold transition-all ${
                 inputMode === "simple"
-                  ? "bg-purple-600 text-white shadow-lg"
+                  ? "bg-teal-600 text-white shadow-lg"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
             >
@@ -91,7 +92,7 @@ export default function EmbedPage() {
               onClick={() => setInputMode("detailed")}
               className={`px-6 py-3 rounded-lg font-semibold transition-all ${
                 inputMode === "detailed"
-                  ? "bg-purple-600 text-white shadow-lg"
+                  ? "bg-teal-600 text-white shadow-lg"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
             >
@@ -120,7 +121,7 @@ export default function EmbedPage() {
                     setFormData({ ...formData, patientCondition: e.target.value })
                   }
                   placeholder="Describe the patient's condition, diagnosis, and relevant history..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   rows={4}
                   required
                 />
@@ -136,7 +137,7 @@ export default function EmbedPage() {
                     setFormData({ ...formData, desiredOutcome: e.target.value })
                   }
                   placeholder="What are the treatment goals and desired outcomes?"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   rows={3}
                   required
                 />
@@ -152,7 +153,7 @@ export default function EmbedPage() {
                     setFormData({ ...formData, treatmentProgression: e.target.value })
                   }
                   placeholder="Any current challenges, stalled progress, or what has been tried so far?"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   rows={3}
                 />
               </div>
@@ -170,7 +171,7 @@ export default function EmbedPage() {
                     value={formData.age}
                     onChange={(e) => setFormData({ ...formData, age: e.target.value })}
                     placeholder="e.g., 45"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     required
                   />
                 </div>
@@ -182,7 +183,7 @@ export default function EmbedPage() {
                   <select
                     value={formData.gender}
                     onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     required
                   >
                     <option value="">Select gender</option>
@@ -202,7 +203,7 @@ export default function EmbedPage() {
                   value={formData.diagnosis}
                   onChange={(e) => setFormData({ ...formData, diagnosis: e.target.value })}
                   placeholder="Primary diagnosis"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   required
                 />
               </div>
@@ -217,7 +218,7 @@ export default function EmbedPage() {
                     setFormData({ ...formData, comorbidities: e.target.value })
                   }
                   placeholder="Any relevant medical conditions or comorbidities"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   rows={2}
                 />
               </div>
@@ -230,7 +231,7 @@ export default function EmbedPage() {
                   <select
                     value={formData.severity}
                     onChange={(e) => setFormData({ ...formData, severity: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     required
                   >
                     <option value="">Select severity</option>
@@ -251,7 +252,7 @@ export default function EmbedPage() {
                       setFormData({ ...formData, dateOfOnset: e.target.value })
                     }
                     placeholder="e.g., 2 weeks ago"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -266,7 +267,7 @@ export default function EmbedPage() {
                     setFormData({ ...formData, priorLevelOfFunction: e.target.value })
                   }
                   placeholder="Describe patient's functional status before injury/onset"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   rows={2}
                   required
                 />
@@ -282,7 +283,7 @@ export default function EmbedPage() {
                     setFormData({ ...formData, workLifeRequirements: e.target.value })
                   }
                   placeholder="Job demands, daily activities, hobbies, goals"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   rows={2}
                   required
                 />
@@ -298,7 +299,7 @@ export default function EmbedPage() {
                     setFormData({ ...formData, treatmentProgression: e.target.value })
                   }
                   placeholder="Current progress, challenges, or what has been tried"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   rows={2}
                 />
               </div>
@@ -309,7 +310,7 @@ export default function EmbedPage() {
           <button
             type="submit"
             disabled={isProcessing}
-            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
+            className="w-full bg-gradient-to-r from-teal-600 to-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:from-teal-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
           >
             {isProcessing ? (
               <span className="flex items-center justify-center">
@@ -343,7 +344,7 @@ export default function EmbedPage() {
 
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-gray-600">
-          <p>Powered by Note Ninjas AI</p>
+          <p>Powered by Planwise AI</p>
         </div>
       </div>
     </div>

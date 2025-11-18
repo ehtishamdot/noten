@@ -58,9 +58,9 @@ function SuggestionsContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-teal-600 mx-auto mb-4"></div>
           <p className="text-xl font-semibold text-gray-700">
             Generating your treatment plan...
           </p>
@@ -71,14 +71,14 @@ function SuggestionsContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 py-8 px-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Treatment Recommendations</h1>
           <button
             onClick={() => router.push("/embed")}
-            className="text-purple-600 hover:text-purple-700 font-semibold"
+            className="text-teal-600 hover:text-teal-700 font-semibold"
           >
             ← New Case
           </button>
@@ -118,7 +118,7 @@ function SuggestionsContent() {
         {/* Subsections */}
         {recommendations?.subsections?.map((subsection: any, idx: number) => (
           <div key={idx} className="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 className="text-2xl font-bold text-purple-600 mb-3">{subsection.title}</h2>
+            <h2 className="text-2xl font-bold text-teal-600 mb-3">{subsection.title}</h2>
 
             {subsection.description && (
               <p className="text-gray-700 mb-4">{subsection.description}</p>
@@ -147,13 +147,13 @@ function SuggestionsContent() {
                   {exercise.cpt_codes && exercise.cpt_codes.length > 0 && (
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <span className="font-semibold">CPT:</span>
-                      <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded">
+                      <span className="bg-teal-100 text-teal-700 px-2 py-1 rounded">
                         {exercise.cpt_codes[0].code}
                       </span>
                     </div>
                   )}
 
-                  <p className="text-purple-600 text-sm font-semibold mt-2">
+                  <p className="text-teal-600 text-sm font-semibold mt-2">
                     Click to view details →
                   </p>
                 </div>
@@ -209,8 +209,8 @@ function SuggestionsContent() {
                 )}
 
                 {selectedExercise.cues?.visual && (
-                  <div className="mb-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
-                    <h4 className="font-semibold text-purple-900 mb-2">Visual Cues:</h4>
+                  <div className="mb-4 p-4 bg-teal-50 rounded-lg border border-teal-200">
+                    <h4 className="font-semibold text-teal-900 mb-2">Visual Cues:</h4>
                     <p className="text-gray-700">{selectedExercise.cues.visual}</p>
                   </div>
                 )}
@@ -246,11 +246,11 @@ function SuggestionsContent() {
                     {selectedExercise.cpt_codes.map((cpt: any, idx: number) => (
                       <div
                         key={idx}
-                        className="p-4 bg-purple-50 rounded-lg border border-purple-200"
+                        className="p-4 bg-teal-50 rounded-lg border border-teal-200"
                       >
                         <div className="flex items-start justify-between">
                           <div>
-                            <p className="font-bold text-purple-900 text-lg">{cpt.code}</p>
+                            <p className="font-bold text-teal-900 text-lg">{cpt.code}</p>
                             <p className="text-gray-700">{cpt.description}</p>
                             {cpt.notes && (
                               <p className="text-sm text-gray-600 mt-1">{cpt.notes}</p>
@@ -275,7 +275,7 @@ function SuggestionsContent() {
               <div className="mt-6 pt-4 border-t border-gray-200 flex justify-end">
                 <button
                   onClick={closeExerciseModal}
-                  className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  className="px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
                 >
                   Close
                 </button>
@@ -292,8 +292,8 @@ export default function EmbedSuggestionsPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600"></div>
+        <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-teal-600"></div>
         </div>
       }
     >

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Logo from "../components/Logo";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -89,7 +90,7 @@ export default function AccountPage() {
   if (isLoading) {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-purple-500 border-t-transparent"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-teal-500 border-t-transparent"></div>
       </main>
     );
   }
@@ -98,16 +99,11 @@ export default function AccountPage() {
     <main className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-2xl mx-auto px-4">
         {/* Header */}
-        <div className="bg-purple-50 rounded-lg shadow-sm p-4 mb-6 border border-purple-100">
+        <div className="bg-teal-50 rounded-lg shadow-sm p-4 mb-6 border border-teal-100">
           <div className="text-center">
-            <div className="flex items-center justify-center gap-3 mb-2">
-              <span className="text-2xl">🥷</span>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Note Ninjas App
-              </h1>
-            </div>
+            <Logo size="sm" className="mb-2" />
             <p className="text-gray-700 text-sm">
-              The Brainstorming Partner for PTs and OTs
+              The PT/OT Brainstorming Partner
             </p>
           </div>
         </div>
@@ -117,7 +113,7 @@ export default function AccountPage() {
           <div className="mb-6">
             <button
               onClick={() => router.push("/note-ninjas")}
-              className="text-purple-600 hover:text-purple-700 flex items-center text-sm mb-4"
+              className="text-teal-600 hover:text-teal-700 flex items-center text-sm mb-4"
             >
               <svg
                 className="w-4 h-4 mr-1"
@@ -147,7 +143,7 @@ export default function AccountPage() {
                 type="text"
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                 placeholder="Enter your name"
               />
             </div>
@@ -161,7 +157,7 @@ export default function AccountPage() {
                 type="email"
                 value={userEmail}
                 onChange={(e) => setUserEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                 placeholder="Enter your email"
               />
             </div>
@@ -170,13 +166,13 @@ export default function AccountPage() {
             <div className="pt-6 border-t border-gray-200 flex gap-3">
               <button
                 onClick={handleUpdate}
-                className="flex-1 bg-purple-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors"
+                className="flex-1 bg-teal-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-colors"
               >
                 Save Changes
               </button>
               <button
                 onClick={handleLogout}
-                className="flex-1 bg-white border-2 border-purple-600 text-purple-600 py-3 px-6 rounded-lg font-medium hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors"
+                className="flex-1 bg-white border-2 border-teal-600 text-teal-600 py-3 px-6 rounded-lg font-medium hover:bg-teal-50 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-colors"
               >
                 Log Out
               </button>

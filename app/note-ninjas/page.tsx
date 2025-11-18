@@ -5,6 +5,7 @@ import { noteNinjasAPI } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import LoginPage from "../components/LoginPage";
 import HistorySidebar from "../components/HistorySidebar";
+import Logo from "../components/Logo";
 
 interface CaseHistory {
   id: string;
@@ -137,19 +138,19 @@ export default function NoteNinjas() {
     sessionStorage.setItem("note-ninjas-input-mode", inputMode);
   }, [inputMode]);
 
-  const handleLogin = async (name: string, email: string) => {
+  const handleLogin = async (email: string) => {
     try {
       // Call backend login API
-      const response = await noteNinjasAPI.login(name, email);
-      
+      const response = await noteNinjasAPI.login(email);
+
       // Save user data and token
-      const userData = { 
+      const userData = {
         id: response.user.id,
-        name: response.user.name, 
-        email: response.user.email 
+        name: response.user.name || email.split('@')[0], // Use email prefix as fallback name
+        email: response.user.email
       };
       sessionStorage.setItem("note-ninjas-user", JSON.stringify(userData));
-      setUserName(name);
+      setUserName(userData.name);
       setIsAuthenticated(true);
 
       console.log('✅ Logged in successfully:', userData);
@@ -445,7 +446,7 @@ export default function NoteNinjas() {
   if (isLoading) {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-purple-500 border-t-transparent"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-teal-500 border-t-transparent"></div>
       </main>
     );
   }
@@ -466,16 +467,11 @@ export default function NoteNinjas() {
       <main className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-3xl mx-auto px-4">
           {/* Header */}
-          <div className="bg-purple-50 rounded-lg shadow-sm p-4 mb-6 border border-purple-100">
+          <div className="bg-teal-50 rounded-lg shadow-sm p-4 mb-6 border border-teal-100">
             <div className="text-center">
-              <div className="flex items-center justify-center gap-3 mb-2">
-                <span className="text-2xl">🥷</span>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  Note Ninjas App
-                </h1>
-              </div>
+              <Logo size="sm" className="mb-2" />
               <p className="text-gray-700 text-sm">
-                The Brainstorming Partner for PTs and OTs
+                The PT/OT Brainstorming Partner
               </p>
             </div>
           </div>
@@ -516,7 +512,7 @@ export default function NoteNinjas() {
                       <button
                         type="button"
                         onClick={handleAutoFill}
-                        className="w-full text-left px-3 py-3 hover:bg-purple-50 rounded-md transition-colors"
+                        className="w-full text-left px-3 py-3 hover:bg-teal-50 rounded-md transition-colors"
                       >
                         <div className="font-medium text-gray-900 text-sm mb-1">
                           Shoulder Impingement Case
@@ -548,14 +544,14 @@ export default function NoteNinjas() {
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   Patient Condition Input Mode
                 </label>
-                <div className="inline-flex bg-purple-100 rounded-lg p-1 border border-purple-200">
+                <div className="inline-flex bg-teal-100 rounded-lg p-1 border border-teal-200">
                   <button
                     type="button"
                     onClick={() => setInputMode("simple")}
                     className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
                       inputMode === "simple"
-                        ? "bg-purple-600 text-white shadow-sm"
-                        : "text-purple-600 hover:bg-purple-50"
+                        ? "bg-teal-600 text-white shadow-sm"
+                        : "text-teal-600 hover:bg-teal-50"
                     }`}
                   >
                     Simple
@@ -565,8 +561,8 @@ export default function NoteNinjas() {
                     onClick={() => setInputMode("detailed")}
                     className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
                       inputMode === "detailed"
-                        ? "bg-purple-600 text-white shadow-sm"
-                        : "text-purple-600 hover:bg-purple-50"
+                        ? "bg-teal-600 text-white shadow-sm"
+                        : "text-teal-600 hover:bg-teal-50"
                     }`}
                   >
                     Detailed
@@ -585,7 +581,7 @@ export default function NoteNinjas() {
                     onChange={(e) =>
                       handleInputChange("patientCondition", e.target.value)
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                     rows={3}
                     placeholder="21 year old female with torn rotator cuff"
                     required
@@ -614,7 +610,7 @@ export default function NoteNinjas() {
                       onChange={(e) =>
                         handleInputChange("patientType", e.target.value)
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                       required
                     >
                       <option value="">Select patient type</option>
@@ -639,7 +635,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("age", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                           placeholder="21"
                           min="1"
                           max="120"
@@ -657,7 +653,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("gender", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                         >
                           <option value="">Select gender</option>
                           <option value="Male">Male</option>
@@ -682,7 +678,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("diagnosis", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                           placeholder="Torn rotator cuff"
                           required
                         />
@@ -699,7 +695,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("dateOfInjury", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                           placeholder="3 months ago"
                         />
                       </div>
@@ -714,7 +710,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("mechanismOfInjury", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                           rows={2}
                           placeholder="Fall during sports, motor vehicle accident, etc."
                         />
@@ -730,7 +726,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("comorbidities", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                           rows={2}
                           placeholder="Diabetes, hypertension, previous injuries, etc."
                         />
@@ -746,7 +742,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("severity", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                           required
                         >
                           <option value="">Select severity level</option>
@@ -775,7 +771,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("priorLevelOfFunction", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                           rows={2}
                           placeholder="Full overhead function for work and sports"
                         />
@@ -791,7 +787,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("workLifeRequirements", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                           rows={2}
                           placeholder="Overhead lifting required for job, recreational volleyball player"
                         />
@@ -813,7 +809,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("typeOfSurgery", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                           placeholder="Total knee replacement, ACL reconstruction, etc."
                           required
                         />
@@ -830,7 +826,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("dateOfSurgery", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                           placeholder="2 weeks ago"
                         />
                       </div>
@@ -845,7 +841,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("surgicalIndication", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                           rows={2}
                           placeholder="Reason for surgery, pre-operative diagnosis"
                         />
@@ -861,7 +857,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("comorbidities", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                           rows={2}
                           placeholder="Diabetes, hypertension, previous surgeries, etc."
                         />
@@ -877,7 +873,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("currentPostOpPhase", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                         >
                           <option value="">Select phase</option>
                           <option value="Protection">Protection</option>
@@ -897,7 +893,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("preOperativeFunction", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                           rows={2}
                           placeholder="Functional status before surgery"
                         />
@@ -913,7 +909,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("workLifeRequirements", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                           rows={2}
                           placeholder="Activities patient needs to return to"
                         />
@@ -935,7 +931,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("diagnosis", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                           placeholder="Parkinson's disease, multiple sclerosis, etc."
                           required
                         />
@@ -952,7 +948,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("duration", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                           placeholder="5 years, 18 months, etc."
                         />
                       </div>
@@ -967,7 +963,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("progressionPattern", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                         >
                           <option value="">Select pattern</option>
                           <option value="Rapidly declining">Rapidly declining</option>
@@ -989,7 +985,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("comorbidities", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                           rows={2}
                           placeholder="Related conditions, complications, etc."
                         />
@@ -1005,7 +1001,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("currentBaselineFunction", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                           rows={2}
                           placeholder="Current functional abilities and limitations"
                         />
@@ -1021,7 +1017,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("priorBaseline", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                           rows={2}
                           placeholder="Previous level of function for comparison"
                         />
@@ -1037,7 +1033,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("workLifeRequirements", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                           rows={2}
                           placeholder="Important activities and roles in daily life"
                         />
@@ -1058,7 +1054,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("primaryConcern", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                           rows={2}
                           placeholder="Main functional limitation or developmental need"
                           required
@@ -1075,7 +1071,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("currentAbilitiesLimitations", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                           rows={3}
                           placeholder="What the patient can and cannot do currently"
                         />
@@ -1091,7 +1087,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("environmentalContext", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                           rows={3}
                           placeholder="Home setup, support system, assistive devices currently used"
                         />
@@ -1107,7 +1103,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("comorbidities", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                           rows={2}
                           placeholder="Related conditions or concerns"
                         />
@@ -1123,7 +1119,7 @@ export default function NoteNinjas() {
                           onChange={(e) =>
                             handleInputChange("dailyActivityGoals", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                           rows={2}
                           placeholder="Specific daily activities patient wants to improve"
                         />
@@ -1143,7 +1139,7 @@ export default function NoteNinjas() {
                   onChange={(e) =>
                     handleInputChange("desiredOutcome", e.target.value)
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                   rows={3}
                   placeholder="increase right shoulder abduction painless arc to 150° in 3-4 weeks"
                   required
@@ -1163,7 +1159,7 @@ export default function NoteNinjas() {
                   onChange={(e) =>
                     handleInputChange("treatmentProgression", e.target.value)
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                   rows={4}
                   placeholder="progressed from 130° to 135° in week 1 with resistance band exercises, but progress stalled"
                 />
@@ -1178,7 +1174,7 @@ export default function NoteNinjas() {
                 <button
                   type="submit"
                   disabled={isProcessing}
-                  className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                  className="w-full bg-teal-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                 >
                   {isProcessing ? (
                     <>
@@ -1209,11 +1205,11 @@ export default function NoteNinjas() {
           </div>
 
           {/* Info Card */}
-          <div className="mt-6 bg-purple-50 border border-purple-200 rounded-lg p-6">
+          <div className="mt-6 bg-teal-50 border border-teal-200 rounded-lg p-6">
             <div className="flex items-start">
               <div className="flex-shrink-0">
                 <svg
-                  className="w-5 h-5 text-purple-600 mt-0.5"
+                  className="w-5 h-5 text-teal-600 mt-0.5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -1227,10 +1223,10 @@ export default function NoteNinjas() {
                 </svg>
               </div>
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-purple-900">
-                  What Note Ninjas will help with:
+                <h3 className="text-sm font-medium text-teal-900">
+                  What Planwise will help with:
                 </h3>
-                <div className="mt-2 text-sm text-purple-800">
+                <div className="mt-2 text-sm text-teal-800">
                   <p className="mb-2">Get personalized suggestions for:</p>
                   <ul className="list-disc list-inside space-y-1">
                     <li>

@@ -34,7 +34,7 @@ export default function HistorySidebar({
       {/* Toggle Button */}
       <button
         onClick={onToggle}
-        className="fixed left-4 top-4 z-40 bg-purple-600 text-white p-2 rounded-lg hover:bg-purple-700 transition-colors shadow-lg"
+        className="fixed left-4 top-4 z-40 bg-teal-600 text-white p-2 rounded-lg hover:bg-teal-700 transition-colors shadow-lg"
         title={isOpen ? "Close history" : "Open history"}
       >
         <svg
@@ -90,7 +90,7 @@ export default function HistorySidebar({
                   <div
                     key={item.id}
                     onClick={() => handleSelectCase(item)}
-                    className="bg-gray-50 rounded-lg p-3 hover:bg-purple-50 transition-colors border border-gray-200 cursor-pointer hover:border-purple-300"
+                    className="bg-gray-50 rounded-lg p-3 hover:bg-teal-50 transition-colors border border-gray-200 cursor-pointer hover:border-teal-300"
                   >
                     <h3 className="font-medium text-gray-900 text-sm mb-1">
                       {item.name}
@@ -112,7 +112,7 @@ export default function HistorySidebar({
               <div className="mt-4">
                 <button
                   onClick={() => router.push("/history")}
-                  className="w-full px-4 py-2 text-sm text-purple-600 hover:bg-purple-50 rounded-lg transition-colors border border-purple-200"
+                  className="w-full px-4 py-2 text-sm text-teal-600 hover:bg-teal-50 rounded-lg transition-colors border border-teal-200"
                 >
                   View All
                 </button>

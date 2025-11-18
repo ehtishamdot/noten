@@ -204,15 +204,15 @@ class NoteNinjasAPI {
   }
 
   // Authentication
-  async login(name: string, email: string): Promise<LoginResponse> {
+  async login(email: string): Promise<LoginResponse> {
     const response = await this.request<LoginResponse>('/api/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ name, email }),
+      body: JSON.stringify({ email }),
     });
-    
+
     TokenManager.setToken(response.token);
     TokenManager.setUser(response.user);
-    
+
     return response;
   }
 
