@@ -202,7 +202,9 @@ function BrainstormingSuggestionsContent() {
                 patientCondition: parsedData.userInput.patient_condition,
                 desiredOutcome: parsedData.userInput.desired_outcome,
                 treatmentProgression: parsedData.userInput.treatment_progression || '',
-                sessionId: parsedData.sessionId
+                sessionId: parsedData.sessionId,
+                visitType: parsedData.visitType || parsedData.userInput.visit_type || 'PT',
+                sections: parsedData.sections || []
               })
             });
             

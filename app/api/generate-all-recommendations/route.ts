@@ -3,34 +3,42 @@ import { generateText } from 'ai';
 
 export const runtime = 'edge';
 
-// Define subsection configurations
-const SUBSECTION_CONFIGS = [
-  { title: "Manual Therapy Techniques", focus: "mobilizations, soft tissue work" },
-  { title: "Progressive Strengthening Protocol", focus: "strengthening exercises" },
-  { title: "Neuromuscular Re-education", focus: "coordination, balance, proprioception" },
-  { title: "Work-Specific Functional Training", focus: "functional activities for goals" },
-  { title: "Pain Management Modalities", focus: "modalities for pain control" },
-  { title: "Home Exercise Program", focus: "home exercises patient can do" }
+// Define fallback subsection configurations (legacy support)
+const FALLBACK_SUBSECTION_CONFIGS = [
+  { title: "Manual Therapy Techniques", focus: "mobilizations, soft tissue work", contentGuidelines: "Address swelling, spasm, mobility restrictions, and scar mobilization." },
+  { title: "Therapeutic Exercise & Strengthening", focus: "strengthening exercises", contentGuidelines: "Include specific tissue loading and progressive strengthening." },
+  { title: "Neuromuscular Re-education", focus: "coordination, balance, proprioception", contentGuidelines: "Focus on proprioception and joint position sense." },
+  { title: "Functional Activity", focus: "functional activities for goals", contentGuidelines: "Focus on: Functional reaching, functional transfers, functional standing tasks, ambulation/gait, navigation." },
+  { title: "Pain Management Modalities", focus: "modalities for pain control", contentGuidelines: "Prioritize active pain management over passive modalities where possible." },
+  { title: "Home Program & Education", focus: "home exercises patient can do", contentGuidelines: "RICE protocol, positioning, initial exercises. Ensure options for Caregiver HEP." }
 ];
 
+interface SectionConfig {
+  sectionName: string;
+  contentGuidelines: string;
+  triggerRule?: string;
+}
+
 async function generateSubsection(
-  index: number,
+  section: SectionConfig,
   patientCondition: string,
   desiredOutcome: string,
-  treatmentProgression: string
+  treatmentProgression: string,
+  visitType: string
 ) {
-  const config = SUBSECTION_CONFIGS[index];
-  
-  const prompt = `Generate 1 OT treatment subsection for:
+  const therapyType = visitType === 'OT' ? 'OT (Occupational Therapy)' : 'PT (Physical Therapy)';
+
+  const prompt = `Generate 1 ${therapyType} treatment subsection for:
 Patient: ${patientCondition}
 Goal: ${desiredOutcome}
 ${treatmentProgression ? `Current Progress/Challenges: ${treatmentProgression}` : ''}
 
-Subsection: ${config.title} - ${config.focus}
+Subsection: ${section.sectionName}
+Content Guidelines: ${section.contentGuidelines}
 
 IMPORTANT: Generate exercises that are HIGHLY SPECIFIC to this patient's exact condition, goals, and any mentioned challenges. ${treatmentProgression ? 'Consider what has been tried and provide alternative or advanced approaches.' : ''}
 
-Create 2-3 patient-specific exercises. Description MUST mention all exercise names naturally.
+Create 2-3 patient-specific exercises that follow the Content Guidelines above. Description MUST mention all exercise names naturally.
 
 Each exercise needs:
 - name: Specific exercise name
@@ -95,33 +103,17 @@ CRITICAL: Each exercise MUST have a DIFFERENT and APPROPRIATE CPT code based on 
 
 Format example (NOTE: Each exercise must have DIFFERENT CPT code appropriate to exercise type):
 {
-  "title": "${config.title}",
+  "title": "${section.sectionName}",
   "description": "Start with [Exercise 1 name] to address X, then [Exercise 2 name] for Y, and optionally [Exercise 3 name] to improve Z.",
-  "rationale": "Clinical rationale for this approach",
+  "rationale": "Clinical rationale for this approach based on the content guidelines",
   "exercises": [
     {
-      "name": "Upper Trap Soft Tissue Mobilization",
+      "name": "Exercise Name",
       "description": "Description here",
-      "cues": {"verbal": "Inform patient they may feel mild discomfort. Ask them to report if pain exceeds 5/10.", "tactile": "Apply graduated pressure with fingertips along upper trapezius fibers, maintaining contact for 30-60 seconds per tender point.", "visual": "Demonstrate on yourself first, showing the direction and depth of pressure."},
-      "documentation_examples": ["Patient received soft tissue mobilization to bilateral upper trapezius with therapist applying graduated pressure. Therapist provided verbal cue to report if pain exceeds 5/10. Patient maintained appropriate pain level and reported decreased tension with improved cervical rotation by 10 degrees post-treatment."],
-      "cpt_codes": [{"code": "97140", "description": "Manual Therapy Techniques", "notes": "One or more regions"}],
-      "notes": "Avoid over recent fractures or in presence of acute inflammation."
-    },
-    {
-      "name": "Resistance Band Shoulder External Rotation",
-      "description": "Description here",
-      "cues": {"verbal": "Instruct patient to look in the mirror to ensure elbow stays tucked at their side while rotating arm outward, preventing shoulder hiking.", "tactile": "Place hand on patient's shoulder to provide stability and prevent compensatory elevation.", "visual": "Demonstrate proper form in mirror, emphasizing elbow position at 90 degrees."},
-      "documentation_examples": ["Patient performed 3 sets of 10 repetitions of resistance band external rotation with elbow at 90 degrees. Therapist cued patient to use mirror feedback to maintain proper elbow position and avoid shoulder elevation. Patient successfully completed exercise with improved scapular stability and no compensatory patterns."],
-      "cpt_codes": [{"code": "97110", "description": "Therapeutic Exercise", "notes": "Per 15 minutes"}],
-      "notes": "Avoid if acute rotator cuff tear is suspected."
-    },
-    {
-      "name": "Single-Leg Balance on Foam Pad",
-      "description": "Description here",
-      "cues": {"verbal": "Encourage patient to focus eyes on fixed point ahead while maintaining upright posture.", "tactile": "Provide light touch at shoulder or waist for balance support as needed, gradually reducing assistance.", "visual": "Position patient in front of mirror to observe hip and knee alignment during balance attempts."},
-      "documentation_examples": ["Patient attempted single-leg stance on foam pad for 30 seconds. After 15 seconds, patient demonstrated excessive hip hiking on stance leg. Therapist provided tactile cue at pelvis to level hips and verbal reminder to engage core. Patient maintained level pelvis for remaining 15 seconds with improved stability."],
-      "cpt_codes": [{"code": "97112", "description": "Neuromuscular Re-education", "notes": "Per 15 minutes"}],
-      "notes": "Use parallel bars or stable surface for safety if high fall risk."
+      "cues": {"verbal": "...", "tactile": "...", "visual": "..."},
+      "documentation_examples": ["..."],
+      "cpt_codes": [{"code": "97XXX", "description": "...", "notes": "..."}],
+      "notes": "..."
     }
   ]
 }
@@ -130,7 +122,7 @@ Return ONLY JSON. Make cues detailed and comprehensive. Documentation examples M
 
   const result = await generateText({
     model: openai('gpt-4o'),
-    system: "Expert OT/PT. Generate patient-specific exercises with DETAILED cues (1-2 sentences each). Description must mention all exercise names. Documentation MUST include 'show of skill' with specific cue used. CRITICAL: Each exercise MUST have a DIFFERENT and APPROPRIATE CPT code - DO NOT repeat the same CPT code for multiple exercises. Return ONLY valid JSON.",
+    system: `Expert ${therapyType}. Generate patient-specific exercises with DETAILED cues (1-2 sentences each). Description must mention all exercise names. Documentation MUST include 'show of skill' with specific cue used. CRITICAL: Each exercise MUST have a DIFFERENT and APPROPRIATE CPT code - DO NOT repeat the same CPT code for multiple exercises. Return ONLY valid JSON.`,
     prompt,
     temperature: 0.8,
   });
@@ -142,35 +134,41 @@ Return ONLY JSON. Make cues detailed and comprehensive. Documentation examples M
   } else if (cleanedText.startsWith('```')) {
     cleanedText = cleanedText.replace(/^```\s*/, '').replace(/```\s*$/, '');
   }
-  
+
   const parsed = JSON.parse(cleanedText);
-  console.log(`📊 Subsection ${index} exercise structure:`, JSON.stringify(parsed.exercises?.[0], null, 2));
+  console.log(`📊 Subsection "${section.sectionName}" exercise structure:`, JSON.stringify(parsed.exercises?.[0], null, 2));
   return parsed;
 }
 
 async function generateProgression(
   patientCondition: string,
   desiredOutcome: string,
-  treatmentProgression: string
+  treatmentProgression: string,
+  visitType: string,
+  sections: SectionConfig[]
 ) {
-  const prompt = `Based on this patient case:
+  const therapyType = visitType === 'OT' ? 'Occupational Therapy' : 'Physical Therapy';
+  const sectionNames = sections.map(s => s.sectionName).join(', ');
+
+  const prompt = `Based on this ${therapyType} patient case:
 - Patient Condition: ${patientCondition}
 - Desired Outcome: ${desiredOutcome}
 ${treatmentProgression ? `- Current Progress: ${treatmentProgression}` : ''}
+- Treatment Sections: ${sectionNames}
 
 Generate a concise treatment progression overview paragraph (3-5 sentences) that:
 1. Recommends an appropriate starting point based on the patient's condition
-2. Outlines a logical progression of treatment phases
+2. Outlines a logical progression of treatment phases using the treatment sections provided
 3. Addresses any stalled progress or challenges mentioned
 4. Provides specific guidance on when to advance or modify the approach
 
-Write in a professional, clinical tone as if advising another PT/OT. Be specific and actionable.
+Write in a professional, clinical tone as if advising another ${therapyType} professional. Be specific and actionable.
 
 Return ONLY the paragraph text without any JSON formatting or additional explanations.`;
 
   const result = await generateText({
     model: openai('gpt-4o'),
-    system: "You are an expert PT/OT providing clinical guidance. Write concise, actionable treatment progression recommendations in a professional tone.",
+    system: `You are an expert ${therapyType} professional providing clinical guidance. Write concise, actionable treatment progression recommendations in a professional tone.`,
     prompt,
     temperature: 0.7,
   });
@@ -180,8 +178,16 @@ Return ONLY the paragraph text without any JSON formatting or additional explana
 
 export async function POST(req: Request) {
   try {
-    const { patientCondition, desiredOutcome, treatmentProgression, sessionId } = await req.json();
-    
+    const body = await req.json();
+    const {
+      patientCondition,
+      desiredOutcome,
+      treatmentProgression,
+      sessionId,
+      visitType = 'PT',  // Default to PT for backward compatibility
+      sections  // Dynamic sections from the frontend
+    } = body;
+
     if (!process.env.OPENAI_API_KEY) {
       return new Response(JSON.stringify({ error: 'OpenAI API key not configured' }), {
         status: 500,
@@ -190,26 +196,54 @@ export async function POST(req: Request) {
     }
 
     console.log('🚀 Starting all recommendations generation...');
+    console.log('📋 Visit Type:', visitType);
+    console.log('📋 Sections:', sections?.length || 'fallback');
 
-    // Generate all subsections and progression in parallel
-    const [subsection0, subsection1, subsection2, subsection3, subsection4, subsection5, progression] = await Promise.all([
-      generateSubsection(0, patientCondition, desiredOutcome, treatmentProgression || ''),
-      generateSubsection(1, patientCondition, desiredOutcome, treatmentProgression || ''),
-      generateSubsection(2, patientCondition, desiredOutcome, treatmentProgression || ''),
-      generateSubsection(3, patientCondition, desiredOutcome, treatmentProgression || ''),
-      generateSubsection(4, patientCondition, desiredOutcome, treatmentProgression || ''),
-      generateSubsection(5, patientCondition, desiredOutcome, treatmentProgression || ''),
-      generateProgression(patientCondition, desiredOutcome, treatmentProgression || '')
+    // Use provided sections or fallback to default
+    const sectionsToUse: SectionConfig[] = sections && sections.length > 0
+      ? sections
+      : FALLBACK_SUBSECTION_CONFIGS.map(s => ({
+          sectionName: s.title,
+          contentGuidelines: s.contentGuidelines
+        }));
+
+    console.log('📋 Using sections:', sectionsToUse.map(s => s.sectionName));
+
+    // Generate all subsections in parallel
+    const subsectionPromises = sectionsToUse.map(section =>
+      generateSubsection(
+        section,
+        patientCondition,
+        desiredOutcome,
+        treatmentProgression || '',
+        visitType
+      )
+    );
+
+    // Generate progression overview
+    const progressionPromise = generateProgression(
+      patientCondition,
+      desiredOutcome,
+      treatmentProgression || '',
+      visitType,
+      sectionsToUse
+    );
+
+    // Wait for all to complete
+    const [generatedSubsections, progression] = await Promise.all([
+      Promise.all(subsectionPromises),
+      progressionPromise
     ]);
 
     console.log('✅ All recommendations generated successfully');
 
     const response = {
-      subsections: [subsection0, subsection1, subsection2, subsection3, subsection4, subsection5],
+      subsections: generatedSubsections,
       progression_overview: progression,
       session_id: sessionId,
+      visit_type: visitType,
       high_level: [
-        `Focus on progressive treatment for ${patientCondition}`,
+        `Focus on progressive ${visitType === 'OT' ? 'Occupational Therapy' : 'Physical Therapy'} treatment for ${patientCondition}`,
         `Incorporate activities to achieve: ${desiredOutcome}`
       ],
       confidence: "high"
@@ -222,7 +256,7 @@ export async function POST(req: Request) {
 
   } catch (error: any) {
     console.error('API route error:', error);
-    return new Response(JSON.stringify({ 
+    return new Response(JSON.stringify({
       error: error.message || 'Internal server error',
       details: error.toString()
     }), {

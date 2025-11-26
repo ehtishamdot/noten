@@ -1,11 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { noteNinjasAPI } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import LoginPage from "../components/LoginPage";
 import HistorySidebar from "../components/HistorySidebar";
 import Logo from "../components/Logo";
+import {
+  getVisibleSections,
+  getAllSectionsForPatientType,
+  type VisitType,
+  type SectionConfig
+} from "@/lib/dynamicSections";
 
 interface CaseHistory {
   id: string;
@@ -26,6 +32,8 @@ export default function NoteNinjas() {
     patientCondition: "",
     desiredOutcome: "",
     treatmentProgression: "",
+    // Visit Type - PT or OT
+    visitType: "" as "" | "PT" | "OT",
     // Detailed mode fields - common
     patientType: "",
     age: "",
@@ -56,6 +64,9 @@ export default function NoteNinjas() {
     dailyActivityGoals: "",
     // Legacy field for backward compatibility
     dateOfOnset: "",
+    // Section selection mode
+    sectionSelectionMode: "auto" as "auto" | "manual",
+    selectedSections: [] as string[],
   });
   const [isProcessing, setIsProcessing] = useState(false);
   const [showAutoFillDropdown, setShowAutoFillDropdown] = useState(false);
@@ -294,8 +305,45 @@ export default function NoteNinjas() {
     setShowAutoFillDropdown(false);
   };
 
+  // Compute available sections based on current form state
+  const availableSections = useMemo(() => {
+    if (!formData.visitType || !formData.patientType) {
+      return [];
+    }
+
+    // Get all sections available for manual selection
+    return getAllSectionsForPatientType(formData.patientType, formData.visitType as VisitType);
+  }, [formData.visitType, formData.patientType]);
+
+  // Compute automatically selected sections based on triggers
+  const autoSelectedSections = useMemo(() => {
+    if (!formData.visitType || !formData.patientType) {
+      return [];
+    }
+
+    const context = {
+      patientCondition: formData.patientCondition,
+      desiredOutcome: formData.desiredOutcome,
+      treatmentProgression: formData.treatmentProgression,
+      age: formData.age ? parseInt(formData.age) : undefined,
+      visitType: formData.visitType as VisitType,
+      patientType: formData.patientType,
+      diagnosis: formData.diagnosis,
+      typeOfSurgery: formData.typeOfSurgery,
+      workLifeRequirements: formData.workLifeRequirements,
+    };
+
+    return getVisibleSections(context);
+  }, [formData]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Visit type is always required
+    if (!formData.visitType) {
+      alert("Please select a Visit Type (Physical Therapy or Occupational Therapy).");
+      return;
+    }
 
     // Validate based on input mode
     let isValid = false;
@@ -322,6 +370,12 @@ export default function NoteNinjas() {
           pathFieldsValid = !!(formData.diagnosis);
           break;
         case "functional":
+          pathFieldsValid = !!(formData.primaryConcern);
+          break;
+        case "neurological":
+          pathFieldsValid = !!(formData.diagnosis);
+          break;
+        case "cognitive":
           pathFieldsValid = !!(formData.primaryConcern);
           break;
         default:
@@ -399,9 +453,40 @@ export default function NoteNinjas() {
               formData.dailyActivityGoals ? `, daily goals: ${formData.dailyActivityGoals}` : ""
             }`;
             break;
+
+          case "neurological":
+            patientConditionFinal = `${age} year old ${gender} with ${formData.diagnosis} (neurological rehabilitation)${
+              formData.dateOfOnset ? `, onset: ${formData.dateOfOnset}` : ""
+            }${
+              formData.comorbidities ? `, comorbidities: ${formData.comorbidities}` : ""
+            }${
+              formData.severity ? `, severity: ${formData.severity}` : ""
+            }${
+              formData.priorLevelOfFunction ? `, prior function: ${formData.priorLevelOfFunction}` : ""
+            }${
+              formData.workLifeRequirements ? `, work/life needs: ${formData.workLifeRequirements}` : ""
+            }`;
+            break;
+
+          case "cognitive":
+            patientConditionFinal = `${age} year old ${gender}, cognitive & safety management needed for: ${formData.primaryConcern}${
+              formData.currentAbilitiesLimitations ? `, cognitive status: ${formData.currentAbilitiesLimitations}` : ""
+            }${
+              formData.environmentalContext ? `, environment: ${formData.environmentalContext}` : ""
+            }${
+              formData.comorbidities ? `, comorbidities: ${formData.comorbidities}` : ""
+            }${
+              formData.dailyActivityGoals ? `, safety/daily goals: ${formData.dailyActivityGoals}` : ""
+            }`;
+            break;
         }
       }
       
+      // Determine which sections to use
+      const sectionsToUse = formData.sectionSelectionMode === "manual" && formData.selectedSections.length > 0
+        ? availableSections.filter(s => formData.selectedSections.includes(s.sectionName))
+        : autoSelectedSections;
+
       const caseData = {
         isStreaming: true,
         sessionId: `session_${Date.now()}`,
@@ -410,12 +495,22 @@ export default function NoteNinjas() {
         desiredOutcome: formData.desiredOutcome,
         treatmentProgression: formData.treatmentProgression,
         inputMode,
+        visitType: formData.visitType,
+        patientType: formData.patientType,
+        // Store sections for API
+        sections: sectionsToUse.map(s => ({
+          sectionName: s.sectionName,
+          contentGuidelines: s.contentGuidelines,
+          triggerRule: s.triggerRule,
+        })),
         // Store userInput for API (snake_case format for DB)
         userInput: {
           patient_condition: patientConditionFinal,
           desired_outcome: formData.desiredOutcome,
           treatment_progression: formData.treatmentProgression || "",
           input_mode: inputMode,
+          visit_type: formData.visitType,
+          patient_type: formData.patientType,
           session_id: `session_${Date.now()}`,
           // Include detailed fields if available
           age: formData.age,
@@ -426,6 +521,10 @@ export default function NoteNinjas() {
           date_of_onset: formData.dateOfOnset,
           prior_level_of_function: formData.priorLevelOfFunction,
           work_life_requirements: formData.workLifeRequirements,
+          type_of_surgery: formData.typeOfSurgery,
+          // Include sections info
+          sections: sectionsToUse.map(s => s.sectionName),
+          section_selection_mode: formData.sectionSelectionMode,
         },
       };
 
@@ -539,6 +638,40 @@ export default function NoteNinjas() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Visit Type Toggle - FIRST in the form */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Visit Type *
+                </label>
+                <div className="inline-flex bg-teal-100 rounded-lg p-1 border border-teal-200">
+                  <button
+                    type="button"
+                    onClick={() => handleInputChange("visitType", "PT")}
+                    className={`px-6 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
+                      formData.visitType === "PT"
+                        ? "bg-teal-600 text-white shadow-sm"
+                        : "text-teal-600 hover:bg-teal-50"
+                    }`}
+                  >
+                    Physical Therapy
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleInputChange("visitType", "OT")}
+                    className={`px-6 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
+                      formData.visitType === "OT"
+                        ? "bg-teal-600 text-white shadow-sm"
+                        : "text-teal-600 hover:bg-teal-50"
+                    }`}
+                  >
+                    Occupational Therapy
+                  </button>
+                </div>
+                <p className="mt-2 text-sm text-gray-500">
+                  Select the type of therapy visit to customize the exercise sections
+                </p>
+              </div>
+
               {/* Input Mode Toggle */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -616,8 +749,10 @@ export default function NoteNinjas() {
                       <option value="">Select patient type</option>
                       <option value="acute">Acute injury or trauma</option>
                       <option value="post-surgical">Post-surgical recovery</option>
-                      <option value="chronic">Chronic or progressive condition</option>
-                      <option value="functional">Functional or developmental support</option>
+                      <option value="chronic">Chronic or progressive condition (Neuro/Ortho)</option>
+                      <option value="functional">Functional or developmental support (Pediatrics)</option>
+                      <option value="neurological">Neurological rehabilitation (Stroke/TBI)</option>
+                      <option value="cognitive">Cognitive &amp; Safety Management</option>
                     </select>
                   </div>
 
@@ -1126,6 +1261,203 @@ export default function NoteNinjas() {
                       </div>
                     </>
                   )}
+
+                  {/* Neurological Rehabilitation (Stroke/TBI) Path */}
+                  {formData.patientType === "neurological" && (
+                    <>
+                      {/* Primary Diagnosis */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Primary Diagnosis *
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.diagnosis}
+                          onChange={(e) =>
+                            handleInputChange("diagnosis", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                          placeholder="CVA (stroke), TBI, etc."
+                          required
+                        />
+                      </div>
+
+                      {/* Date of Onset */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Date of Onset
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.dateOfOnset}
+                          onChange={(e) =>
+                            handleInputChange("dateOfOnset", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                          placeholder="2 weeks ago, 6 months ago, etc."
+                        />
+                      </div>
+
+                      {/* Co-morbidities */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Co-morbidities
+                        </label>
+                        <textarea
+                          value={formData.comorbidities}
+                          onChange={(e) =>
+                            handleInputChange("comorbidities", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                          rows={2}
+                          placeholder="Hypertension, diabetes, etc."
+                        />
+                      </div>
+
+                      {/* Severity/Functional Impact */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Severity/Functional Impact
+                        </label>
+                        <select
+                          value={formData.severity}
+                          onChange={(e) =>
+                            handleInputChange("severity", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                        >
+                          <option value="">Select severity level</option>
+                          <option value="Mild - minimal impact on daily activities">
+                            Mild - minimal impact on daily activities
+                          </option>
+                          <option value="Moderate - affecting daily activities">
+                            Moderate - affecting daily activities
+                          </option>
+                          <option value="Severe - significantly limiting function">
+                            Severe - significantly limiting function
+                          </option>
+                        </select>
+                      </div>
+
+                      {/* Prior Level of Function */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Prior Level of Function (PLOF)
+                        </label>
+                        <textarea
+                          value={formData.priorLevelOfFunction}
+                          onChange={(e) =>
+                            handleInputChange("priorLevelOfFunction", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                          rows={2}
+                          placeholder="Independent with all ADLs, community ambulation, etc."
+                        />
+                      </div>
+
+                      {/* Work/Life Requirements */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Work/Life Requirements
+                        </label>
+                        <textarea
+                          value={formData.workLifeRequirements}
+                          onChange={(e) =>
+                            handleInputChange("workLifeRequirements", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                          rows={2}
+                          placeholder="Return to work, driving, caregiving responsibilities, etc."
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {/* Cognitive & Safety Management Path */}
+                  {formData.patientType === "cognitive" && (
+                    <>
+                      {/* Primary Concern */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Primary Concern *
+                        </label>
+                        <textarea
+                          value={formData.primaryConcern}
+                          onChange={(e) =>
+                            handleInputChange("primaryConcern", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                          rows={2}
+                          placeholder="Dementia, safety awareness deficits, fall risk, etc."
+                          required
+                        />
+                      </div>
+
+                      {/* Current Cognitive Status */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Current Cognitive Status
+                        </label>
+                        <textarea
+                          value={formData.currentAbilitiesLimitations}
+                          onChange={(e) =>
+                            handleInputChange("currentAbilitiesLimitations", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                          rows={3}
+                          placeholder="Memory, attention, judgment, safety awareness, etc."
+                        />
+                      </div>
+
+                      {/* Environmental Context */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Environmental Context
+                        </label>
+                        <textarea
+                          value={formData.environmentalContext}
+                          onChange={(e) =>
+                            handleInputChange("environmentalContext", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                          rows={3}
+                          placeholder="Home setup, caregiver support, supervision needs, etc."
+                        />
+                      </div>
+
+                      {/* Co-morbidities */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Co-morbidities
+                        </label>
+                        <textarea
+                          value={formData.comorbidities}
+                          onChange={(e) =>
+                            handleInputChange("comorbidities", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                          rows={2}
+                          placeholder="Related conditions or concerns"
+                        />
+                      </div>
+
+                      {/* Safety/Daily Activity Goals */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Safety/Daily Activity Goals
+                        </label>
+                        <textarea
+                          value={formData.dailyActivityGoals}
+                          onChange={(e) =>
+                            handleInputChange("dailyActivityGoals", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                          rows={2}
+                          placeholder="Medication management, safe transfers, wandering prevention, etc."
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 
@@ -1168,6 +1500,98 @@ export default function NoteNinjas() {
                   you&apos;re stuck
                 </p>
               </div>
+
+              {/* Section Selection - Only show in Detailed mode */}
+              {inputMode === "detailed" && formData.patientType && formData.visitType && (
+                <div className="border border-teal-200 rounded-lg p-4 bg-teal-50">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Section Selection
+                  </label>
+
+                  <div className="inline-flex bg-teal-100 rounded-lg p-1 mb-4 border border-teal-200">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, sectionSelectionMode: "auto", selectedSections: [] }));
+                      }}
+                      className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                        formData.sectionSelectionMode === "auto"
+                          ? "bg-teal-600 text-white shadow-sm"
+                          : "text-teal-600 hover:bg-teal-50"
+                      }`}
+                    >
+                      Auto-Select Sections
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, sectionSelectionMode: "manual" }))}
+                      className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                        formData.sectionSelectionMode === "manual"
+                          ? "bg-teal-600 text-white shadow-sm"
+                          : "text-teal-600 hover:bg-teal-50"
+                      }`}
+                    >
+                      Manually Choose Sections
+                    </button>
+                  </div>
+
+                  {formData.sectionSelectionMode === "auto" ? (
+                    <div>
+                      <p className="text-sm text-gray-600 mb-2">
+                        Based on your inputs, the following sections will be included:
+                      </p>
+                      {autoSelectedSections.length > 0 ? (
+                        <ul className="space-y-1">
+                          {autoSelectedSections.map((section, idx) => (
+                            <li key={idx} className="text-sm text-gray-700 flex items-center">
+                              <svg className="w-4 h-4 text-teal-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              {section.sectionName}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-sm text-gray-500 italic">
+                          Fill in more patient details to see applicable sections.
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Select the sections you want to include:
+                      </p>
+                      <div className="space-y-2 max-h-64 overflow-y-auto bg-white rounded-lg p-2 border border-teal-100">
+                        {availableSections.map((section, idx) => (
+                          <label key={idx} className="flex items-start p-2 hover:bg-teal-50 rounded cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={formData.selectedSections.includes(section.sectionName)}
+                              onChange={(e) => {
+                                const newSections = e.target.checked
+                                  ? [...formData.selectedSections, section.sectionName]
+                                  : formData.selectedSections.filter(s => s !== section.sectionName);
+                                setFormData({ ...formData, selectedSections: newSections });
+                              }}
+                              className="mt-1 h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
+                            />
+                            <div className="ml-3">
+                              <span className="text-sm font-medium text-gray-900">{section.sectionName}</span>
+                              <p className="text-xs text-gray-500">{section.contentGuidelines}</p>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                      {formData.selectedSections.length === 0 && (
+                        <p className="text-sm text-amber-600 mt-2">
+                          Please select at least one section.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Submit Button */}
               <div className="pt-6 border-t border-gray-200">
