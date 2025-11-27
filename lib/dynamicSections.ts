@@ -1,6 +1,6 @@
-// Dynamic sections configuration based on the Planwise Dynamic Sections spreadsheet
+// Dynamic sections configuration based on the Planwise Dynamic Sections spreadsheet (COPY USE sheet)
 
-export type VisibilitySettingType = 'ALWAYS_ON' | 'CONDITIONAL' | 'TRIGGER';
+export type VisibilitySettingType = 'ALWAYS_ON' | 'CONDITIONAL' | 'TRIGGER' | 'HIDDEN';
 export type DisciplineType = 'PT | OT' | 'OT Only' | 'SLP | OT';
 export type AgeGroupType = 'All' | '>18' | '<18';
 export type VisitType = 'PT' | 'OT';
@@ -30,7 +30,7 @@ export const PATIENT_TYPE_MAP: Record<string, string> = {
   'cognitive': 'Cognitive & Safety Management'
 };
 
-// Full configuration from Excel "COPY USE" sheet
+// Full configuration from Excel "COPY USE" sheet - exact data from spreadsheet
 export const DYNAMIC_SECTIONS_CONFIG: PatientTypeConfig[] = [
   {
     patientType: 'Acute Injury or Trauma',
@@ -528,37 +528,43 @@ export function ageMatchesGroup(age: number | undefined, ageGroup: AgeGroupType)
 }
 
 // Keywords for pain detection
-const PAIN_KEYWORDS = ['pain', 'painful', 'ache', 'aching', 'hurt', 'hurting', 'sore', 'soreness', 'tender', 'tenderness', 'discomfort'];
+const PAIN_KEYWORDS = ['pain', 'painful', 'ache', 'aching', 'hurt', 'hurting', 'sore', 'soreness', 'tender', 'tenderness', 'discomfort', 'sharp'];
 
 // Keywords for instability detection
-const INSTABILITY_KEYWORDS = ['instability', 'unstable', 'giving way', 'give way', 'buckles', 'buckling', 'loose', 'lax', 'laxity'];
+const INSTABILITY_KEYWORDS = ['instability', 'unstable', 'giving way', 'give way', 'gives way', 'buckles', 'buckling', 'buckle', 'loose', 'lax', 'laxity', 'giving out'];
 
 // Keywords for lower extremity
-const LOWER_EXTREMITY_KEYWORDS = ['knee', 'hip', 'ankle', 'foot', 'leg', 'thigh', 'calf', 'shin', 'lower extremity', 'total knee', 'tka', 'tha', 'total hip'];
+const LOWER_EXTREMITY_KEYWORDS = ['knee', 'hip', 'ankle', 'foot', 'leg', 'thigh', 'calf', 'shin', 'lower extremity', 'total knee', 'tka', 'tha', 'total hip', 'arthroplasty', 'knee replacement', 'hip replacement', 'ankle replacement', 'femur', 'tibia', 'fibula', 'patella'];
 
-// Keywords for upper extremity
-const UPPER_EXTREMITY_KEYWORDS = ['hand', 'wrist', 'elbow', 'finger', 'thumb', 'arm', 'upper extremity', 'distal radius', 'carpal', 'metacarpal'];
+// Keywords for upper extremity / hand-wrist-elbow
+const UPPER_EXTREMITY_KEYWORDS = ['hand', 'wrist', 'elbow', 'finger', 'thumb', 'forearm', 'upper extremity', 'distal radius', 'carpal', 'metacarpal', 'orif', 'radius', 'ulna'];
 
 // Keywords for return to work/sport
-const RETURN_KEYWORDS = ['return to work', 'return to sport', 'return-to-work', 'return-to-sport', 'rtw', 'rts', 'work requirements', 'job', 'occupation', 'sport', 'athletic'];
+const RETURN_KEYWORDS = ['return to work', 'return to sport', 'return-to-work', 'return-to-sport', 'rtw', 'rts', 'work requirements', 'job', 'occupation', 'sport', 'athletic', 'basketball', 'volleyball', 'football', 'soccer', 'tennis', 'running', 'wants to return', 'return to'];
 
 // Keywords for cognitive conditions
-const COGNITIVE_KEYWORDS = ['dementia', 'alzheimer', 'ms', 'multiple sclerosis', 'parkinson', 'cognitive', 'memory', 'confusion'];
+const COGNITIVE_KEYWORDS = ['dementia', 'alzheimer', 'ms', 'multiple sclerosis', 'parkinson', 'cognitive', 'memory', 'confusion', 'near fall', 'fear of falling', 'falls'];
 
 // Keywords for arthritis/hand deficits
-const ARTHRITIS_HAND_KEYWORDS = ['arthritis', 'ra', 'rheumatoid', 'osteoarthritis', 'hand deficit', 'fine motor', 'dexterity', 'grip', 'grasp', 'buttoning', 'container'];
+const ARTHRITIS_HAND_KEYWORDS = ['arthritis', 'ra', 'rheumatoid', 'osteoarthritis', 'hand deficit', 'fine motor', 'dexterity', 'grip', 'grasp', 'buttoning', 'container', 'medication bottle', 'stiffness'];
 
-// Keywords for precautions
-const PRECAUTION_KEYWORDS = ['precaution', 'hip precaution', 'sternotomy', 'weight bearing', 'weight-bearing', 'bilateral fracture', 'non-weight bearing'];
+// Keywords for precautions that need ADLs
+const PRECAUTION_KEYWORDS = ['precaution', 'hip precaution', 'sternotomy', 'weight bearing', 'weight-bearing', 'bilateral fracture', 'non-weight bearing', 'limited use', 'one-handed', 'dominant arm', 'dominant hand', 'difficulty with dressing', 'difficulty grooming'];
 
 // Keywords for sensory deficits
-const SENSORY_DEFICIT_KEYWORDS = ['neglect', 'numbness', 'sensation', 'sensory deficit', 'hemi-neglect', 'left neglect', 'inattention'];
+const SENSORY_DEFICIT_KEYWORDS = ['neglect', 'numbness', 'sensation', 'sensory deficit', 'hemi-neglect', 'left neglect', 'inattention', 'hypersensitivity'];
 
-// Keywords for spasticity
-const SPASTICITY_KEYWORDS = ['spasticity', 'spastic', 'tone', 'contracture', 'stiff', 'stiffness', 'joint mobility'];
+// Keywords for spasticity / joint mobility issues
+const SPASTICITY_KEYWORDS = ['spasticity', 'spastic', 'tone', 'contracture', 'stiff', 'stiffness', 'joint mobility', 'worsening joint', 'joint stiffness'];
 
 // Keywords for speech/communication
 const SPEECH_KEYWORDS = ['speech', 'dysarthria', 'aphasia', 'communication', 'expressive', 'receptive', 'slurred'];
+
+// Keywords for pediatric behavioral conditions
+const PEDIATRIC_BEHAVIORAL_KEYWORDS = ['autism', 'adhd', 'behavioral', 'behavior problem', 'attention deficit', 'asd', 'spectrum'];
+
+// Keywords for adult behavioral/agitation
+const ADULT_BEHAVIORAL_KEYWORDS = ['dementia', 'agitation', 'alzheimer', 'sundowning', 'wandering'];
 
 // Function to check if text contains any keywords
 function containsKeywords(text: string, keywords: string[]): boolean {
@@ -568,12 +574,13 @@ function containsKeywords(text: string, keywords: string[]): boolean {
 
 // Function to extract pain level from text
 function extractPainLevel(text: string): number | null {
-  // Look for patterns like "pain 6/10", "pain level 6", "6/10 pain", etc.
+  // Look for patterns like "pain 6/10", "pain level 6", "6/10 pain", "0/10", etc.
   const patterns = [
     /pain\s*(?:level|rating)?[:\s]*(\d+)\s*(?:\/\s*10)?/i,
     /(\d+)\s*\/\s*10\s*(?:pain)?/i,
     /pain\s*(?:of\s*)?(\d+)/i,
     /rates?\s*(?:pain\s*)?(\d+)/i,
+    /(\d+)\s*out\s*of\s*10/i,
   ];
 
   for (const pattern of patterns) {
@@ -587,6 +594,62 @@ function extractPainLevel(text: string): number | null {
   }
 
   return null;
+}
+
+// Function to check for explicit denial of instability
+function hasExplicitInstabilityDenial(text: string): boolean {
+  const lowerText = text.toLowerCase();
+  
+  // Check for explicit negation patterns
+  const negationPatterns = [
+    /no\s+(?:sense\s+of\s+)?[\w\s,]*?(?:instability|giving\s*way|slipping|buckling|looseness)/i,
+    /denies\s+[\w\s,]*?(?:instability|giving\s*way|slipping|buckling)/i,
+    /without\s+[\w\s,]*?(?:instability|giving\s*way|slipping|buckling)/i,
+    /no\s+(?:report|complaint|history)\s+of\s+[\w\s,]*?(?:instability|giving\s*way)/i,
+    /stable(?!\s*joint|\s*condition)/i, // "stable" but not "stable joint" or "stable condition"
+  ];
+
+  return negationPatterns.some(pattern => pattern.test(lowerText));
+}
+
+// Function to check for explicit denial of pain - only checks current state, not goals
+function hasExplicitPainDenial(text: string, excludeGoals: boolean = true): boolean {
+  const lowerText = text.toLowerCase();
+  
+  // Strict denial patterns that indicate current state (not goals)
+  const currentStateDenialPatterns = [
+    /(?:denies|no|without)\s+(?:significant\s+)?pain(?:\s+today)?/i,
+    /pain\s*(?:level|rating)?[:\s]*0\s*(?:\/\s*10)?/i,
+    /0\s*\/\s*10\s*(?:pain)?/i,
+    /(?:currently|today|now)\s+pain[\s-]*free/i,
+    /reports?\s+no\s+pain/i,
+  ];
+
+  // Check for strict denial patterns
+  if (currentStateDenialPatterns.some(pattern => pattern.test(lowerText))) {
+    return true;
+  }
+  
+  // "pain-free" is tricky - only deny if NOT in a goal context
+  // Goal contexts include: "want", "goal", "to achieve", "desired", "outcome"
+  const painFreeMatch = lowerText.match(/pain[\s-]*free/i);
+  if (painFreeMatch) {
+    // Check if it's in a goal context by looking at surrounding text
+    const matchIndex = painFreeMatch.index || 0;
+    const contextStart = Math.max(0, matchIndex - 50);
+    const contextEnd = Math.min(lowerText.length, matchIndex + 50);
+    const context = lowerText.substring(contextStart, contextEnd);
+    
+    // If "pain-free" is near goal-related words, it's a goal not current state
+    const goalIndicators = ['want', 'goal', 'achieve', 'desired', 'outcome', 'return to', 'aim', 'objective', 'target'];
+    const isGoalContext = goalIndicators.some(indicator => context.includes(indicator));
+    
+    if (!isGoalContext) {
+      return true;
+    }
+  }
+  
+  return false;
 }
 
 interface TriggerContext {
@@ -606,6 +669,11 @@ export function evaluateSectionVisibility(
   section: SectionConfig,
   context: TriggerContext
 ): boolean {
+  // If HIDDEN, never show
+  if (section.visibility === 'HIDDEN') {
+    return false;
+  }
+  
   // First check discipline compatibility
   if (!disciplineMatchesVisitType(section.discipline, context.visitType)) {
     return false;
@@ -636,6 +704,11 @@ export function evaluateSectionVisibility(
 
   // Pain Management Modalities - check for pain
   if (sectionName.includes('pain management')) {
+    // First check for explicit pain denial (e.g., "0/10", "denies pain")
+    if (hasExplicitPainDenial(allText)) {
+      return false;
+    }
+    
     const painLevel = extractPainLevel(allText);
     if (painLevel !== null) {
       return painLevel > 0;
@@ -646,25 +719,8 @@ export function evaluateSectionVisibility(
 
   // Neuromuscular Re-education - check for instability
   if (sectionName.includes('neuromuscular re-education')) {
-    // Check for explicit denial of instability (e.g., "no sense of giving way", "no instability")
-    const lowerText = allText.toLowerCase();
-
-    // More comprehensive negation patterns
-    const negationPatterns = [
-      /no\s+(sense\s+of\s+)?[\w\s,]*?(instability|giving\s*way|slipping|buckling|looseness)/i,
-      /denies\s+[\w\s,]*?(instability|giving\s*way|slipping|buckling)/i,
-      /without\s+[\w\s,]*?(instability|giving\s*way|slipping|buckling)/i,
-      /stable/i  // If "stable" is mentioned without "unstable", likely no instability
-    ];
-
-    // Check if "stable" is mentioned but not preceded by "un"
-    const hasStable = /\bstable\b/i.test(lowerText) && !/\bunstable\b/i.test(lowerText);
-
-    // Check for explicit negation
-    const hasNegation = negationPatterns.slice(0, 3).some(pattern => pattern.test(lowerText));
-
-    // If there's negation or stable without unstable, don't show
-    if (hasNegation) {
+    // Check for explicit denial of instability first
+    if (hasExplicitInstabilityDenial(allText)) {
       return false;
     }
 
@@ -672,7 +728,7 @@ export function evaluateSectionVisibility(
            containsKeywords(allText, ['proprioceptive', 'proprioception', 'balance deficit']);
   }
 
-  // Balance Training - check for LE surgery or spine
+  // Balance Training - check for LE surgery or spine (only for post-surgical)
   if (sectionName.includes('balance training') && section.visibility === 'CONDITIONAL') {
     return containsKeywords(allText, LOWER_EXTREMITY_KEYWORDS) ||
            containsKeywords(allText, ['spine', 'spinal', 'lumbar', 'thoracic', 'cervical']);
@@ -686,10 +742,10 @@ export function evaluateSectionVisibility(
   // Activities of Daily Living - check for precautions or impact on self-care
   if (sectionName.includes('activities of daily living')) {
     return containsKeywords(allText, PRECAUTION_KEYWORDS) ||
-           containsKeywords(allText, ['self-care', 'adl', 'dressing', 'bathing', 'grooming']);
+           containsKeywords(allText, ['self-care', 'adl', 'dressing', 'bathing', 'grooming', 'difficulty with']);
   }
 
-  // Fine Motor Coordination / Dexterity - check for hand/UE involvement
+  // Fine Motor Coordination / Dexterity - check for hand/UE involvement or arthritis
   if (sectionName.includes('fine motor') || sectionName.includes('dexterity')) {
     return containsKeywords(allText, UPPER_EXTREMITY_KEYWORDS) ||
            containsKeywords(allText, ARTHRITIS_HAND_KEYWORDS);
@@ -700,13 +756,19 @@ export function evaluateSectionVisibility(
     return containsKeywords(allText, COGNITIVE_KEYWORDS);
   }
 
-  // Self-Regulation & Behavior - check for relevant diagnoses
+  // Self-Regulation & Behavior - check for relevant diagnoses based on age
   if (sectionName.includes('self-regulation')) {
-    if (context.age && context.age < 18) {
-      return containsKeywords(allText, ['autism', 'adhd', 'behavioral', 'behavior problem', 'attention deficit']);
-    } else {
-      return containsKeywords(allText, ['dementia', 'agitation', 'alzheimer']);
+    // For pediatric (<18)
+    if (section.ageGroup === '<18') {
+      return containsKeywords(allText, PEDIATRIC_BEHAVIORAL_KEYWORDS);
     }
+    // For adult (>18)
+    if (section.ageGroup === '>18') {
+      return containsKeywords(allText, ADULT_BEHAVIORAL_KEYWORDS);
+    }
+    // If no specific age group, check both
+    return containsKeywords(allText, PEDIATRIC_BEHAVIORAL_KEYWORDS) || 
+           containsKeywords(allText, ADULT_BEHAVIORAL_KEYWORDS);
   }
 
   // Sensory Integration / Processing - check for sensory deficits (neuro)
@@ -758,8 +820,8 @@ export function getAllSectionsForPatientType(patientType: string, visitType: Vis
     return [];
   }
 
-  // Filter only by discipline (visit type) for manual selection
+  // Filter only by discipline (visit type) for manual selection, exclude HIDDEN
   return patientTypeConfig.sections.filter(section =>
-    disciplineMatchesVisitType(section.discipline, visitType)
+    section.visibility !== 'HIDDEN' && disciplineMatchesVisitType(section.discipline, visitType)
   );
 }
