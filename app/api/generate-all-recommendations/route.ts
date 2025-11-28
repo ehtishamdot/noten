@@ -230,28 +230,43 @@ DO NOT include: Running/jumping (too advanced for acute phase)`;
 
   // Environmental & Contextual Modifications
   if (section.includes('environmental')) {
+    // Base requirement for ALL environmental sections
+    const baseRequirement = `
+⚠️ CRITICAL: This section is about EQUIPMENT and HOME SAFETY MODIFICATIONS ONLY.
+DO NOT include exercises, stretches, or therapeutic activities.
+This is about adapting the patient's ENVIRONMENT, not treatment interventions.
+
+Generate items as "modifications" or "recommendations", NOT as exercises.
+`;
+    
     if (context.isAnkle) {
-      return `FOR ANKLE INJURY - ENVIRONMENTAL MODIFICATIONS:
-MUST INCLUDE:
-1. Adaptive equipment recommendations:
-   - Ankle brace (lace-up or stirrup brace) - MANDATORY mention
-   - Crutches or assistive device as needed - MANDATORY mention
-2. Home safety setup:
-   - Trip hazard removal (rugs, cords, clutter)
-   - Safe shower setup (non-slip mat)
-   - Clear pathways for ambulation
-3. Footwear recommendations (supportive shoes, avoid flip-flops)`;
+      return baseRequirement + `
+FOR ANKLE INJURY - ENVIRONMENTAL & EQUIPMENT MODIFICATIONS:
+MUST INCLUDE ALL:
+1. Adaptive EQUIPMENT:
+   - Ankle brace recommendation (lace-up or stirrup brace) - MANDATORY
+   - Crutches or walking aid recommendation - MANDATORY
+   - Supportive footwear recommendations (avoid flip-flops, high heels)
+
+2. HOME SAFETY setup:
+   - Trip hazard removal (rugs, cords, clutter in walkways)
+   - Bathroom safety (non-slip mat in shower/tub)
+   - Clear pathways for safe ambulation
+   - Stair safety considerations
+
+DO NOT include: Band exercises, ankle alphabet, or any therapeutic exercises.
+This section is EQUIPMENT and HOME MODIFICATIONS only.`;
     }
     if (context.isUpperExtremity) {
-      return `FOR UPPER EXTREMITY INJURY:
-- Sleep positioning (pillow support for affected arm)
+      return baseRequirement + `FOR UPPER EXTREMITY INJURY:
+- Sleep positioning recommendations (pillow support)
 - Workstation ergonomic modifications
-- Kitchen/meal prep adaptations
-- Dressing strategies`;
+- Kitchen/meal prep adaptations (one-handed techniques)
+- Dressing strategy recommendations`;
     }
     if (context.isLowerExtremity) {
-      return `FOR LOWER EXTREMITY:
-- Bathroom safety (grab bars, raised toilet seat)
+      return baseRequirement + `FOR LOWER EXTREMITY:
+- Bathroom safety equipment (grab bars, raised toilet seat)
 - Bedroom setup (bed height)
 - Trip hazard removal
 - Stair safety`;
@@ -301,29 +316,48 @@ MUST INCLUDE:
 
   // Functional & Work Integration
   if (section.includes('work integration')) {
-    let requirements = `MUST INCLUDE BOTH WORK AND SPORT COMPONENTS:\n`;
+    let requirements = `FUNCTIONAL & WORK INTEGRATION SECTION:
+This section focuses on returning the patient to work and sport activities.
+MUST INCLUDE BOTH work simulation AND sport-specific return-to-play content.\n`;
     
     if (context.workGoal) {
-      requirements += `\nWORK SIMULATION (${context.workGoal}):
-- Job-specific task simulation
-${context.workGoal === 'prolonged standing' ? '- Standing tolerance drills (timed standing, weight shifting)\n- Footwear and anti-fatigue mat education for retail work' : ''}
-- Work hardening activities\n`;
+      requirements += `
+=== WORK SIMULATION (${context.workGoal.toUpperCase()}) ===
+MUST INCLUDE:
+- Job-specific task simulation for ${context.workGoal}
+${context.workGoal === 'prolonged standing' ? `- Prolonged standing tolerance drills (timed standing 10-15 min progressions)
+- Weight shifting during prolonged standing
+- Footwear recommendations for retail work
+- Anti-fatigue mat education` : ''}
+- Work hardening activities
+- Gradual return-to-work protocol\n`;
     }
     
     if (context.sportGoal) {
-      requirements += `\nSPORT-SPECIFIC DRILLS (${context.sportGoal.toUpperCase()}):
-${context.sportGoal === 'basketball' ? '- Cutting and pivoting progressions\n- Jump landing mechanics training\n- Lateral agility drills' : ''}
-${context.sportGoal === 'volleyball' ? '- Serving progression drills\n- Overhead reaching tasks' : ''}
-- Sport-specific movement patterns
-- Return-to-sport protocol\n`;
+      requirements += `
+=== SPORT-SPECIFIC RETURN-TO-SPORT (${context.sportGoal.toUpperCase()}) ===
+MUST INCLUDE ALL OF THESE:
+${context.sportGoal === 'basketball' ? `- CUTTING progressions (lateral cutting, change of direction) - MANDATORY
+- JUMPING progressions (jump landing mechanics, box jumps, hop tests) - MANDATORY  
+- Pivoting drills
+- Lateral agility drills (ladder drills, cone drills)
+- Sport-specific movement patterns for basketball
+- Return-to-basketball protocol with clear criteria` : ''}
+${context.sportGoal === 'volleyball' ? `- Serving progression drills (overhead motion)
+- Jump landing mechanics
+- Overhead reaching and hitting tasks
+- Return-to-volleyball protocol` : ''}
+${!['basketball', 'volleyball'].includes(context.sportGoal || '') ? `- Sport-specific movement patterns
+- Return-to-sport protocol with progression criteria` : ''}\n`;
     }
     
     if (context.isShoulder && !context.sportGoal) {
       requirements = `FOR SHOULDER - SPORT/WORK RETURN:
-- Progressive overhead activity
-- Sport-specific drills (e.g., serving progression)
+MUST INCLUDE:
+- Progressive overhead activity training
+- Sport-specific drills (e.g., serving, throwing progression)
 - Work task simulation
-- Gradual return to sport protocol`;
+- Gradual return-to-sport/work protocol with criteria`;
     }
     
     if (!context.workGoal && !context.sportGoal && !context.isShoulder) {
@@ -369,15 +403,35 @@ ${contextualRequirements}
 ⚠️ YOU MUST INCLUDE ALL ITEMS MARKED "MUST INCLUDE" - THESE ARE NOT OPTIONAL.` : ''}
 
 CRITICAL RULES:
-1. Generate exercises SPECIFIC to THIS patient's exact condition (${context.isAcuteInjury ? 'ACUTE INJURY' : context.isPostSurgical ? 'POST-SURGICAL' : 'chronic'})
-2. For ${context.isAnkle ? 'ANKLE' : context.isShoulder ? 'SHOULDER' : context.isUpperExtremity ? 'UPPER EXTREMITY' : context.isLowerExtremity ? 'LOWER EXTREMITY' : 'this body region'} - use body-part-specific exercises
+1. Generate content SPECIFIC to THIS patient's exact condition (${context.isAcuteInjury ? 'ACUTE INJURY' : context.isPostSurgical ? 'POST-SURGICAL' : 'chronic'})
+2. For ${context.isAnkle ? 'ANKLE' : context.isShoulder ? 'SHOULDER' : context.isUpperExtremity ? 'UPPER EXTREMITY' : context.isLowerExtremity ? 'LOWER EXTREMITY' : 'this body region'} - use body-part-specific content
 3. ${context.isAcuteInjury ? 'NO scar tissue mobilization (NO surgery present - there is no scar)' : ''}
-4. ${context.isAnkle ? 'Include ankle-specific exercises (band eversion, ankle alphabet, etc.)' : ''}
-5. ${context.sportGoal ? `Patient wants to return to ${context.sportGoal.toUpperCase()} - include sport-specific content where relevant` : ''}
-6. ${context.workGoal ? `Patient has work requirement: ${context.workGoal} - include work simulation where relevant` : ''}
-7. DO NOT include content from other sections
+4. ${context.sportGoal ? `Patient wants to return to ${context.sportGoal.toUpperCase()} - for Work Integration section, include CUTTING and JUMPING progressions` : ''}
+5. ${context.workGoal ? `Patient has work requirement: ${context.workGoal} - include work simulation` : ''}
+6. DO NOT include content from other sections
+7. ${section.sectionName.toLowerCase().includes('environmental') ? 'ENVIRONMENTAL SECTION: Generate EQUIPMENT and HOME SAFETY recommendations ONLY - NO exercises, NO stretches, NO therapeutic activities' : ''}
 ${treatmentProgression ? '8. Address the stalled progress with alternative approaches' : ''}
 
+${section.sectionName.toLowerCase().includes('environmental') ? `
+FOR ENVIRONMENTAL SECTION - Generate 2-3 MODIFICATIONS/RECOMMENDATIONS (not exercises):
+Each item should be an equipment recommendation or home safety modification.
+
+Return ONLY valid JSON:
+{
+  "title": "${section.sectionName}",
+  "description": "Recommendations include [Item1] for safety, [Item2] for support, and [Item3] for home setup.",
+  "rationale": "Clinical rationale for environmental modifications",
+  "exercises": [
+    {
+      "name": "Equipment/Modification Name (e.g., 'Ankle Brace Fitting', 'Crutch Training', 'Home Safety Assessment')",
+      "description": "2-3 sentences about the recommendation",
+      "cues": {"verbal": "Education provided", "tactile": "Demonstration given", "visual": "Written instructions"},
+      "documentation_examples": ["Patient educated on..."],
+      "cpt_codes": ["97535"],
+      "notes": "Follow-up recommendation"
+    }
+  ]
+}` : `
 Create 2-3 exercises/activities. Description must mention all names in format:
 "Start with [Name 1] to address X, then [Name 2] for Y, and optionally [Name 3] to improve Z."
 
@@ -400,7 +454,7 @@ Return ONLY valid JSON:
   "description": "Start with [Ex1] to address X, then [Ex2] for Y, and optionally [Ex3] for Z.",
   "rationale": "Clinical rationale",
   "exercises": [...]
-}`;
+}`}`;
 
   try {
     console.log(`🔄 Generating "${section.sectionName}" for ${context.isAcuteInjury ? 'acute injury' : 'post-surgical'}...`);
