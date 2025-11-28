@@ -19,125 +19,424 @@ interface SectionConfig {
   triggerRule?: string;
 }
 
+// Detect context from patient condition
+function detectContext(patientCondition: string, desiredOutcome: string = '', workLife: string = ''): {
+  isPostSurgical: boolean;
+  isAcuteInjury: boolean;
+  isUpperExtremity: boolean;
+  isLowerExtremity: boolean;
+  isShoulder: boolean;
+  isKnee: boolean;
+  isAnkle: boolean;
+  isHand: boolean;
+  isWrist: boolean;
+  hasRotatorCuff: boolean;
+  hasInstability: boolean;
+  sportGoal: string | null;
+  workGoal: string | null;
+} {
+  const lower = patientCondition.toLowerCase();
+  const goalLower = desiredOutcome.toLowerCase();
+  const workLower = workLife.toLowerCase();
+  const allText = `${lower} ${goalLower} ${workLower}`;
+  
+  // Detect sport from goals
+  let sportGoal: string | null = null;
+  const sports = ['basketball', 'volleyball', 'soccer', 'football', 'tennis', 'running', 'swimming', 'golf'];
+  for (const sport of sports) {
+    if (allText.includes(sport)) { sportGoal = sport; break; }
+  }
+  
+  // Detect work requirements
+  let workGoal: string | null = null;
+  if (allText.includes('retail') || allText.includes('standing')) workGoal = 'prolonged standing';
+  if (allText.includes('office') || allText.includes('desk')) workGoal = 'desk work';
+
+  return {
+    isPostSurgical: /post[- ]?surg|surgery|arthroplasty|orif|repair|reconstruction|replacement/i.test(lower),
+    isAcuteInjury: /acute|tear|sprain|strain|fracture|injury|trauma/i.test(lower) && !/post[- ]?surg|surgery/i.test(lower),
+    isUpperExtremity: /shoulder|arm|elbow|wrist|hand|finger|rotator|cuff|radius|ulna|humerus/i.test(lower),
+    isLowerExtremity: /knee|hip|ankle|foot|leg|thigh|femur|tibia|fibula|patella/i.test(lower),
+    isShoulder: /shoulder|rotator|cuff|glenohumeral/i.test(lower),
+    isKnee: /knee|tka|total knee|patella/i.test(lower),
+    isAnkle: /ankle|lateral ankle|inversion/i.test(lower),
+    isHand: /hand|finger|thumb|metacarpal/i.test(lower),
+    isWrist: /wrist|radius|carpal|distal radius/i.test(lower),
+    hasRotatorCuff: /rotator cuff/i.test(lower),
+    hasInstability: /instability|giving way|unstable|sublux/i.test(lower),
+    sportGoal,
+    workGoal
+  };
+}
+
+// Get context-specific content requirements
+function getContextualRequirements(sectionName: string, context: ReturnType<typeof detectContext>): string {
+  const section = sectionName.toLowerCase();
+  
+  // Pain Management Modalities
+  if (section.includes('pain management')) {
+    if (context.isAcuteInjury && context.isAnkle) {
+      return `FOR ACUTE ANKLE SPRAIN - PAIN MANAGEMENT:
+MUST INCLUDE ALL:
+1. RICE protocol (Rest, Ice, Compression, Elevation) - MANDATORY, explain each component
+2. Cold pack application (10-15 min, multiple times daily)
+3. Elevation strategies for edema control
+4. Gentle active ankle pumps (active movement, NOT passive only)
+5. Positioning education for swelling reduction
+
+DO NOT include: Ultrasound, deep heat modalities, rhythmic stabilization`;
+    }
+    if (context.isAcuteInjury && (context.isShoulder || context.hasRotatorCuff)) {
+      return `FOR ACUTE SHOULDER/ROTATOR CUFF INJURY:
+MUST INCLUDE:
+- Cryotherapy/ice application for acute inflammation
+- Active-assisted ROM (AAROM) within pain-free range
+- Pendulum exercises for gentle mobility
+- Positioning for comfort (pillow support)
+DO NOT include: Rhythmic stabilization, ultrasound for acute muscle tears`;
+    }
+    if (context.isPostSurgical) {
+      return `FOR POST-SURGICAL:
+- Cryotherapy per protocol
+- Positioning for comfort
+- Gentle AAROM if cleared by protocol
+- Pain medication timing education`;
+    }
+    return '';
+  }
+
+  // Manual Therapy Techniques
+  if (section.includes('manual therapy')) {
+    if (context.isAcuteInjury && context.isAnkle) {
+      return `FOR ACUTE ANKLE SPRAIN - MANUAL THERAPY:
+MUST INCLUDE:
+1. Soft tissue mobilization to address swelling and muscle spasm
+2. Joint mobilization (grades I-II) for ankle mobility restrictions
+3. Talocrural and subtalar joint mobilization
+4. Edema massage/lymphatic drainage techniques
+
+DO NOT include: Scar tissue mobilization (NO SURGERY - no scar present)`;
+    }
+    if (context.isAcuteInjury && (context.isShoulder || context.hasRotatorCuff)) {
+      return `FOR ACUTE SHOULDER/ROTATOR CUFF:
+MUST INCLUDE:
+- Soft tissue mobilization to rotator cuff muscles
+- Glenohumeral joint mobilization (grades I-II for acute)
+- Muscle spasm release techniques
+- Scapular mobilization
+DO NOT include: Scar tissue mobilization (no surgery)`;
+    }
+    if (context.isPostSurgical) {
+      return `FOR POST-SURGICAL:
+MUST INCLUDE:
+- Scar tissue mobilization (when cleared)
+- Edema massage
+- PROM per protocol
+- Incision area care`;
+    }
+    if (context.isAcuteInjury) {
+      return `FOR ACUTE INJURY (NON-SURGICAL):
+DO NOT include: Scar tissue mobilization (no surgical scar present)`;
+    }
+    return '';
+  }
+
+  // Therapeutic Exercise & Strengthening
+  if (section.includes('therapeutic exercise')) {
+    if (context.isAnkle) {
+      return `FOR ANKLE SPRAIN - THERAPEUTIC EXERCISE:
+MUST INCLUDE:
+1. Resisted EVERSION with resistance band (CRITICAL for lateral ankle sprain - loads lateral ligaments)
+2. 4-way ankle band exercises (eversion, inversion, dorsiflexion, plantarflexion)
+3. Ankle alphabet exercises
+4. Progressive heel raises (seated → standing)
+5. Towel scrunches for intrinsic foot strength
+
+Start isometric → progress to isotonic → eccentric as tolerated`;
+    }
+    if (context.hasRotatorCuff || context.isShoulder) {
+      return `FOR ROTATOR CUFF/SHOULDER:
+MUST INCLUDE:
+- Pendulum exercises (Codman's)
+- AAROM progressing to AROM
+- Isometric rotator cuff (submaximal)
+- Band exercises: ER/IR at side
+- Scaption (thumbs up raises)
+- Scapular stabilization exercises`;
+    }
+    if (context.isKnee) {
+      return `FOR KNEE:
+MUST INCLUDE:
+- Quad sets
+- Heel slides
+- Straight leg raises
+- Short arc quads
+- Terminal knee extension`;
+    }
+    return '';
+  }
+
+  // Neuromuscular Re-education (for instability)
+  if (section.includes('neuromuscular')) {
+    if (context.isAnkle || context.hasInstability) {
+      return `FOR ANKLE INSTABILITY - NEUROMUSCULAR RE-EDUCATION:
+MUST INCLUDE ALL (proprioception and joint position sense):
+1. Single-leg stance (eyes open → eyes closed progression)
+2. Wobble board / BAPS board exercises
+3. Foam pad / balance pad standing
+4. Weight shifting exercises
+5. Perturbation training
+6. Joint position sense drills
+
+These are CRITICAL for ankle instability and "giving way" episodes.`;
+    }
+    return `MUST INCLUDE:
+- Proprioception exercises
+- Balance activities
+- Joint position sense training`;
+  }
+
+  // Functional Activity
+  if (section.includes('functional activity')) {
+    if (context.isAnkle) {
+      return `FOR ANKLE INJURY - FUNCTIONAL ACTIVITY:
+MUST INCLUDE:
+1. Brace-assisted gait training (patient uses ankle brace) - MANDATORY
+2. Ambulation on level surfaces with assistive device as needed
+3. Sit-to-stand transfers with appropriate weight bearing
+4. Clinic/home navigation tasks
+5. Heel-to-toe walking (tandem gait)
+6. Functional reaching while maintaining balance
+
+DO NOT include: Running/jumping (too advanced for acute phase)`;
+    }
+    if (context.isUpperExtremity) {
+      return `FOR UPPER EXTREMITY:
+- Functional reaching tasks (shelf reaching, overhead reaching)
+- Tabletop activities
+- Light object manipulation
+- Simulated daily tasks (brushing hair, reaching cabinet)`;
+    }
+    if (context.isLowerExtremity) {
+      return `FOR LOWER EXTREMITY:
+- Sit-to-stand transfers
+- Gait training
+- Stair training (when appropriate)
+- Bed mobility
+- Functional ambulation`;
+    }
+    return '';
+  }
+
+  // Environmental & Contextual Modifications
+  if (section.includes('environmental')) {
+    if (context.isAnkle) {
+      return `FOR ANKLE INJURY - ENVIRONMENTAL MODIFICATIONS:
+MUST INCLUDE:
+1. Adaptive equipment recommendations:
+   - Ankle brace (lace-up or stirrup brace) - MANDATORY mention
+   - Crutches or assistive device as needed - MANDATORY mention
+2. Home safety setup:
+   - Trip hazard removal (rugs, cords, clutter)
+   - Safe shower setup (non-slip mat)
+   - Clear pathways for ambulation
+3. Footwear recommendations (supportive shoes, avoid flip-flops)`;
+    }
+    if (context.isUpperExtremity) {
+      return `FOR UPPER EXTREMITY INJURY:
+- Sleep positioning (pillow support for affected arm)
+- Workstation ergonomic modifications
+- Kitchen/meal prep adaptations
+- Dressing strategies`;
+    }
+    if (context.isLowerExtremity) {
+      return `FOR LOWER EXTREMITY:
+- Bathroom safety (grab bars, raised toilet seat)
+- Bedroom setup (bed height)
+- Trip hazard removal
+- Stair safety`;
+    }
+    return '';
+  }
+
+  // Home Program & Education
+  if (section.includes('home program')) {
+    if (context.isAnkle) {
+      return `FOR ANKLE INJURY - HOME PROGRAM:
+MUST INCLUDE ALL:
+1. RICE protocol (Rest, Ice, Compression, Elevation) - MANDATORY
+2. Positioning education for edema control
+3. Initial home exercises:
+   - Ankle pumps
+   - Ankle alphabet
+   - Towel curls
+   - Heel slides
+4. Activity precautions (what to avoid)
+5. Weight-bearing status and progression
+6. Caregiver HEP options (if someone is assisting)
+7. When to return to clinic (red flags)`;
+    }
+    if (context.hasRotatorCuff || context.isShoulder) {
+      return `FOR SHOULDER/ROTATOR CUFF HEP:
+MUST INCLUDE:
+- Pendulum exercises (3x daily)
+- AAROM exercises
+- Ice application protocol
+- Activity precautions and restrictions
+- Sleep positioning education
+- Caregiver HEP if applicable`;
+    }
+    if (context.isKnee) {
+      return `FOR KNEE HEP:
+MUST INCLUDE:
+- Quad sets
+- Heel slides  
+- Straight leg raises
+- Ice protocol
+- Weight bearing precautions
+- Caregiver training for transfers`;
+    }
+    return '';
+  }
+
+  // Functional & Work Integration
+  if (section.includes('work integration')) {
+    let requirements = `MUST INCLUDE BOTH WORK AND SPORT COMPONENTS:\n`;
+    
+    if (context.workGoal) {
+      requirements += `\nWORK SIMULATION (${context.workGoal}):
+- Job-specific task simulation
+${context.workGoal === 'prolonged standing' ? '- Standing tolerance drills (timed standing, weight shifting)\n- Footwear and anti-fatigue mat education for retail work' : ''}
+- Work hardening activities\n`;
+    }
+    
+    if (context.sportGoal) {
+      requirements += `\nSPORT-SPECIFIC DRILLS (${context.sportGoal.toUpperCase()}):
+${context.sportGoal === 'basketball' ? '- Cutting and pivoting progressions\n- Jump landing mechanics training\n- Lateral agility drills' : ''}
+${context.sportGoal === 'volleyball' ? '- Serving progression drills\n- Overhead reaching tasks' : ''}
+- Sport-specific movement patterns
+- Return-to-sport protocol\n`;
+    }
+    
+    if (context.isShoulder && !context.sportGoal) {
+      requirements = `FOR SHOULDER - SPORT/WORK RETURN:
+- Progressive overhead activity
+- Sport-specific drills (e.g., serving progression)
+- Work task simulation
+- Gradual return to sport protocol`;
+    }
+    
+    if (!context.workGoal && !context.sportGoal && !context.isShoulder) {
+      return '';
+    }
+    
+    return requirements;
+  }
+
+  return '';
+}
+
 async function generateSubsection(
   section: SectionConfig,
   patientCondition: string,
   desiredOutcome: string,
   treatmentProgression: string,
-  visitType: string
+  visitType: string,
+  workLife: string = ''
 ) {
   const therapyType = visitType === 'OT' ? 'OT (Occupational Therapy)' : 'PT (Physical Therapy)';
+  
+  // Detect context
+  const context = detectContext(patientCondition, desiredOutcome, workLife);
+  
+  // Get context-specific requirements
+  const contextualRequirements = getContextualRequirements(section.sectionName, context);
 
   const prompt = `Generate 1 ${therapyType} treatment subsection for:
 Patient: ${patientCondition}
 Goal: ${desiredOutcome}
+${workLife ? `Work/Life Requirements: ${workLife}` : ''}
 ${treatmentProgression ? `Current Progress/Challenges: ${treatmentProgression}` : ''}
 
 Subsection: ${section.sectionName}
-Content Guidelines: ${section.contentGuidelines}
 
-IMPORTANT: Generate exercises that are HIGHLY SPECIFIC to this patient's exact condition, goals, and any mentioned challenges. ${treatmentProgression ? 'Consider what has been tried and provide alternative or advanced approaches.' : ''}
+=== MANDATORY CONTENT GUIDELINES ===
+${section.contentGuidelines}
 
-Create 2-3 patient-specific exercises that follow the Content Guidelines above. Description MUST mention all exercise names naturally.
+${contextualRequirements ? `=== CONTEXT-SPECIFIC REQUIREMENTS (MUST FOLLOW) ===
+${contextualRequirements}
+
+⚠️ YOU MUST INCLUDE ALL ITEMS MARKED "MUST INCLUDE" - THESE ARE NOT OPTIONAL.` : ''}
+
+CRITICAL RULES:
+1. Generate exercises SPECIFIC to THIS patient's exact condition (${context.isAcuteInjury ? 'ACUTE INJURY' : context.isPostSurgical ? 'POST-SURGICAL' : 'chronic'})
+2. For ${context.isAnkle ? 'ANKLE' : context.isShoulder ? 'SHOULDER' : context.isUpperExtremity ? 'UPPER EXTREMITY' : context.isLowerExtremity ? 'LOWER EXTREMITY' : 'this body region'} - use body-part-specific exercises
+3. ${context.isAcuteInjury ? 'NO scar tissue mobilization (NO surgery present - there is no scar)' : ''}
+4. ${context.isAnkle ? 'Include ankle-specific exercises (band eversion, ankle alphabet, etc.)' : ''}
+5. ${context.sportGoal ? `Patient wants to return to ${context.sportGoal.toUpperCase()} - include sport-specific content where relevant` : ''}
+6. ${context.workGoal ? `Patient has work requirement: ${context.workGoal} - include work simulation where relevant` : ''}
+7. DO NOT include content from other sections
+${treatmentProgression ? '8. Address the stalled progress with alternative approaches' : ''}
+
+Create 2-3 exercises/activities. Description must mention all names in format:
+"Start with [Name 1] to address X, then [Name 2] for Y, and optionally [Name 3] to improve Z."
 
 Each exercise needs:
-- name: Specific exercise name
-- description: 2-3 detailed sentences about technique and positioning
-- cues: Object with exactly 3 cue types:
-  * verbal: What to say to the patient (1-2 detailed sentences). Consider including "having the patient look in the mirror to [observe/ensure x] about [form/movement/posture] while [doing y]" when appropriate for visual feedback.
-  * tactile: How to physically guide or touch the patient (1-2 detailed sentences)
-  * visual: What to show or how to demonstrate (1-2 detailed sentences). Consider mirror-based observation techniques when applicable.
-- documentation_examples: Array with 1 detailed clinical note (2-3 sentences) following one of these patient-focused formats:
-  * [What task did the patient do? What cues were provided? What was the result?]
-  * [What task did the patient do? What was the result? What cues were provided?]
-  * [What task did the patient do? What occurred part-way through that prompted therapist intervention? What was the therapist intervention? What happened after intervention?]
-  NOTE: Focus on what the PATIENT did, not just what the therapist said/did. Include specific "show of skill" - mention at least one specific cue used and its effect.
-- cpt_codes: Array with 1 CPT code object. Use ONLY codes from this list and select based on decision rules below:
+- name: Specific exercise name appropriate for this condition
+- description: 2-3 sentences about technique
+- cues: {verbal, tactile, visual} - 1-2 sentences each
+- documentation_examples: Array with 1 clinical note
+- cpt_codes: Array with 1 appropriate CPT code:
+  * 97110: Therapeutic Exercise (ROM, strength, flexibility)
+  * 97112: Neuromuscular Re-education (balance, coordination)
+  * 97530: Therapeutic Activities (functional tasks)
+  * 97140: Manual Therapy (hands-on mobilization)
+  * 97535: Self-Care Training (ADLs, HEP education)
+- notes: 1 sentence about precautions
 
-  ALLOWED CPT CODES:
-  * 97110 — Therapeutic Exercise
-  * 97112 — Neuromuscular Re-education
-  * 97530 — Therapeutic Activities
-  * 97140 — Manual Therapy Techniques
-  * 97535 — Self-Care/Home Management Training
-  * 97116 — Gait Training Therapy
-  * 97032 — Electrical Stimulation, Manual (Attended)
-  * G0283 / 97014 — Electrical Stimulation (Unattended)
-  * 97035 — Ultrasound Therapy
-  * 97113 — Aquatic Therapy
-  * 97542 — Wheelchair Management Training
-  * 97010 — Hot/Cold Pack Therapy
-
-  DECISION RULES (choose the SINGLE BEST match):
-  * 97110: Strength, active exercise, stretching, ROM, endurance, reps and sets
-  * 97112: Motor control, proprioception, balance, posture, stabilization, PNF, coordinated movement training
-  * 97530: Functional and multi-joint tasks tied to real-world activity (sit to stand, lifting, reaching, step training)
-  * 97140: Therapist performs hands-on soft tissue mobilization, joint mobilization, manual stretching, IASTM
-  * 97535: Teaching self-management, posture, ergonomics, ADLs, home exercise program education
-  * 97116: Gait pattern training, walking mechanics, stair training, assistive device training
-  * 97032: Therapist applies and attends e-stim
-  * G0283 / 97014: Unattended e-stim
-  * 97035: Ultrasound intervention
-  * 97113: Exercise or therapy performed in water
-  * 97542: Wheelchair propulsion, safety, mechanics, or maneuver training
-  * 97010: Heat or cold pack application
-
-  DISAMBIGUATION RULES:
-  * If exercise is primarily strength/ROM/stretching → 97110
-  * If primary goal is neuromuscular control or proprioception → 97112
-  * If the movement is task-based and functional → 97530
-  * If therapist is physically performing movement or mobilization → 97140
-  * If performed in a pool → 97113
-  * If walking mechanics are the focus → 97116
-  * If the patient is being taught independent management skills → 97535
-  * If e-stim is attended → 97032
-  * If e-stim is unattended → G0283 or 97014
-
-  Each CPT code object should contain:
-  * code: The CPT code number (string) - MUST be from the allowed list above
-  * description: The official CPT title from the list above
-  * notes: Billing notes (e.g., "Per 15 minutes", "One or more regions")
-- notes: 1 sentence about contraindications
-
-CRITICAL: Each exercise MUST have a DIFFERENT and APPROPRIATE CPT code based on the exercise type. DO NOT use 97110 for all exercises. Never invent codes - only use the allowed codes listed above.
-
-Format example (NOTE: Each exercise must have DIFFERENT CPT code appropriate to exercise type):
+Return ONLY valid JSON:
 {
   "title": "${section.sectionName}",
-  "description": "Start with [Exercise 1 name] to address X, then [Exercise 2 name] for Y, and optionally [Exercise 3 name] to improve Z.",
-  "rationale": "Clinical rationale for this approach based on the content guidelines",
-  "exercises": [
-    {
-      "name": "Exercise Name",
-      "description": "Description here",
-      "cues": {"verbal": "...", "tactile": "...", "visual": "..."},
-      "documentation_examples": ["..."],
-      "cpt_codes": [{"code": "97XXX", "description": "...", "notes": "..."}],
-      "notes": "..."
+  "description": "Start with [Ex1] to address X, then [Ex2] for Y, and optionally [Ex3] for Z.",
+  "rationale": "Clinical rationale",
+  "exercises": [...]
+}`;
+
+  try {
+    console.log(`🔄 Generating "${section.sectionName}" for ${context.isAcuteInjury ? 'acute injury' : 'post-surgical'}...`);
+    
+    const result = await generateText({
+      model: openai('gpt-4o'),
+      system: `You are an expert ${therapyType} professional. Generate CONDITION-SPECIFIC content following ALL mandatory requirements.
+${context.isAcuteInjury ? 'This is an ACUTE INJURY - NO scar tissue mobilization (no surgery = no scar).' : ''}
+${context.isAnkle ? 'ANKLE injury - use ankle-specific exercises (band eversion for lateral ankle sprain is CRITICAL).' : ''}
+${context.sportGoal ? `Include ${context.sportGoal}-specific drills where relevant.` : ''}
+Return ONLY valid JSON. Include ALL "MUST INCLUDE" items from the requirements.`,
+      prompt,
+      temperature: 0.7,
+    });
+
+    let cleanedText = result.text.trim();
+    if (cleanedText.startsWith('```json')) {
+      cleanedText = cleanedText.replace(/^```json\s*/, '').replace(/```\s*$/, '');
+    } else if (cleanedText.startsWith('```')) {
+      cleanedText = cleanedText.replace(/^```\s*/, '').replace(/```\s*$/, '');
     }
-  ]
-}
 
-Return ONLY JSON. Make cues detailed and comprehensive. Documentation examples MUST include "show of skill" with specific cue mentioned.`;
-
-  const result = await generateText({
-    model: openai('gpt-4o'),
-    system: `Expert ${therapyType}. Generate patient-specific exercises with DETAILED cues (1-2 sentences each). Description must mention all exercise names. Documentation MUST include 'show of skill' with specific cue used. CRITICAL: Each exercise MUST have a DIFFERENT and APPROPRIATE CPT code - DO NOT repeat the same CPT code for multiple exercises. Return ONLY valid JSON.`,
-    prompt,
-    temperature: 0.8,
-  });
-
-  // Parse the generated text as JSON
-  let cleanedText = result.text.trim();
-  if (cleanedText.startsWith('```json')) {
-    cleanedText = cleanedText.replace(/^```json\s*/, '').replace(/```\s*$/, '');
-  } else if (cleanedText.startsWith('```')) {
-    cleanedText = cleanedText.replace(/^```\s*/, '').replace(/```\s*$/, '');
+    const parsed = JSON.parse(cleanedText);
+    if (!parsed.title) parsed.title = section.sectionName;
+    
+    console.log(`✅ Generated "${section.sectionName}" with ${parsed.exercises?.length || 0} exercises`);
+    return parsed;
+  } catch (error: any) {
+    console.error(`❌ Error generating "${section.sectionName}":`, error?.message || error);
+    return {
+      title: section.sectionName,
+      description: `${section.sectionName} interventions for patient condition.`,
+      rationale: section.contentGuidelines,
+      exercises: []
+    };
   }
-
-  const parsed = JSON.parse(cleanedText);
-  console.log(`📊 Subsection "${section.sectionName}" exercise structure:`, JSON.stringify(parsed.exercises?.[0], null, 2));
-  return parsed;
 }
 
 async function generateProgression(
@@ -145,30 +444,32 @@ async function generateProgression(
   desiredOutcome: string,
   treatmentProgression: string,
   visitType: string,
-  sections: SectionConfig[]
+  sections: SectionConfig[],
+  workLife: string = ''
 ) {
   const therapyType = visitType === 'OT' ? 'Occupational Therapy' : 'Physical Therapy';
   const sectionNames = sections.map(s => s.sectionName).join(', ');
+  const context = detectContext(patientCondition, desiredOutcome, workLife);
 
   const prompt = `Based on this ${therapyType} patient case:
 - Patient Condition: ${patientCondition}
 - Desired Outcome: ${desiredOutcome}
 ${treatmentProgression ? `- Current Progress: ${treatmentProgression}` : ''}
 - Treatment Sections: ${sectionNames}
+- Case Type: ${context.isAcuteInjury ? 'Acute Injury' : context.isPostSurgical ? 'Post-Surgical' : 'Chronic/Progressive'}
+- Body Region: ${context.isUpperExtremity ? 'Upper Extremity' : context.isLowerExtremity ? 'Lower Extremity' : 'General'}
 
 Generate a concise treatment progression overview paragraph (3-5 sentences) that:
 1. Recommends an appropriate starting point based on the patient's condition
-2. Outlines a logical progression of treatment phases using the treatment sections provided
+2. Outlines a logical progression of treatment phases
 3. Addresses any stalled progress or challenges mentioned
-4. Provides specific guidance on when to advance or modify the approach
+4. Provides specific guidance on when to advance
 
-Write in a professional, clinical tone as if advising another ${therapyType} professional. Be specific and actionable.
-
-Return ONLY the paragraph text without any JSON formatting or additional explanations.`;
+Write in a professional, clinical tone. Be specific and actionable.`;
 
   const result = await generateText({
     model: openai('gpt-4o'),
-    system: `You are an expert ${therapyType} professional providing clinical guidance. Write concise, actionable treatment progression recommendations in a professional tone.`,
+    system: `Expert ${therapyType} professional providing clinical guidance.`,
     prompt,
     temperature: 0.7,
   });
@@ -184,8 +485,9 @@ export async function POST(req: Request) {
       desiredOutcome,
       treatmentProgression,
       sessionId,
-      visitType = 'PT',  // Default to PT for backward compatibility
-      sections  // Dynamic sections from the frontend
+      visitType = 'PT',
+      sections,
+      workLifeRequirements = ''
     } = body;
 
     if (!process.env.OPENAI_API_KEY) {
@@ -195,11 +497,18 @@ export async function POST(req: Request) {
       });
     }
 
-    console.log('🚀 Starting all recommendations generation...');
-    console.log('📋 Visit Type:', visitType);
-    console.log('📋 Sections:', sections?.length || 'fallback');
+    const context = detectContext(patientCondition, desiredOutcome, workLifeRequirements);
+    console.log('🚀 Starting generation...');
+    console.log('📋 Context:', { 
+      isAcute: context.isAcuteInjury, 
+      isPostSurg: context.isPostSurgical,
+      isAnkle: context.isAnkle,
+      isShoulder: context.isShoulder,
+      sportGoal: context.sportGoal,
+      workGoal: context.workGoal
+    });
+    console.log('📋 Sections:', sections?.map((s: any) => s.sectionName) || 'fallback');
 
-    // Use provided sections or fallback to default
     const sectionsToUse: SectionConfig[] = sections && sections.length > 0
       ? sections
       : FALLBACK_SUBSECTION_CONFIGS.map(s => ({
@@ -207,59 +516,54 @@ export async function POST(req: Request) {
           contentGuidelines: s.contentGuidelines
         }));
 
-    console.log('📋 Using sections:', sectionsToUse.map(s => s.sectionName));
-
-    // Generate all subsections in parallel
-    const subsectionPromises = sectionsToUse.map(section =>
-      generateSubsection(
-        section,
-        patientCondition,
-        desiredOutcome,
-        treatmentProgression || '',
-        visitType
+    // Generate all subsections
+    const subsectionResults = await Promise.allSettled(
+      sectionsToUse.map(section =>
+        generateSubsection(section, patientCondition, desiredOutcome, treatmentProgression || '', visitType, workLifeRequirements)
       )
     );
 
-    // Generate progression overview
-    const progressionPromise = generateProgression(
+    const progressionResult = await generateProgression(
       patientCondition,
       desiredOutcome,
       treatmentProgression || '',
       visitType,
-      sectionsToUse
+      sectionsToUse,
+      workLifeRequirements
     );
 
-    // Wait for all to complete
-    const [generatedSubsections, progression] = await Promise.all([
-      Promise.all(subsectionPromises),
-      progressionPromise
-    ]);
+    // Process results
+    const generatedSubsections = subsectionResults.map((result, index) => {
+      if (result.status === 'fulfilled') {
+        return result.value;
+      } else {
+        console.error(`❌ Section "${sectionsToUse[index].sectionName}" failed`);
+        return {
+          title: sectionsToUse[index].sectionName,
+          description: `${sectionsToUse[index].sectionName} interventions.`,
+          rationale: sectionsToUse[index].contentGuidelines,
+          exercises: []
+        };
+      }
+    });
 
-    console.log('✅ All recommendations generated successfully');
+    console.log('✅ Generated', generatedSubsections.length, 'sections');
 
-    const response = {
+    return new Response(JSON.stringify({
       subsections: generatedSubsections,
-      progression_overview: progression,
+      progression_overview: progressionResult,
       session_id: sessionId,
       visit_type: visitType,
-      high_level: [
-        `Focus on progressive ${visitType === 'OT' ? 'Occupational Therapy' : 'Physical Therapy'} treatment for ${patientCondition}`,
-        `Incorporate activities to achieve: ${desiredOutcome}`
-      ],
+      context: context,
       confidence: "high"
-    };
-
-    return new Response(JSON.stringify(response), {
+    }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
 
   } catch (error: any) {
-    console.error('API route error:', error);
-    return new Response(JSON.stringify({
-      error: error.message || 'Internal server error',
-      details: error.toString()
-    }), {
+    console.error('API error:', error);
+    return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
