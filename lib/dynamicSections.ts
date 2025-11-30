@@ -770,7 +770,7 @@ export function evaluateSectionVisibility(
     return containsKeywords(allText, PEDIATRIC_BEHAVIORAL_KEYWORDS) || 
            containsKeywords(allText, ADULT_BEHAVIORAL_KEYWORDS);
   }
-
+console.log("sectionName.includes('sensory integration')",sectionName.includes('sensory integration'),section.visibility === 'CONDITIONAL')
   // Sensory Integration / Processing - check for sensory deficits (neuro)
   if (sectionName.includes('sensory integration') && section.visibility === 'CONDITIONAL') {
     return containsKeywords(allText, SENSORY_DEFICIT_KEYWORDS);
