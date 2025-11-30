@@ -543,7 +543,7 @@ const UPPER_EXTREMITY_KEYWORDS = ['hand', 'wrist', 'elbow', 'finger', 'thumb', '
 const RETURN_KEYWORDS = ['return to work', 'return to sport', 'return-to-work', 'return-to-sport', 'rtw', 'rts', 'work requirements', 'job', 'occupation', 'sport', 'athletic', 'basketball', 'volleyball', 'football', 'soccer', 'tennis', 'running', 'wants to return', 'return to'];
 
 // Keywords for cognitive conditions
-const COGNITIVE_KEYWORDS = ['dementia', 'alzheimer', 'ms', 'multiple sclerosis', 'parkinson', 'cognitive', 'memory', 'confusion', 'near fall', 'fear of falling', 'falls'];
+const COGNITIVE_KEYWORDS = ['dementia', 'alzheimer', 'ms', 'multiple sclerosis', 'parkinson', 'cognitive', 'memory', 'confusion', 'near fall', 'near-fall', 'fear of falling', 'falls'];
 
 // Keywords for arthritis/hand deficits
 const ARTHRITIS_HAND_KEYWORDS = ['arthritis', 'ra', 'rheumatoid', 'osteoarthritis', 'hand deficit', 'fine motor', 'dexterity', 'grip', 'grasp', 'buttoning', 'container', 'medication bottle', 'stiffness'];
