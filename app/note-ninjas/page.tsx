@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { noteNinjasAPI } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import LoginPage from "../components/LoginPage";
@@ -8,18 +8,10 @@ import HistorySidebar from "../components/HistorySidebar";
 import Logo from "../components/Logo";
 import {
   getAllSectionsForPatientType,
+  getVisibleSections,
   type VisitType,
   type SectionConfig
 } from "@/lib/dynamicSections";
-
-// Interface for LLM-evaluated sections
-interface EvaluatedSection {
-  sectionName: string;
-  visibility: string;
-  contentGuidelines: string;
-  triggerRule: string;
-  reasoning?: string;
-}
 
 interface CaseHistory {
   id: string;
@@ -79,11 +71,6 @@ export default function NoteNinjas() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showAutoFillDropdown, setShowAutoFillDropdown] = useState(false);
   const [inputMode, setInputMode] = useState<"simple" | "detailed">("simple");
-
-  // LLM-based section evaluation state
-  const [llmSelectedSections, setLlmSelectedSections] = useState<EvaluatedSection[]>([]);
-  const [isEvaluatingSections, setIsEvaluatingSections] = useState(false);
-  const [sectionEvaluationReasoning, setSectionEvaluationReasoning] = useState<string>("");
 
   // Check authentication and load case history on component mount
   useEffect(() => {
@@ -328,102 +315,36 @@ export default function NoteNinjas() {
     return getAllSectionsForPatientType(formData.patientType, formData.visitType as VisitType);
   }, [formData.visitType, formData.patientType]);
 
-  // Debounce timer ref for LLM section evaluation
-  const evaluationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // LLM-based section evaluation - calls API when form data changes
-  useEffect(() => {
-    // Only evaluate in detailed mode with auto-select and valid patient type
-    if (
-      inputMode !== "detailed" ||
-      formData.sectionSelectionMode !== "auto" ||
-      !formData.visitType ||
-      !formData.patientType
-    ) {
-      setLlmSelectedSections([]);
-      return;
+  // Static section evaluation using local rules (no LLM API call)
+  const autoSelectedSections = useMemo(() => {
+    if (!formData.visitType || !formData.patientType) {
+      return [];
     }
 
-    // Clear any pending evaluation
-    if (evaluationTimeoutRef.current) {
-      clearTimeout(evaluationTimeoutRef.current);
-    }
-
-    // Debounce the API call by 800ms to avoid too many requests
-    evaluationTimeoutRef.current = setTimeout(async () => {
-      setIsEvaluatingSections(true);
-
-      try {
-        const response = await fetch("/api/evaluate-sections", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            patientType: formData.patientType,
-            visitType: formData.visitType,
-            age: formData.age,
-            patientCondition: formData.patientCondition,
-            desiredOutcome: formData.desiredOutcome,
-            treatmentProgression: formData.treatmentProgression,
-            diagnosis: formData.diagnosis,
-            typeOfSurgery: formData.typeOfSurgery,
-            workLifeRequirements: formData.workLifeRequirements,
-            comorbidities: formData.comorbidities,
-            severity: formData.severity,
-            primaryConcern: formData.primaryConcern,
-          }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setLlmSelectedSections(data.selectedSections || []);
-          setSectionEvaluationReasoning(data.overallReasoning || "");
-          console.log("🧠 LLM Section Evaluation:", data);
-        } else {
-          console.error("Section evaluation failed:", await response.text());
-          setLlmSelectedSections([]);
-        }
-      } catch (error) {
-        console.error("Error evaluating sections:", error);
-        setLlmSelectedSections([]);
-      } finally {
-        setIsEvaluatingSections(false);
-      }
-    }, 800);
-
-    // Cleanup on unmount or when dependencies change
-    return () => {
-      if (evaluationTimeoutRef.current) {
-        clearTimeout(evaluationTimeoutRef.current);
-      }
+    const context = {
+      patientCondition: formData.patientCondition,
+      desiredOutcome: formData.desiredOutcome,
+      treatmentProgression: formData.treatmentProgression,
+      age: formData.age ? parseInt(formData.age) : undefined,
+      visitType: formData.visitType as VisitType,
+      patientType: formData.patientType,
+      diagnosis: formData.diagnosis,
+      typeOfSurgery: formData.typeOfSurgery,
+      workLifeRequirements: formData.workLifeRequirements,
     };
+
+    return getVisibleSections(context);
   }, [
-    inputMode,
-    formData.sectionSelectionMode,
     formData.visitType,
     formData.patientType,
-    formData.age,
     formData.patientCondition,
     formData.desiredOutcome,
     formData.treatmentProgression,
+    formData.age,
     formData.diagnosis,
     formData.typeOfSurgery,
     formData.workLifeRequirements,
-    formData.comorbidities,
-    formData.severity,
-    formData.primaryConcern,
   ]);
-
-  // Convert LLM sections to the format expected by the rest of the app
-  const autoSelectedSections: SectionConfig[] = useMemo(() => {
-    return llmSelectedSections.map((section) => ({
-      sectionName: section.sectionName,
-      visibility: section.visibility as "ALWAYS_ON" | "CONDITIONAL" | "TRIGGER" | "HIDDEN",
-      discipline: "PT | OT" as const, // Default, actual value comes from API
-      ageGroup: "All" as const,
-      triggerRule: section.triggerRule,
-      contentGuidelines: section.contentGuidelines,
-    }));
-  }, [llmSelectedSections]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1627,46 +1548,22 @@ export default function NoteNinjas() {
                   {formData.sectionSelectionMode === "auto" ? (
                     <div>
                       <p className="text-sm text-gray-600 mb-2">
-                        AI-powered section selection based on clinical context:
+                        Based on your inputs, the following sections will be included:
                       </p>
-                      {isEvaluatingSections ? (
-                        <div className="flex items-center text-sm text-teal-600">
-                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-teal-500 border-t-transparent mr-2"></div>
-                          Analyzing patient data to determine relevant sections...
-                        </div>
-                      ) : autoSelectedSections.length > 0 ? (
-                        <div>
-                          <ul className="space-y-2">
-                            {autoSelectedSections.map((section, idx) => {
-                              const llmSection = llmSelectedSections.find(s => s.sectionName === section.sectionName);
-                              return (
-                                <li key={idx} className="text-sm text-gray-700">
-                                  <div className="flex items-start">
-                                    <svg className="w-4 h-4 text-teal-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    <div>
-                                      <span className="font-medium">{section.sectionName}</span>
-                                      {llmSection?.reasoning && (
-                                        <p className="text-xs text-gray-500 mt-0.5">{llmSection.reasoning}</p>
-                                      )}
-                                    </div>
-                                  </div>
-                                </li>
-                              );
-                            })}
-                          </ul>
-                          {sectionEvaluationReasoning && (
-                            <div className="mt-3 p-2 bg-white rounded border border-teal-100">
-                              <p className="text-xs text-gray-600">
-                                <span className="font-medium text-teal-700">Clinical reasoning:</span> {sectionEvaluationReasoning}
-                              </p>
-                            </div>
-                          )}
-                        </div>
+                      {autoSelectedSections.length > 0 ? (
+                        <ul className="space-y-1">
+                          {autoSelectedSections.map((section, idx) => (
+                            <li key={idx} className="text-sm text-gray-700 flex items-center">
+                              <svg className="w-4 h-4 text-teal-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              {section.sectionName}
+                            </li>
+                          ))}
+                        </ul>
                       ) : (
                         <p className="text-sm text-gray-500 italic">
-                          Fill in patient details to see AI-recommended sections.
+                          Fill in more patient details to see applicable sections.
                         </p>
                       )}
                     </div>
