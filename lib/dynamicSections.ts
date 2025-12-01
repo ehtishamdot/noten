@@ -662,6 +662,7 @@ interface TriggerContext {
   diagnosis?: string;
   typeOfSurgery?: string;
   workLifeRequirements?: string;
+  painIndicator?: string;
 }
 
 // Main function to evaluate if a section should be visible
@@ -691,7 +692,8 @@ export function evaluateSectionVisibility(
     context.treatmentProgression,
     context.diagnosis || '',
     context.typeOfSurgery || '',
-    context.workLifeRequirements || ''
+    context.workLifeRequirements || '',
+    context.painIndicator || ''
   ].join(' ');
 
   // If ALWAYS_ON, show it
