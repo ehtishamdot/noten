@@ -526,6 +526,48 @@ interface PatientInput {
   gender?: string;
 }
 
+// Helper to infer patient type from condition text
+function inferPatientType(condition: string): string {
+  const lower = condition.toLowerCase();
+  
+  // Check for post-surgical indicators
+  if (/post[- ]?op|surgery|arthroplasty|replacement|repair|reconstruction|orif|tka|tha|acl|rotator cuff repair/i.test(lower)) {
+    return 'post-surgical';
+  }
+  
+  // Check for acute injury indicators
+  if (/acute|sprain|strain|fracture|tear|injury|trauma|recent|new onset/i.test(lower)) {
+    return 'acute';
+  }
+  
+  // Check for neurological indicators
+  if (/stroke|cva|tbi|traumatic brain|hemiplegia|hemiparesis|parkinson|ms\b|multiple sclerosis/i.test(lower)) {
+    return 'neuro';
+  }
+  
+  // Check for cognitive/safety indicators  
+  if (/dementia|alzheimer|cognitive|memory|fall risk|safety|confusion/i.test(lower)) {
+    return 'cognitive';
+  }
+  
+  // Check for developmental/pediatric indicators
+  if (/developmental|autism|adhd|sensory processing|pediatric|child|infant/i.test(lower)) {
+    return 'developmental';
+  }
+  
+  // Check for chronic condition indicators
+  if (/chronic|progressive|arthritis|copd|ra\b|rheumatoid|long[- ]?standing|parkinson|fibromyalgia|osteoarthritis/i.test(lower)) {
+    return 'chronic';
+  }
+  
+  // Default to chronic for elderly patients with multiple conditions
+  if (/\d{2,3}[- ]?year[- ]?old|elderly|geriatric/i.test(lower)) {
+    return 'chronic';
+  }
+  
+  return 'acute'; // Default fallback
+}
+
 export async function POST(request: Request) {
   try {
     const body: PatientInput = await request.json();
@@ -536,7 +578,7 @@ export async function POST(request: Request) {
       treatmentProgression = '',
       age,
       visitType,
-      patientType,
+      patientType: inputPatientType,
       diagnosis = '',
       typeOfSurgery = '',
       workLifeRequirements = '',
@@ -544,18 +586,24 @@ export async function POST(request: Request) {
       gender = ''
     } = body;
 
+    // Infer patient type if not provided
+    const patientType = inputPatientType || inferPatientType(patientCondition || '');
+    console.log('Patient type:', patientType, '(inferred:', !inputPatientType, ')');
+
     // Map patient type to full name
     const patientTypeFull = DYNAMIC_SECTIONS_CONFIG.patientTypeMapping[patientType as keyof typeof DYNAMIC_SECTIONS_CONFIG.patientTypeMapping] || patientType;
 
-    // Get all sections for this patient type
+    // Get all sections for this patient type (with safe toLowerCase)
     const relevantSections = DYNAMIC_SECTIONS_CONFIG.sections.filter(
-      s => s.patientType === patientTypeFull || s.patientType.toLowerCase().includes(patientType.toLowerCase())
+      s => s.patientType === patientTypeFull || 
+           (patientType && s.patientType.toLowerCase().includes(patientType.toLowerCase()))
     );
 
     if (relevantSections.length === 0) {
       return Response.json({
         sections: [],
-        error: 'No sections found for patient type: ' + patientType
+        error: 'No sections found for patient type: ' + patientType,
+        inferredPatientType: patientType
       });
     }
 
