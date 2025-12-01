@@ -1751,7 +1751,7 @@ export default function NoteNinjas() {
                           </label>
                         ))}
                       </div>
-                      {formData.selectedSections.length === 0 && (
+                      {formData?.selectedSections?.length === 0 && (
                         <p className="text-sm text-amber-600 mt-2">
                           Please select at least one section.
                         </p>
