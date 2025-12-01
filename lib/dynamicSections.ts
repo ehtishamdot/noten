@@ -725,7 +725,7 @@ export function evaluateSectionVisibility(
     }
 
     return containsKeywords(allText, INSTABILITY_KEYWORDS) ||
-           containsKeywords(allText, ['proprioceptive', 'proprioception', 'balance deficit']);
+           containsKeywords(allText, ['instability','proprioceptive', 'proprioception', 'balance deficit']);
   }
 
   // Balance Training - check for LE surgery or spine (only for post-surgical)

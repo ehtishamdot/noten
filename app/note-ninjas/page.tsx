@@ -1502,7 +1502,7 @@ export default function NoteNinjas() {
               </div>
 
               {/* Section Selection - Only show in Detailed mode */}
-              {inputMode === "detailed" && formData.patientType && formData.visitType && (
+              {/* {inputMode === "detailed" && formData.patientType && formData.visitType && ( */}
                 <div className="border border-teal-200 rounded-lg p-4 bg-teal-50">
                   <label className="block text-sm font-medium text-gray-700 mb-3">
                     Section Selection
@@ -1591,7 +1591,7 @@ export default function NoteNinjas() {
                     </div>
                   )}
                 </div>
-              )}
+              {/* // )} */}
 
               {/* Submit Button */}
               <div className="pt-6 border-t border-gray-200">
