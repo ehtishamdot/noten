@@ -13,6 +13,14 @@ import {
   type SectionConfig
 } from "@/lib/dynamicSections";
 
+// Interface for LLM-evaluated section
+interface LLMSection {
+  sectionName: string;
+  contentGuidelines: string;
+  triggerRule?: string;
+  reason?: string;
+}
+
 interface CaseHistory {
   id: string;
   name: string;
@@ -46,6 +54,7 @@ export default function NoteNinjas() {
     severity: "",
     priorLevelOfFunction: "",
     workLifeRequirements: "",
+    painIndicator: "",
     // Post-surgical recovery fields
     typeOfSurgery: "",
     dateOfSurgery: "",
@@ -71,6 +80,9 @@ export default function NoteNinjas() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showAutoFillDropdown, setShowAutoFillDropdown] = useState(false);
   const [inputMode, setInputMode] = useState<"simple" | "detailed">("simple");
+  
+  // LLM-based section evaluation state (used on form submission only)
+  const [isEvaluatingSections, setIsEvaluatingSections] = useState(false);
 
   // Check authentication and load case history on component mount
   useEffect(() => {
@@ -315,7 +327,7 @@ export default function NoteNinjas() {
     return getAllSectionsForPatientType(formData.patientType, formData.visitType as VisitType);
   }, [formData.visitType, formData.patientType]);
 
-  // Static section evaluation using local rules (no LLM API call)
+  // Static section evaluation for preview (LLM evaluation happens on submit)
   const autoSelectedSections = useMemo(() => {
     if (!formData.visitType || !formData.patientType) {
       return [];
@@ -331,6 +343,7 @@ export default function NoteNinjas() {
       diagnosis: formData.diagnosis,
       typeOfSurgery: formData.typeOfSurgery,
       workLifeRequirements: formData.workLifeRequirements,
+      painIndicator: formData.painIndicator,
     };
 
     return getVisibleSections(context);
@@ -344,7 +357,46 @@ export default function NoteNinjas() {
     formData.diagnosis,
     formData.typeOfSurgery,
     formData.workLifeRequirements,
+    formData.painIndicator,
   ]);
+
+  // Function to call LLM API for section evaluation (called on form submission)
+  const evaluateSectionsWithLLM = async (): Promise<LLMSection[]> => {
+    try {
+      const response = await fetch('/api/evaluate-sections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          patientCondition: formData.patientCondition,
+          desiredOutcome: formData.desiredOutcome,
+          treatmentProgression: formData.treatmentProgression,
+          age: formData.age,
+          visitType: formData.visitType,
+          patientType: formData.patientType,
+          diagnosis: formData.diagnosis,
+          typeOfSurgery: formData.typeOfSurgery,
+          workLifeRequirements: formData.workLifeRequirements,
+          painIndicator: formData.painIndicator,
+          gender: formData.gender
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to evaluate sections');
+      }
+
+      const data = await response.json();
+      
+      if (data.sections && Array.isArray(data.sections)) {
+        console.log('LLM evaluated sections:', data.sections.map((s: LLMSection) => s.sectionName));
+        return data.sections;
+      }
+      return [];
+    } catch (error) {
+      console.error('Error evaluating sections with LLM:', error);
+      return [];
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -417,6 +469,8 @@ export default function NoteNinjas() {
               formData.priorLevelOfFunction ? `, prior function: ${formData.priorLevelOfFunction}` : ""
             }${
               formData.workLifeRequirements ? `, work/life needs: ${formData.workLifeRequirements}` : ""
+            }${
+              formData.painIndicator ? `, pain indicator: ${formData.painIndicator}` : ""
             }`;
             break;
 
@@ -433,6 +487,8 @@ export default function NoteNinjas() {
               formData.preOperativeFunction ? `, pre-op function: ${formData.preOperativeFunction}` : ""
             }${
               formData.workLifeRequirements ? `, work/life needs: ${formData.workLifeRequirements}` : ""
+            }${
+              formData.painIndicator ? `, pain indicator: ${formData.painIndicator}` : ""
             }`;
             break;
 
@@ -493,9 +549,49 @@ export default function NoteNinjas() {
       }
       
       // Determine which sections to use
-      const sectionsToUse = formData.sectionSelectionMode === "manual" && formData.selectedSections.length > 0
-        ? availableSections.filter(s => formData.selectedSections.includes(s.sectionName))
-        : autoSelectedSections;
+      let sectionsToUse: Array<{sectionName: string; contentGuidelines: string; triggerRule?: string}>;
+      
+      if (formData.sectionSelectionMode === "manual" && formData.selectedSections.length > 0) {
+        // Manual selection - use user's choices
+        sectionsToUse = availableSections
+          .filter(s => formData.selectedSections.includes(s.sectionName))
+          .map(s => ({
+            sectionName: s.sectionName,
+            contentGuidelines: s.contentGuidelines,
+            triggerRule: s.triggerRule,
+          }));
+      } else {
+        // Auto selection - call LLM API to evaluate sections
+        setIsEvaluatingSections(true);
+        try {
+          const llmSections = await evaluateSectionsWithLLM();
+          if (llmSections.length > 0) {
+            sectionsToUse = llmSections.map(s => ({
+              sectionName: s.sectionName,
+              contentGuidelines: s.contentGuidelines,
+              triggerRule: s.triggerRule || '',
+            }));
+            console.log('Using LLM-evaluated sections:', sectionsToUse.map(s => s.sectionName));
+          } else {
+            // Fallback to static rules if LLM returns empty
+            sectionsToUse = autoSelectedSections.map(s => ({
+              sectionName: s.sectionName,
+              contentGuidelines: s.contentGuidelines,
+              triggerRule: s.triggerRule,
+            }));
+            console.log('Fallback to static sections:', sectionsToUse.map(s => s.sectionName));
+          }
+        } catch (error) {
+          console.error('LLM evaluation failed, using static rules:', error);
+          sectionsToUse = autoSelectedSections.map(s => ({
+            sectionName: s.sectionName,
+            contentGuidelines: s.contentGuidelines,
+            triggerRule: s.triggerRule,
+          }));
+        } finally {
+          setIsEvaluatingSections(false);
+        }
+      }
 
       const caseData = {
         isStreaming: true,
@@ -507,12 +603,8 @@ export default function NoteNinjas() {
         inputMode,
         visitType: formData.visitType,
         patientType: formData.patientType,
-        // Store sections for API
-        sections: sectionsToUse.map(s => ({
-          sectionName: s.sectionName,
-          contentGuidelines: s.contentGuidelines,
-          triggerRule: s.triggerRule,
-        })),
+        // Store sections for API (already in correct format from LLM or static)
+        sections: sectionsToUse,
         // Store userInput for API (snake_case format for DB)
         userInput: {
           patient_condition: patientConditionFinal,
@@ -531,6 +623,7 @@ export default function NoteNinjas() {
           date_of_onset: formData.dateOfOnset,
           prior_level_of_function: formData.priorLevelOfFunction,
           work_life_requirements: formData.workLifeRequirements,
+          pain_indicator: formData.painIndicator,
           type_of_surgery: formData.typeOfSurgery,
           // Include sections info
           sections: sectionsToUse.map(s => s.sectionName),
@@ -937,6 +1030,25 @@ export default function NoteNinjas() {
                           placeholder="Overhead lifting required for job, recreational volleyball player"
                         />
                       </div>
+
+                      {/* Pain Indicator */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Pain Indicator
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.painIndicator}
+                          onChange={(e) =>
+                            handleInputChange("painIndicator", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                          placeholder="e.g., Pain 6/10 with weight-bearing, 0/10 at rest"
+                        />
+                        <p className="mt-1 text-xs text-gray-500">
+                          Include pain level (0-10) and what triggers it
+                        </p>
+                      </div>
                     </>
                   )}
 
@@ -1058,6 +1170,25 @@ export default function NoteNinjas() {
                           rows={2}
                           placeholder="Activities patient needs to return to"
                         />
+                      </div>
+
+                      {/* Pain Indicator */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Pain Indicator
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.painIndicator}
+                          onChange={(e) =>
+                            handleInputChange("painIndicator", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                          placeholder="e.g., Pain 5/10 with movement, 2/10 at rest"
+                        />
+                        <p className="mt-1 text-xs text-gray-500">
+                          Include pain level (0-10) and what triggers it
+                        </p>
                       </div>
                     </>
                   )}
@@ -1182,6 +1313,25 @@ export default function NoteNinjas() {
                           rows={2}
                           placeholder="Important activities and roles in daily life"
                         />
+                      </div>
+
+                      {/* Pain Indicator */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Pain Indicator
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.painIndicator}
+                          onChange={(e) =>
+                            handleInputChange("painIndicator", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                          placeholder="e.g., Pain 3/10 with activity, 0/10 at rest, or 'denies pain'"
+                        />
+                        <p className="mt-1 text-xs text-gray-500">
+                          Include pain level (0-10) and what triggers it. Enter &quot;0/10&quot; or &quot;denies pain&quot; if no pain.
+                        </p>
                       </div>
                     </>
                   )}
@@ -1547,9 +1697,17 @@ export default function NoteNinjas() {
 
                   {formData.sectionSelectionMode === "auto" ? (
                     <div>
-                      <p className="text-sm text-gray-600 mb-2">
-                        Based on your inputs, the following sections will be included:
-                      </p>
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-sm text-gray-600">
+                          Based on your inputs, the following sections will be included:
+                        </p>
+                      </div>
+                      <div className="mb-2 text-xs text-teal-700 bg-teal-50 px-2 py-1 rounded inline-flex items-center">
+                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        AI will finalize sections on submit
+                      </div>
                       {autoSelectedSections.length > 0 ? (
                         <ul className="space-y-1">
                           {autoSelectedSections.map((section, idx) => (
@@ -1607,10 +1765,15 @@ export default function NoteNinjas() {
               <div className="pt-6 border-t border-gray-200">
                 <button
                   type="submit"
-                  disabled={isProcessing}
+                  disabled={isProcessing || isEvaluatingSections}
                   className="w-full bg-teal-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                 >
-                  {isProcessing ? (
+                  {isEvaluatingSections ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
+                      AI Evaluating Sections...
+                    </>
+                  ) : isProcessing ? (
                     <>
                       <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
                       Generating Suggestions...

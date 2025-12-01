@@ -204,7 +204,14 @@ function BrainstormingSuggestionsContent() {
                 treatmentProgression: parsedData.userInput.treatment_progression || '',
                 sessionId: parsedData.sessionId,
                 visitType: parsedData.visitType || parsedData.userInput.visit_type || 'PT',
-                sections: parsedData.sections || []
+                sections: parsedData.sections || [],
+                // Include detailed form fields
+                workLifeRequirements: parsedData.userInput.work_life_requirements || '',
+                painIndicator: parsedData.userInput.pain_indicator || '',
+                age: parsedData.userInput.age || '',
+                gender: parsedData.userInput.gender || '',
+                patientType: parsedData.userInput.patient_type || '',
+                typeOfSurgery: parsedData.userInput.type_of_surgery || ''
               })
             });
             
