@@ -1,0 +1,51 @@
+[
+  {
+    "Activity": "Stand to Sit Transfer",
+    "Description": "Instruct patient to back up until legs touch the chair. Cue them to reach back for armrests with both hands, bend at hips and knees, and lower slowly with control. Ensure proper body mechanics: feet wide, chest up, and no twisting.",
+    "Section": "Functional Activity",
+    "Documentation Example": "Patient requires moderate physical, verbal and tactile assistance to perform sit to/from stand transfers from a firm chair secondary to compromised LE strength,balance and safety. Pt presents with increased reliance on UE support secondary to fear of falling.",
+    "Goal Example": "Patient will perform sit to/from stand transfers to and from a firm chair and her bed Independently in 90 days in order to reduce caregiver burden and improve mobility around her home."
+  },
+  {
+    "Activity": "Sit to Stand Transfer",
+    "Description": "Instruct patient to scoot to the edge of the chair with feet hip-width apart and slightly staggered. For those with decreased coordination, have them rock back and forth 3x before standing. Cue to lean forward ('nose over toes') and push through heels/armrests.",
+    "Section": "Functional Activity",
+    "Documentation Example": "Patient requires moderate physical and verbal assistance to perform sit to stand transfers from toilet, wheelchair, and kitchen chair secondary to compromised balance, strength/ROM, safety, and coordination.",
+    "Goal Example": "Patient will perform sit to stand transfers to and from toilet, wheelchair, and firm chair Independently in 90 days in order to reduce caregiver burden with ADL."
+  },
+  {
+    "Activity": "Toilet Transfer",
+    "Description": "Create an outline of a toilet rim with tape on a mat table. Instruct patient to perform stand/sit pivot transfers from wheelchair to this target. Incorporate clothing management practice using a theraband to simulate donning/doffing pants while maintaining balance.",
+    "Section": "Functional Activity",
+    "Documentation Example": "Patient requires moderate physical assistance and verbal, visual cues to complete toileting. Patient has difficulty maintaining position, cleaning body, adjusting clothing and obtaining supplies. Safety, technique, balance, strength/ROM, and coordination are compromised.",
+    "Goal Example": "Patient will perform toileting independently with commode in 90 days in order to reduce caregiver burden and return to PLOF."
+  },
+  {
+    "Activity": "Car Transfer",
+    "Description": "Set up a threshold (cone, box, or line) and instruct patient to lift LE 'up and over' to simulate entering a car. Use colored tape on the floor to visually guide the step sequence. Instruct on pivoting on the seat and using grab bars for safety.",
+    "Section": "Functional Activity",
+    "Documentation Example": "Patient requires moderate physical assistance to lift LEs into vehicle during car transfer. Verbal cues provided for proper sequencing, hand placement on grab bar, and safety with head clearance.",
+    "Goal Example": "Patient will perform car transfer with supervision and use of leg lifter in 6 weeks to access community for medical appointments."
+  },
+  {
+    "Activity": "Floor Transfer",
+    "Description": "Set up a mat on the floor for safety. Instruct patient to practice scooting towards a wall or chair for stability. Break down the transfer into components: practice kneeling, lunges, and transitioning from quadruped to half-kneel to stand.",
+    "Section": "Functional Activity",
+    "Documentation Example": "Patient requires moderate physical, visual and verbal cues to transfer from the floor to standing secondary to compromised LE strength, coordination, safety and technique.",
+    "Goal Example": "Patient will perform floor to stand transfer independently in 90 days in order to play with her grandchildren without restriction."
+  },
+  {
+    "Activity": "Stand, Squat or Sit Pivot Transfers",
+    "Description": "Position wheelchair at a 45-degree angle to the destination, transferring toward the stronger side. In parallel bars, instruct patient to practice 'quarter turns' by taking a quarter step to the right/left. Cue for foot placement and pivoting on the balls of the feet.",
+    "Section": "Functional Activity",
+    "Documentation Example": "Patient requires moderate physical assist for stand pivot transfer. Cues to position wheelchair at 45 degree angle, lock brakes, and ensure proper hand placement on armrests.",
+    "Goal Example": "Patient will be able to perform stand pivot transfers from wheelchair to and from toilet with correct use of grab bars and locking brakes on wheelchair with 100% accuracy."
+  },
+  {
+    "Activity": "Sliding Board Transfers",
+    "Description": "Focus on unsupported sitting balance, weight shifting, and chair push-ups to build strength. Instruct patient (and caregiver) to lock brakes, remove armrest, place board under hip, and use small push-ups to slide across without dragging skin.",
+    "Section": "Functional Activity",
+    "Documentation Example": "Patient requires max physical assist for sliding board placement and balance management during w/c to mat transfer. Cues provided for anterior weight shift and maintaining head-hips relationship.",
+    "Goal Example": "Patient will perform sliding board transfer w/c to bed with Supervision in 4 weeks to improve independence in home."
+  }
+]

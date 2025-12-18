@@ -1,0 +1,586 @@
+[
+  {
+    "ADL Type": "Upper Body Dressing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "upper body threading",
+    "Description": "Take a piece of theraband and tie it in a loop. Instruct the patient to thread their arm through the theraband loop, sliding it up past the elbow to the shoulder, simulating donning a sleeve. Perform unilaterally, alternating sides after the prescribed number of repetitions.",
+    "Documentation Example": "Patient engaged in UB threading activity to improve upper body dressing skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform upper body dressing tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Upper Body Dressing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "upper body up and overs",
+    "Description": "Take a piece of theraband approximately 12-16 inches long and have the patient hold each end. Instruct the patient to lift the theraband bilaterally up and overhead, then lower back down with control. This promotes overhead reach and shoulder range of motion needed for pulling shirts over the head.",
+    "Documentation Example": "Patient engaged in UB up and overs activity to improve upper body dressing skills. Activity targeted increasing ROM. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform upper body dressing tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Upper Body Dressing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Knot untying",
+    "Description": "Tie knots in a resistive theraband and instruct the patient to untie them using their fingers. Begin with low resistance band with loose knots and progress to tighter, smaller knots with more resistive band. Alternative materials include shoelaces, yarn, string, or ribbon to further challenge fine motor coordination and grip strength.",
+    "Documentation Example": "Patient engaged in Knot untying activity to improve upper body dressing skills. Focus was on increasing strength for functional performance. Addressed fine/gross motor coordination deficits. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform upper body dressing tasks independently in 4 weeks by increasing strength to WNL."
+  },
+  {
+    "ADL Type": "Upper Body Dressing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Buttoning",
+    "Description": "Create a dressing board with buttons or use a button-down shirt for practice. Have the patient practice buttoning with the shirt placed on a flat surface first, then progress to practicing with the shirt on their body. Recommend a button hook for patients with significant fine motor deficits.",
+    "Documentation Example": "Patient engaged in Buttoning activity to improve upper body dressing skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform upper body dressing tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Upper Body Dressing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Trunk rotation seated on mat or edge of chair",
+    "Description": "Have the patient sit on the edge of a mat or bed without back support. Set up cones, rings, or other objects on one side of the patient and instruct them to reach across midline with the opposite hand to retrieve items and transfer to the other side. This promotes core strength and control, shoulder/elbow ROM, and sitting balance.",
+    "Documentation Example": "Patient engaged in Trunk rotation seated on mat or edge of chair activity to improve upper body dressing skills. Focus was on increasing strength for functional performance. Activity targeted increasing ROM. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform upper body dressing tasks independently in 4 weeks with improved dynamic balance to decrease fall risk."
+  },
+  {
+    "ADL Type": "Upper Body Dressing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Towel Slides on mat",
+    "Description": "Position the patient seated at the edge of a mat with a small towel under their hand. Instruct them to slide the towel laterally and posteriorly across the mat surface, keeping their arm extended. This promotes shoulder and elbow extension as well as trunk mobility required for dressing.",
+    "Documentation Example": "Patient engaged in Towel Slides on mat activity to improve upper body dressing skills. Activity targeted increasing ROM. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform upper body dressing tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Upper Body Dressing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Dressing Boards",
+    "Description": "Provide the patient with a dressing board containing various fasteners such as buttons, zippers, snaps, and laces. Instruct them to practice manipulating each fastener type, starting with larger, easier fasteners and progressing to smaller ones. This activity develops fine motor coordination skills needed for independent dressing.",
+    "Documentation Example": "Patient engaged in Dressing Boards activity to improve upper body dressing skills. Addressed fine/gross motor coordination deficits. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform upper body dressing tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Upper Body Dressing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Clothespin pinching on clothing",
+    "Description": "Place clothespins on various locations of the patient's upper body clothing including shoulders, lower/mid/upper back, and sides. Instruct the patient to reach in multiple directions to locate and remove all clothespins. This promotes upper extremity ROM, fine motor coordination, and sensory perception.",
+    "Documentation Example": "Patient engaged in Clothespin pinching on clothing activity to improve upper body dressing skills. Activity targeted increasing ROM. Addressed fine/gross motor coordination deficits. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform upper body dressing tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Upper Body Dressing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Wall \ufb01nger climbs",
+    "Description": "Position the patient facing a wall or cabinet surface within arm's reach. Instruct them to place their fingertips on the surface and walk their fingers upward as high as possible, then back down. Have them repeat in multiple directions (forward, diagonal) to promote shoulder ROM in all planes.",
+    "Documentation Example": "Patient engaged in Wall \ufb01nger climbs activity to improve upper body dressing skills. Activity targeted increasing ROM. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform upper body dressing tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Upper Body Dressing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Clothing Selection",
+    "Description": "Present the patient with two or three options for each piece of clothing they need to select. Ask them to choose appropriate items based on factors such as weather, occasion, and color coordination. This activity facilitates decision-making skills and promotes independence in selecting weather-appropriate, matching clothing.",
+    "Documentation Example": "Patient engaged in Clothing Selection activity to improve upper body dressing skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform upper body dressing tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Upper Body Dressing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Arm Arc",
+    "Description": "Position an arm arc (or a hula hoop with shower curtain rings attached) in front of the patient. Instruct them to reach across midline to transfer rings from one side of the arc to the opposite side. This promotes upper extremity ROM, trunk rotation, core strength, and sitting or standing balance.",
+    "Documentation Example": "Patient engaged in Arm Arc activity to improve upper body dressing skills. Focus was on increasing strength for functional performance. Activity targeted increasing ROM. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform upper body dressing tasks independently in 4 weeks with improved dynamic balance to decrease fall risk."
+  },
+  {
+    "ADL Type": "Upper Body Dressing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Posterior pass backs",
+    "Description": "In standing or sitting, have the patient hold a cone, weighted ball, or dumbbell in one hand and pass it around their back to retrieve with the other hand. Continue passing the item back around to the front and around the back again, switching directions after 10-15 repetitions. This promotes shoulder rotation, upper extremity ROM, coordination, grasp, and trunk mobility.",
+    "Documentation Example": "Patient engaged in Posterior pass backs activity to improve upper body dressing skills. Activity targeted increasing ROM. Addressed fine/gross motor coordination deficits. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform upper body dressing tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Upper Body Dressing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Therapeutic exercises",
+    "Description": "Instruct the patient to perform a series of upper body exercises targeting the muscle groups needed for dressing. Include elbow flexion/extension, shoulder flexion with arms reaching overhead, hand squeezes for grip strength, lat pull downs, shoulder horizontal abduction/adduction, shoulder internal/external rotation, shoulder abduction/adduction, and scapular protraction/retraction. Demonstrate each exercise and have the patient perform prescribed repetitions.",
+    "Documentation Example": "Patient engaged in Therapeutic exercises activity to improve upper body dressing skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform upper body dressing tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Lower Body Dressing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "lower body threading",
+    "Description": "Take a piece of theraband and tie it in a loop large enough to step into. Instruct the patient to thread the theraband around their lower extremities by placing one foot in, then the other, and pulling the band up bilaterally to their waist to simulate donning pants. To practice doffing, have them pull the theraband down past the waist and all the way to the feet.",
+    "Documentation Example": "Patient engaged in LB threading activity to improve lower body dressing skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform lower body dressing tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Lower Body Dressing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Reaching towards lower extremity",
+    "Description": "Instruct the patient to scoot to the edge of a chair or bed and extend one knee forward. Cue the patient to reach down with one or both hands towards the ankle and toes, going as far as comfortable. This promotes lower extremity flexibility, upper extremity ROM, and sitting balance needed for donning socks and shoes.",
+    "Documentation Example": "Patient engaged in Reaching towards LE activity to improve lower body dressing skills. Activity targeted increasing ROM. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform lower body dressing tasks independently in 4 weeks with improved dynamic balance to decrease fall risk."
+  },
+  {
+    "ADL Type": "Lower Body Dressing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Cross reach towards lower extremity",
+    "Description": "Instruct the patient to scoot to the edge of a chair or bed and extend one knee forward. Cue them to reach down with the opposite hand across their body toward the ankle and toes. This promotes lower extremity flexibility, trunk rotation, upper extremity ROM, and sitting balance for dressing tasks.",
+    "Documentation Example": "Patient engaged in Cross reach towards LE activity to improve lower body dressing skills. Activity targeted increasing ROM. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform lower body dressing tasks independently in 4 weeks with improved dynamic balance to decrease fall risk."
+  },
+  {
+    "ADL Type": "Lower Body Dressing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "lower extremity up and overs",
+    "Description": "Place a theraband, small box, or cone on the floor in front of the patient. Instruct them to lift their leg up and over the threshold, then return to starting position. Progress to performing the activity in standing to increase the challenge. This promotes lower extremity coordination, flexibility, and strengthening for stepping into pants.",
+    "Documentation Example": "Patient engaged in LE up and overs activity to improve lower body dressing skills. Focus was on increasing strength for functional performance. Addressed fine/gross motor coordination deficits. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform lower body dressing tasks independently in 4 weeks by increasing strength to WNL."
+  },
+  {
+    "ADL Type": "Lower Body Dressing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Lateral Side Bends",
+    "Description": "In a seated position in an armless chair, instruct the patient to lean side to side, reaching down to tap the floor or a cone placed beside them. In standing, have them perform the same lateral leaning motion with appropriate support. This promotes lateral trunk flexion, balance, and righting reactions needed for reaching to the lower body during dressing.",
+    "Documentation Example": "Patient engaged in Lateral Side Bends activity to improve lower body dressing skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform lower body dressing tasks independently in 4 weeks with improved dynamic balance to decrease fall risk."
+  },
+  {
+    "ADL Type": "Lower Body Dressing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Clothespin pinching on clothing",
+    "Description": "Place clothespins on various locations of the patient's pants including front, sides, and around the knees. Instruct the patient to reach down and remove all clothespins from their clothing. This promotes upper extremity ROM, fine motor coordination, and sensory perception needed for lower body dressing.",
+    "Documentation Example": "Patient engaged in Clothespin pinching on clothing activity to improve lower body dressing skills. Activity targeted increasing ROM. Addressed fine/gross motor coordination deficits. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform lower body dressing tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Lower Body Dressing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "lower extremity cone taps",
+    "Description": "Place a cone or other raised surface in front of the patient. Instruct them to lift their leg and tap the top of the cone with their foot, then return to the starting position. Provide cues for proper ankle and hip strategies to promote lower extremity coordination, ROM, and strengthening.",
+    "Documentation Example": "Patient engaged in LE cone taps activity to improve lower body dressing skills. Focus was on increasing strength for functional performance. Activity targeted increasing ROM. Addressed fine/gross motor coordination deficits. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform lower body dressing tasks independently in 4 weeks by increasing strength to WNL."
+  },
+  {
+    "ADL Type": "Lower Body Dressing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Reach towards cones on \ufb02oor",
+    "Description": "Position one or more cones on the floor in front of or beside the patient. Instruct them to reach down from a seated position to tap the top of each cone. This promotes trunk flexion, upper extremity ROM, and sitting balance required for reaching to the lower body during dressing.",
+    "Documentation Example": "Patient engaged in Reach towards cones on \ufb02oor activity to improve lower body dressing skills. Activity targeted increasing ROM. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform lower body dressing tasks independently in 4 weeks with improved dynamic balance to decrease fall risk."
+  },
+  {
+    "ADL Type": "Lower Body Dressing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Theraband Rows",
+    "Description": "Position the middle of a theraband under the patient's foot while seated. Have them hold the ends of the band in each hand and pull their elbows straight back, squeezing shoulder blades together. Ensure elbows stay tight against the sides of the body and wrists remain neutral. This simulates the pulling motion used when donning socks and lower body clothing.",
+    "Documentation Example": "Patient engaged in Theraband Rows activity to improve lower body dressing skills. Focus was on increasing strength for functional performance. Activity targeted increasing ROM. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform lower body dressing tasks independently in 4 weeks by increasing strength to WNL."
+  },
+  {
+    "ADL Type": "Lower Body Dressing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Ankle Taps",
+    "Description": "Instruct the patient to lift one leg, rotating at the hip and knee to bring the ankle toward the opposite knee. Have them reach with the opposite hand to tap the side of the lifted ankle. This facilitates hip and knee mobility, lower extremity coordination, and trunk flexion needed for donning socks and shoes.",
+    "Documentation Example": "Patient engaged in Ankle Taps activity to improve lower body dressing skills. Addressed fine/gross motor coordination deficits. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform lower body dressing tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Toileting",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Posterior card \ufb02ip",
+    "Description": "Position the patient in standing with a pile of cards placed on a surface behind them. Instruct them to reach posteriorly using a half-squat motion with proper body mechanics to flip over one card at a time. This promotes trunk rotation, lower extremity strength, balance, and coordination needed for cleaning and reaching to flush the toilet.",
+    "Documentation Example": "Patient engaged in Posterior card \ufb02ip activity to improve toileting skills. Focus was on increasing strength for functional performance. Addressed fine/gross motor coordination deficits. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform toileting independently with use of grab bars in 8 weeks."
+  },
+  {
+    "ADL Type": "Toileting",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Lateral side bends",
+    "Description": "In a seated position in an armless chair, instruct the patient to lean side to side, reaching down to tap the floor or a cone placed beside them. In standing, have them perform the same lateral leaning motion. Progress by adding weight or decreasing upper extremity support. This promotes lateral trunk flexion, balance, and righting reactions for toileting hygiene.",
+    "Documentation Example": "Patient engaged in Lateral side bends activity to improve toileting skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform toileting independently with use of grab bars in 8 weeks."
+  },
+  {
+    "ADL Type": "Toileting",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Trunk rotation on mat",
+    "Description": "Position the patient on the edge of a mat or unsupported bench. Place rings, cones, or other objects on either side of the patient. Instruct them to reach across midline to retrieve items and transfer them to the opposite side. This promotes reaching across midline, upper extremity ROM and coordination, and grasp for toileting tasks.",
+    "Documentation Example": "Patient engaged in Trunk rotation on mat activity to improve toileting skills. Activity targeted increasing ROM. Addressed fine/gross motor coordination deficits. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform toileting independently with use of grab bars in 8 weeks."
+  },
+  {
+    "ADL Type": "Toileting",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Posterior retrieval activity",
+    "Description": "In seated position, have the patient sit on the edge of a mat and reach behind to retrieve items placed posteriorly, then transfer them to the front. In standing, have them reach backward to retrieve items and transfer to a chair or surface in front. This promotes posterior reach, dynamic balance, and grasp skills for toileting hygiene.",
+    "Documentation Example": "Patient engaged in Posterior retrieval activity activity to improve toileting skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform toileting independently with use of grab bars in 8 weeks."
+  },
+  {
+    "ADL Type": "Toileting",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Posterior pass backs",
+    "Description": "In standing or sitting at the edge of a chair, have the patient pass a cone, weighted ball, or dumbbell with one hand around their back and retrieve it with the other hand. Continue passing the item forward and around the back again, switching directions after 10-15 repetitions. This promotes shoulder rotation, upper extremity ROM, coordination, and trunk mobility for toileting hygiene.",
+    "Documentation Example": "Patient engaged in Posterior pass backs activity to improve toileting skills. Activity targeted increasing ROM. Addressed fine/gross motor coordination deficits. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform toileting independently with use of grab bars in 8 weeks."
+  },
+  {
+    "ADL Type": "Toileting",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Towel slides on mat",
+    "Description": "Position the patient seated without back support at the edge of a chair or mat. Place a towel under their hand and instruct them to slide it posteriorly and laterally, one direction at a time. This promotes sitting balance, upper extremity ROM, and weight shifting required for toileting tasks.",
+    "Documentation Example": "Patient engaged in Towel slides on mat activity to improve toileting skills. Activity targeted increasing ROM. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform toileting independently with use of grab bars in 8 weeks."
+  },
+  {
+    "ADL Type": "Toileting",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Stand or sit pivot transfers",
+    "Description": "Practice transfer techniques between surfaces commonly encountered in toileting, such as wheelchair to toilet/commode, wheelchair to mat table, or chair to mat table. Instruct the patient to scoot to the edge of the seat, stand partially or fully, pivot their feet, and lower to the new surface. Provide appropriate level of assistance and cue for proper technique.",
+    "Documentation Example": "Patient engaged in Stand or sit pivot transfers activity to improve toileting skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform toileting independently with use of grab bars in 8 weeks."
+  },
+  {
+    "ADL Type": "Toileting",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Sit to stand transfers",
+    "Description": "Practice sit-to-stand transfers from various surfaces including wheelchair, firm chair, toilet, commode, and mat table. Instruct the patient to scoot to the edge of the seat, lean forward with nose over toes, push through their legs to stand, and straighten fully. Progress by varying surface heights and reducing upper extremity support as appropriate.",
+    "Documentation Example": "Patient engaged in Sit to stand transfers activity to improve toileting skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform toileting independently with use of grab bars in 8 weeks."
+  },
+  {
+    "ADL Type": "Toileting",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Navigation of bathroom",
+    "Description": "Have the patient practice navigating the bathroom space with or without their assistive device or wheelchair. Include reaching for toiletries and supplies, practicing turns in confined spaces, performing toilet transfers, standing at the sink for handwashing, and using grab bars for support. Address any environmental barriers and reinforce safe mobility strategies.",
+    "Documentation Example": "Patient engaged in Navigation of bathroom activity to improve toileting skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform toileting independently with use of grab bars in 8 weeks."
+  },
+  {
+    "ADL Type": "Toileting",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Theraband clothing adjustment facilitation",
+    "Description": "Tie a theraband loosely around the patient's waist to simulate a waistband. Instruct them to pull the theraband down and back up to practice the motion of lowering and raising pants for toileting. For patients with poor balance, have them hold onto a grab bar or walker while practicing one-handed dressing technique.",
+    "Documentation Example": "Patient engaged in Theraband clothing adjustment facilitation activity to improve toileting skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform toileting independently with use of grab bars in 8 weeks."
+  },
+  {
+    "ADL Type": "Grooming/hygiene",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Open/close containers",
+    "Description": "Provide the patient with containers of various shapes and sizes with different lid types. Instruct them to open each container and place the lids to the side. To challenge problem-solving and sequencing, mix up the lids and have the patient match each lid to its correct container.",
+    "Documentation Example": "Patient engaged in Open/close containers activity to improve grooming/hygiene skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform grooming/hygiene tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Grooming/hygiene",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Applying lotion",
+    "Description": "Provide the patient with lotion and instruct them to dispense an appropriate amount into one palm. Have them rub their hands together and apply the lotion to both hands, arms, and other body parts as appropriate. This activity promotes fine motor coordination, bilateral hand integration, sensory processing, and functional self-care skills.",
+    "Documentation Example": "Patient engaged in Applying lotion activity to improve grooming/hygiene skills. Addressed fine/gross motor coordination deficits. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform grooming/hygiene tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Grooming/hygiene",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Putty rolling",
+    "Description": "Provide the patient with theraputty of appropriate resistance (light, medium, or firm). Instruct them to roll the putty between their palms to form a long snake shape, then roll it into a ball. This promotes hand and grip strength as well as digit and wrist ROM needed for grooming tasks and handwashing.",
+    "Documentation Example": "Patient engaged in Putty rolling activity to improve grooming/hygiene skills. Focus was on increasing strength for functional performance. Activity targeted increasing ROM. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform grooming/hygiene tasks independently in 4 weeks by increasing strength to WNL."
+  },
+  {
+    "ADL Type": "Grooming/hygiene",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Putty shaping",
+    "Description": "Provide the patient with theraputty of appropriate resistance (light, medium, or firm). Instruct them to break off small pieces and roll them into balls or shape them into other forms for an advanced challenge. This promotes hand and grip strength, digit and wrist ROM, and dexterity for grooming and handwashing tasks.",
+    "Documentation Example": "Patient engaged in Putty shaping activity to improve grooming/hygiene skills. Focus was on increasing strength for functional performance. Activity targeted increasing ROM. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform grooming/hygiene tasks independently in 4 weeks by increasing strength to WNL."
+  },
+  {
+    "ADL Type": "Grooming/hygiene",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Item retrieval",
+    "Description": "Set up grooming items on a countertop or table and instruct the patient to reach and retrieve specific items. Add item transportation by having them carry items to a different surface in the room. Practice this at a sink, pulling items out of cabinets to the working surface to simulate functional grooming preparation.",
+    "Documentation Example": "Patient engaged in Item retrieval activity to improve grooming/hygiene skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform grooming/hygiene tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Grooming/hygiene",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Whiteboard games",
+    "Description": "Set up a whiteboard on the wall or easel at an appropriate height. Have the patient participate in games such as tic-tac-toe, word searches, or mazes that require writing and erasing. This promotes functional overhead reach, sitting or standing balance with trunk extension, and hand/wrist ROM and dexterity needed for grooming.",
+    "Documentation Example": "Patient engaged in Whiteboard games activity to improve grooming/hygiene skills. Activity targeted increasing ROM. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform grooming/hygiene tasks independently in 4 weeks with improved dynamic balance to decrease fall risk."
+  },
+  {
+    "ADL Type": "Grooming/hygiene",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Wrist exercises",
+    "Description": "Guide the patient through a series of wrist exercises including wrist flexion (bending palm toward forearm), wrist extension (bending back of hand toward forearm), wrist rotation (supination and pronation), prayer stretch, radial and ulnar deviation, wrist circles, and wrist push-ups against a surface. Perform prescribed repetitions of each movement.",
+    "Documentation Example": "Patient engaged in Wrist exercises activity to improve grooming/hygiene skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform grooming/hygiene tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Grooming/hygiene",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Hand exercises",
+    "Description": "Guide the patient through a series of hand exercises including MCP extension (straightening fingers), MCP flexion (making a fist), finger abduction/adduction (spreading and closing fingers), ball squeezes, and putty squeezes. Demonstrate each exercise and have the patient perform prescribed repetitions to improve grip and dexterity for grooming tasks.",
+    "Documentation Example": "Patient engaged in Hand exercises activity to improve grooming/hygiene skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform grooming/hygiene tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Grooming/hygiene",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Standing Balance",
+    "Description": "Have the patient practice standing balance at functional locations such as the sink, near grab bars, or at the bathroom counter. Begin with upper extremity support as needed and progress to decreased support. Practice weight shifting, reaching for items, and maintaining balance during simulated grooming activities.",
+    "Documentation Example": "Patient engaged in Standing Balance activity to improve grooming/hygiene skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform grooming/hygiene tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Bathing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Sitting unsupported on mat",
+    "Description": "Have the patient sit on the edge of a mat or bench without back support to simulate sitting on a shower seat or chair. Apply gentle perturbations in multiple directions to challenge their balance and facilitate righting reactions. Progress by having them reach for objects or perform arm movements while maintaining seated balance.",
+    "Documentation Example": "Patient engaged in Sitting unsupported on mat activity to improve bathing skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform bathing tasks independently in 4 weeks with improved dynamic balance to decrease fall risk."
+  },
+  {
+    "ADL Type": "Bathing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Item retrieval",
+    "Description": "Have the patient reach and retrieve items placed in various positions: forward, lateral, across midline, and posterior. This can be performed in seated or standing position. The activity promotes functional reaching in multiple directions, balance, and coordination needed for accessing bathing supplies.",
+    "Documentation Example": "Patient engaged in Item retrieval activity to improve bathing skills. Addressed fine/gross motor coordination deficits. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform bathing tasks independently in 4 weeks with improved dynamic balance to decrease fall risk."
+  },
+  {
+    "ADL Type": "Bathing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Posterior item retrieval",
+    "Description": "Position the patient seated on a mat table or standing with items placed behind them. Instruct them to reach behind their body to retrieve items and bring them forward. This facilitates functional posterior reach, trunk rotation, and balance needed for washing the back and reaching for supplies during bathing.",
+    "Documentation Example": "Patient engaged in Posterior item retrieval activity to improve bathing skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform bathing tasks independently in 4 weeks with improved dynamic balance to decrease fall risk."
+  },
+  {
+    "ADL Type": "Bathing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Reaching to lower extremity",
+    "Description": "Instruct the patient to extend one knee forward with the ankle dorsiflexed. Have them reach down with one or both hands as far toward the toes as possible. This promotes hip flexion and upper extremity ROM needed to reach the lower body for washing feet and legs during bathing.",
+    "Documentation Example": "Patient engaged in Reaching to lower extremity activity to improve bathing skills. Activity targeted increasing ROM. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform bathing tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Bathing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Reaching overhead",
+    "Description": "Instruct the patient to reach their arms up overhead as high as possible, either bilaterally, alternating arms, or unilaterally. Have them practice reaching in different directions to simulate washing hair and reaching for supplies on high shelves. This facilitates upper extremity ROM needed for washing the body and hair.",
+    "Documentation Example": "Patient engaged in Reaching overhead activity to improve bathing skills. Activity targeted increasing ROM. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform bathing tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Bathing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Shoulder internal/external rotation",
+    "Description": "Guide the patient through shoulder rotation exercises by having them reach behind their back (internal rotation) and reach behind their head (external rotation). Use clothespins placed on the back of their clothing or hat for functional practice. Perform as active ROM, active-assisted ROM, or passive ROM based on patient ability.",
+    "Documentation Example": "Patient engaged in Shoulder internal/external rotation activity to improve bathing skills. Activity targeted increasing ROM. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform bathing tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Bathing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Trunk rotation with item retrieval",
+    "Description": "Position the patient on the edge of a mat or unsupported bench. Place rings, cones, or other objects on either side of the patient. Instruct them to reach across midline to retrieve items and transfer them to the opposite side. This promotes reaching across midline, upper extremity ROM and coordination, and grasp for bathing tasks.",
+    "Documentation Example": "Patient engaged in Trunk rotation with item retrieval activity to improve bathing skills. Activity targeted increasing ROM. Addressed fine/gross motor coordination deficits. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform bathing tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Bathing",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Open/close containers",
+    "Description": "Provide the patient with containers of various shapes and sizes with different lid types, simulating shampoo bottles and soap containers. Instruct them to open each container and place the lids aside. Mix up the lids and have the patient match each lid to its correct container to challenge problem-solving and sequencing.",
+    "Documentation Example": "Patient engaged in Open/close containers activity to improve bathing skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform bathing tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Self-feeding",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Cutting putty",
+    "Description": "Place a piece of theraputty on a plate to simulate food. Have the patient practice cutting the putty into small pieces using plastic, regular, or weighted utensils as appropriate. This facilitates the cutting skills and utensil manipulation needed for independent self-feeding.",
+    "Documentation Example": "Patient engaged in Cutting putty activity to improve self-feeding skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform self-feeding tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Self-feeding",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Forearm Pronation/Supination",
+    "Description": "Have the patient hold a small dumbbell (1-2 lbs or more) or weighted utensil with their elbow bent at 90 degrees. Instruct them to rotate their forearm so the palm faces up (supination), then rotate so the palm faces down (pronation). This promotes strength and motor control needed for manipulating feeding utensils.",
+    "Documentation Example": "Patient engaged in Forearm Pronation/Supination activity to improve self-feeding skills. Focus was on increasing strength for functional performance. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform self-feeding tasks independently in 4 weeks by increasing strength to WNL."
+  },
+  {
+    "ADL Type": "Self-feeding",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Clothespin pinching",
+    "Description": "Have the patient pick up a clothespin using a pincer grasp and reach forward to attach it to a theraband, napkin, or other surface. Continue with multiple clothespins, placing them in various positions. This promotes grasp and pinch patterns for manipulating utensils and facilitates functional reach.",
+    "Documentation Example": "Patient engaged in Clothespin pinching activity to improve self-feeding skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform self-feeding tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Self-feeding",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Reach and pull",
+    "Description": "Place marbles or beads at the far edge of a counter or table. Instruct the patient to reach forward and use their fingertips to pull items toward them one at a time. This facilitates item manipulation, functional reach, visual perceptual skills, and core stability needed for self-feeding.",
+    "Documentation Example": "Patient engaged in Reach and pull activity to improve self-feeding skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform self-feeding tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Self-feeding",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Feeding simulation with putty",
+    "Description": "After practicing cutting putty, have the patient use a fork or spoon to scoop the putty and bring it toward their mouth without eating it. Cue them to control the utensil throughout the motion to prevent spillage. This promotes motor control, upper extremity strength, and ROM needed for self-feeding.",
+    "Documentation Example": "Patient engaged in Feeding simulation with putty activity to improve self-feeding skills. Focus was on increasing strength for functional performance. Activity targeted increasing ROM. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform self-feeding tasks independently in 4 weeks by increasing strength to WNL."
+  },
+  {
+    "ADL Type": "Self-feeding",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Ball/putty squeezes",
+    "Description": "Provide the patient with a therapy ball or putty and instruct them to squeeze it firmly, hold for a few seconds, then release. Repeat for prescribed repetitions with each hand. This promotes hand grip strength needed for holding utensils, mugs, plates, and other items during self-feeding.",
+    "Documentation Example": "Patient engaged in Ball/putty squeezes activity to improve self-feeding skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform self-feeding tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Self-feeding",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Positioning",
+    "Description": "Assess and assist the patient in achieving optimal positioning at the table or eating surface. Use seat cushions to raise the patient if needed, and provide back support for those with limited core strength. Ensure proper height alignment with the table and use pillows or towels as needed to support posture during self-feeding.",
+    "Documentation Example": "Patient engaged in Positioning activity to improve self-feeding skills. Focus was on increasing strength for functional performance. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform self-feeding tasks independently in 4 weeks by increasing strength to WNL."
+  },
+  {
+    "ADL Type": "Self-feeding",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Open/close containers",
+    "Description": "Provide the patient with food containers of various shapes and sizes with different lid types. Instruct them to open each container and place lids aside. Challenge problem-solving by mixing lids and having the patient match each lid to its correct container, simulating meal preparation.",
+    "Documentation Example": "Patient engaged in Open/close containers activity to improve self-feeding skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform self-feeding tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Self-feeding",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Elbow \ufb02exion/bicep curls",
+    "Description": "Have the patient perform elbow flexion exercises by bending the elbow to bring the hand toward the shoulder, then extending back down. Perform as active ROM, passive ROM, active-assisted ROM, or with weights as appropriate. This promotes upper body strength and ROM needed to bring food and drinks to the mouth.",
+    "Documentation Example": "Patient engaged in Elbow \ufb02exion/bicep curls activity to improve self-feeding skills. Focus was on increasing strength for functional performance. Activity targeted increasing ROM. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform self-feeding tasks independently in 4 weeks by increasing strength to WNL."
+  },
+  {
+    "ADL Type": "Self-feeding",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Shoulder Abduction",
+    "Description": "Have the patient raise their arm out to the side away from their body, keeping the elbow straight, then lower back down. Perform as active ROM, passive ROM, active-assisted ROM, or with weights as appropriate. This promotes upper body strength and ROM needed to bring food and drinks to the mouth and stabilize the arm during feeding.",
+    "Documentation Example": "Patient engaged in Shoulder Abduction activity to improve self-feeding skills. Focus was on increasing strength for functional performance. Activity targeted increasing ROM. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform self-feeding tasks independently in 4 weeks by increasing strength to WNL."
+  },
+  {
+    "ADL Type": "Functional Mobility",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Ambulate around objects",
+    "Description": "Set up cones or chairs spaced apart throughout the room to create a walking course. Have the patient walk with or without their assistive device, navigating around each obstacle. This facilitates turning, navigation with assistive devices, sequencing, and stepping strategies for functional mobility.",
+    "Documentation Example": "Patient engaged in Ambulate around objects activity to improve functional mobility skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform functional mobility tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Functional Mobility",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Stepping over line",
+    "Description": "Place a piece of theraband on the floor in front of the patient. Instruct them to step forward over the line with one foot, then the other. This activity improves step length and lower extremity coordination to decrease fall risk. Progress by placing the theraband laterally for side-stepping practice.",
+    "Documentation Example": "Patient engaged in Stepping over line activity to improve functional mobility skills. Addressed fine/gross motor coordination deficits. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform functional mobility tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Functional Mobility",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Stepping over threshold",
+    "Description": "Place a cane or dowel on the floor to simulate an increased threshold height. Instruct the patient to step forward over the threshold with proper foot clearance and continue walking. Progress by having the patient step over the threshold and practice turning. This facilitates stepping over thresholds in showers or navigating surface changes in the home.",
+    "Documentation Example": "Patient engaged in Stepping over threshold activity to improve functional mobility skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform functional mobility tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Functional Mobility",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Walking with turns",
+    "Description": "Have the patient ambulate forward and practice turning at designated points. Practice both small turns (90 degrees) and larger turns (180 degrees). Assist the patient with proper step sequence and navigation of their assistive device during turns to promote safe functional mobility.",
+    "Documentation Example": "Patient engaged in Walking with turns activity to improve functional mobility skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform functional mobility tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Functional Mobility",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Curb or box steps",
+    "Description": "Position the patient in front of a step or sturdy box. Instruct them to step up with the stronger leg first, bring the other foot up to meet it, then step down with control. Progress to practicing on outdoor curbs to facilitate community mobility. Cue for proper posture and provide appropriate assistance.",
+    "Documentation Example": "Patient engaged in Curb or box steps activity to improve functional mobility skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform functional mobility tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Functional Mobility",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Dual tasking",
+    "Description": "Have the patient perform a cognitive task while walking, such as counting backwards by twos, naming items in a category (colors, foods, animals), or carrying an object like a cup of water. This challenges divided attention and demonstrates skill progression in functional mobility.",
+    "Documentation Example": "Patient engaged in Dual tasking activity to improve functional mobility skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform functional mobility tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Functional Mobility",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Walking with head turns",
+    "Description": "Have the patient walk forward while turning their head side to side on command or at regular intervals. Cue them to maintain their walking trajectory and avoid veering despite the head movements. This challenges vestibular function and simulates looking around while walking in the community.",
+    "Documentation Example": "Patient engaged in Walking with head turns activity to improve functional mobility skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform functional mobility tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Functional Mobility",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Visual scanning activity",
+    "Description": "Place objects around the room or walking path and have the patient scan to locate them while ambulating. Alternatively, while walking through a home or facility, have the patient identify different signs, colors, numbers, or other visual targets. This promotes visual scanning and attention during functional mobility.",
+    "Documentation Example": "Patient engaged in Visual scanning activity activity to improve functional mobility skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform functional mobility tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Functional Mobility",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Walking for item retrieval",
+    "Description": "Set up items across the room on various surfaces. Instruct the patient to walk to an item, pick it up, and carry it to another location or surface. This combines functional mobility with reaching, grasping, and carrying tasks encountered in daily activities.",
+    "Documentation Example": "Patient engaged in Walking for item retrieval activity to improve functional mobility skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform functional mobility tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Functional Mobility",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Walking while holding weight",
+    "Description": "Have the patient hold a weight in one hand while walking across the room. Instruct them to maintain an upright posture and resist the tendency to lean toward the weighted side. This challenges postural control and core stability needed for carrying objects during functional mobility.",
+    "Documentation Example": "Patient engaged in Walking while holding weight activity to improve functional mobility skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform functional mobility tasks independently in 4 weeks with improved dynamic balance to decrease fall risk."
+  },
+  {
+    "ADL Type": "Functional Mobility",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Walking and turning in narrow space",
+    "Description": "Arrange cones or furniture to create a narrow pathway for the patient to walk through. Have them practice walking forward and turning around within the confined space. This simulates navigating tight spaces in the home such as hallways, bathrooms, and between furniture.",
+    "Documentation Example": "Patient engaged in Walking and turning in narrow space activity to improve functional mobility skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform functional mobility tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Functional Mobility",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Walking with resistance",
+    "Description": "Secure a theraband around the patient's waist while standing behind them and holding the ends. Provide resistance as the patient walks forward, cueing them to maintain upright posture and engage their core and glutes. Adjust resistance based on patient tolerance and ability.",
+    "Documentation Example": "Patient engaged in Walking with resistance activity to improve functional mobility skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform functional mobility tasks independently in 4 weeks to improve daily routine efficiency."
+  },
+  {
+    "ADL Type": "Functional Mobility",
+    "Section": "Activities of Daily Living (ADLs)",
+    "Activity": "Walking with poles",
+    "Description": "Have the patient hold a pole or walking stick in each hand while ambulating. Guide them to swing the poles in a reciprocal pattern opposite to their leg movements (left pole forward with right leg). This helps facilitate proper arm swing and promotes a normalized gait pattern.",
+    "Documentation Example": "Patient engaged in Walking with poles activity to improve functional mobility skills. Required min verbal cues for technique and sequencing.",
+    "Goal Example": "Patient will perform functional mobility tasks independently in 4 weeks to improve daily routine efficiency."
+  }
+]

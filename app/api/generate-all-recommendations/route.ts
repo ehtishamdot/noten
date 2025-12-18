@@ -1,5 +1,13 @@
 import { openai } from '@ai-sdk/openai';
 import { generateText } from 'ai';
+import {
+  getTransferActivityForFunctionalSection,
+  getBalanceActivityForSection,
+  getADLActivityForSection,
+  buildTransferCueContext,
+  buildTransferDocContext,
+  buildADLCueContext
+} from '@/lib/ragActivities';
 
 export const runtime = 'edge';
 
@@ -382,9 +390,29 @@ async function generateSubsection(
   
   // Detect context
   const context = detectContext(patientCondition, desiredOutcome, workLife);
-  
+
   // Get context-specific requirements
   const contextualRequirements = getContextualRequirements(section.sectionName, context);
+
+  // Task 2: Build fine-tuning context for cues and documentation based on section type
+  const sectionLower = section.sectionName.toLowerCase();
+  let finetuningContext = '';
+
+  // Add transfer cue/doc context for Functional Activity section
+  if (sectionLower.includes('functional activity')) {
+    finetuningContext = `
+${buildTransferCueContext()}
+
+${buildTransferDocContext()}
+`;
+  }
+
+  // Add ADL cue context for ADL section
+  if (sectionLower.includes('activities of daily living') || sectionLower.includes('adl')) {
+    finetuningContext = `
+${buildADLCueContext()}
+`;
+  }
 
   const prompt = `Generate 1 ${therapyType} treatment subsection for:
 Patient: ${patientCondition}
@@ -411,6 +439,9 @@ CRITICAL RULES:
 6. DO NOT include content from other sections
 7. ${section.sectionName.toLowerCase().includes('environmental') ? 'ENVIRONMENTAL SECTION: Generate EQUIPMENT and HOME SAFETY recommendations ONLY - NO exercises, NO stretches, NO therapeutic activities' : ''}
 ${treatmentProgression ? '8. Address the stalled progress with alternative approaches' : ''}
+
+${finetuningContext ? `=== CUEING AND DOCUMENTATION STYLE GUIDE ===
+${finetuningContext}` : ''}
 
 ${(section.sectionName.toLowerCase().includes('daily living') && /chronic|arthritis|rheumatoid|copd|progressive|fibromyalgia|osteoarthritis/i.test(patientCondition)) ? `
 FOR ADLs (CHRONIC CONDITION) - USE THIS EXACT OUTPUT:
@@ -547,7 +578,41 @@ Return ONLY valid JSON. Include ALL "MUST INCLUDE" items from the requirements.`
 
     const parsed = JSON.parse(cleanedText);
     if (!parsed.title) parsed.title = section.sectionName;
-    
+
+    // Inject RAG activities based on section type and visit type
+    const sectionLower = section.sectionName.toLowerCase();
+
+    // Task 1: Add RAG activities
+    // For Functional Activity section with OT patients - include transfer activity
+    if (sectionLower.includes('functional activity') && visitType === 'OT') {
+      const transferActivity = getTransferActivityForFunctionalSection(visitType as 'PT' | 'OT');
+      if (transferActivity && parsed.exercises) {
+        // Add RAG transfer activity at the beginning to prioritize it
+        parsed.exercises.unshift(transferActivity);
+        console.log(`📋 Added RAG transfer activity: ${transferActivity.name}`);
+      }
+    }
+
+    // For Balance Training section - include balance activity
+    if (sectionLower.includes('balance training')) {
+      const balanceActivity = getBalanceActivityForSection(visitType as 'PT' | 'OT');
+      if (balanceActivity && parsed.exercises) {
+        // Add RAG balance activity at the beginning to prioritize it
+        parsed.exercises.unshift(balanceActivity);
+        console.log(`📋 Added RAG balance activity: ${balanceActivity.name}`);
+      }
+    }
+
+    // For ADL section - include ADL activity
+    if (sectionLower.includes('activities of daily living') || sectionLower.includes('adl')) {
+      const adlActivity = getADLActivityForSection();
+      if (adlActivity && parsed.exercises) {
+        // Add RAG ADL activity at the beginning to prioritize it
+        parsed.exercises.unshift(adlActivity);
+        console.log(`📋 Added RAG ADL activity: ${adlActivity.name}`);
+      }
+    }
+
     console.log(`✅ Generated "${section.sectionName}" with ${parsed.exercises?.length || 0} exercises`);
     return parsed;
   } catch (error: any) {

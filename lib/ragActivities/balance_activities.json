@@ -1,0 +1,362 @@
+[
+  {
+    "Activity": "Alternating Head Turns for Visual Scanning",
+    "Description": "Instruct the patient to stand or sit with an upright posture. Have them slowly turn their head to the left and then to the right, focusing their gaze on specific targets while maintaining their balance.",
+    "Section": "Balance Training",
+    "Downgrade": "Static standing with head turns",
+    "Upgrade/Progression": "Alternate directions (side to side, up down, diagonal); Ambulation while visually scanning environments; Walk around obstacles; Walk forward and backward with head turns",
+    "Cues": "Verbal cues for stop and go intervals; Physical assist for stability with ambulation; Visual cue on wall to promote cervical rotation",
+    "PT Goal": "In order to dual task to further decrease fall risk when out in the community",
+    "OT Goal": "In order to increase visual awareness of environment to decrease the risk of falling"
+  },
+  {
+    "Activity": "Arm Arc",
+    "Description": "Ask the patient to hold an object or clasp their hands together. Instruct them to move their arms in a large arc motion from one side of their body to the other, crossing the midline, while maintaining a stable trunk.",
+    "Section": "Balance Training",
+    "Downgrade": "Supported Seated; Standing with UE support; Lower arc height",
+    "Upgrade/Progression": "Unsupported Seated; Unsupported Standing; Stand on balance pad; Higher arc; Add on wrist weights; Place arc further away from patient to facilitate forward reach/trunk flexion",
+    "Cues": "TC on shoulder for increasing UE ROM; Verbal cues for increasing trunk rotation; Tactile cues/verbal cues for core activation; Physical assist on pelvic girdle for stability",
+    "PT Goal": "In order to improve core strength to improve posture and gait",
+    "OT Goal": "In order to increase balance and UE ROM for dressing task"
+  },
+  {
+    "Activity": "Backwards Step",
+    "Description": "Instruct the patient to stand with feet hip-width apart. Have them take a controlled step backward with one foot, shifting their weight onto the back leg, then return to the starting position.",
+    "Section": "Balance Training",
+    "Downgrade": "Decrease Step length; Upper extremity support",
+    "Upgrade/Progression": "Backwards lunge with hold; Walk backwards; Backwards step with backwards reach; Backwards step with forward reach",
+    "Cues": "Tactile cues at glutes for pelvic extension",
+    "PT Goal": "In order to improve knee extension to improve gait pattern",
+    "OT Goal": "In order to maximize safety with turning/stepping/righting reactions during toileting, dressing, meal prep"
+  },
+  {
+    "Activity": "Balloon Tap",
+    "Description": "Have the patient stand or sit and tap a balloon into the air, keeping it from touching the ground. Instruct them to use alternating hands and reach in different directions to challenge their stability.",
+    "Section": "Balance Training",
+    "Downgrade": "Sitting; AAROM; Unilateral UE support; Using racket; Balloon tap to wall if increase physical assistance is needed",
+    "Upgrade/Progression": "Standing on balance pad; Single leg stance; Balloon tap towards specific targets on wall; With weighted dowel facilitated bilateral integration",
+    "Cues": "Tactile cues for posture; Verbal cues for alternating UE; Verbal cues for elbow extension",
+    "PT Goal": "In order to improve core strength to improve posture and decrease fall risk",
+    "OT Goal": "In order to facilitate righting reactions to reduce falls risk; In order to increase gross motor coordination/hand eye coordination"
+  },
+  {
+    "Activity": "Ball Toss",
+    "Description": "Stand opposite the patient or have them face a wall. Instruct the patient to catch and toss a ball, focusing on hand-eye coordination and weight shifting, varying the speed and direction to increase difficulty.",
+    "Section": "Balance Training",
+    "Downgrade": "Ball toss to wall if physical assistance is needed; Seated; Ball bounce decrease UE strength and coordination; Underhand throw",
+    "Upgrade/Progression": "Unsupported sitting; Ball toss with step forward; Increase distance",
+    "Cues": "Physical assistance for loss of balance when reaching moderately out of BOS; Tactile Cues on elbow for extension and follow through; Verbal cues for trunk extension; Tactile cues on spine for posture",
+    "PT Goal": "In order to work on ankle and hip strategies to decrease fall risk",
+    "OT Goal": "In order to facilitate righting reactions to reduce falls risk; In order to increase UE coordination for UB dressing"
+  },
+  {
+    "Activity": "Boxing",
+    "Description": "Instruct the patient to stand with a stable base of support. Have them perform punching motions with alternating arms, extending towards imaginary targets, encouraging trunk rotation with each punch.",
+    "Section": "Balance Training",
+    "Downgrade": "Sitting; Slow speed; 1 UE at a time",
+    "Upgrade/Progression": "Add weights in hands; Increase intensity and/or speed of punching; Add in core with rotating lower body",
+    "Cues": "Verbal cues to keep core tight during punching; Visual cues to rotate lower extremity during the punch",
+    "PT Goal": "In order to improve endurance to perform functional activities without restriction",
+    "OT Goal": "In order to improve gross motor coordination and trunk rotation to prevent future falls"
+  },
+  {
+    "Activity": "Box steps",
+    "Description": "Place a low step or box in front of the patient. Instruct them to step up onto the box with one foot, followed by the other, and then step down backward, ensuring they place their entire foot on the box.",
+    "Section": "Balance Training",
+    "Downgrade": "Decrease box height; Alternating toe taps",
+    "Upgrade/Progression": "Increase box height; Lateral box step ups; Stand positioned on balance pad and step up to box; UE support on counter; UE support on cane; No UE support",
+    "Cues": "Tactile cues for glute activation; Tactile cues for lumbar extension",
+    "PT Goal": "In order to increase lower extremity strength to ascend/descend stairs to get to her upstairs bedroom",
+    "OT Goal": "In order to improve coordination to step up to curb to resume community outing"
+  },
+  {
+    "Activity": "Cone Taps",
+    "Description": "Place cones in a semi-circle around the patient. Instruct them to stand on one leg or maintain a fixed stance and reach with their foot to gently tap the top of each cone before returning to the center.",
+    "Section": "Balance Training",
+    "Downgrade": "Sitting; Use flat threshold to tap; 1 LE at a time",
+    "Upgrade/Progression": "Standing; Unsupported sitting; Decrease UE support; Alternating LE; Stand on balance pad; Add ankle weights or theraband for resistance",
+    "Cues": "Tactile cues at hips for weight shifting; Physical assist secondary to LOB to the right with LLE tapping; Tactile cues at scapula for posture; Verbal cues for lifting strategies",
+    "PT Goal": "In order to work on one leg stance to decrease fall risk during ambulation",
+    "OT Goal": "In order to improve LE strength, ROM and coordination to donn shoes and socks or thread LE to donn pants"
+  },
+  {
+    "Activity": "Forward Cross taps",
+    "Description": "Instruct the patient to stand and lift one knee while reaching with the opposite hand to tap the knee. Have them alternate sides in a rhythmic pattern, keeping their chest up and core engaged.",
+    "Section": "Balance Training",
+    "Downgrade": "UE support; Decrease step distance",
+    "Upgrade/Progression": "Increase step distance with use of visual cue; Decreased UE support; Add reach across midline with step",
+    "Cues": "Verbal cues to increase step length; Tactile cues at hip for facilitating cross step; Visual cue for increased step length across midline",
+    "PT Goal": "In order to help patient self correct if loses balance while ambulating around home",
+    "OT Goal": "In order to facilitate stepping outside of base of support to develop righting reactions to prevent future falls with ADL"
+  },
+  {
+    "Activity": "Forward Stepping",
+    "Description": "Instruct the patient to take a step forward with one foot, shifting their weight onto the front leg. Have them hold the position briefly before pushing back to the starting position, focusing on step length and heel strike.",
+    "Section": "Balance Training",
+    "Downgrade": "Increase UE support, step towards target for visual cue",
+    "Upgrade/Progression": "Forward step over line; Increase height of threshold; Forward step with reach; Forward step onto balance pad; Decrease UE support; BIG forward step; While holding an object/weight",
+    "Cues": "Tactile cues at scapula for posture; Verbal cues for sequencing; Verbal cues for increasing step length/amplitude; Physical assist to advance LE; Physical assist at pelvic girdle for stability",
+    "PT Goal": "In order to increase step height and step length to decrease foot drag during gait",
+    "OT Goal": "In order to increase step length during functional mobility to dining room to decrease falls risk"
+  },
+  {
+    "Activity": "Heel raises/Anterior Weight shifts",
+    "Description": "Instruct the patient to stand near a support if needed. Have them slowly lift both heels off the ground, shifting weight onto the balls of their feet, then lower back down with control.",
+    "Section": "Balance Training",
+    "Downgrade": "BUE support",
+    "Upgrade/Progression": "Anterior WS with item retrieval in overhead cabinet; Standing on balance pad; Add reach; Decrease UE support; Increase speed to emphasize quick WS and righting reactions",
+    "Cues": "Tactile facilitation at anterior trunk; Tactile cues at anterior chest wall (ACW) for posture",
+    "PT Goal": "In order to increase plantar flexion strength which has been shown to decrease fall risk during gait",
+    "OT Goal": "Pt performed anterior weight shifts in order to improve safety with item retrieval overhead for ADL"
+  },
+  {
+    "Activity": "Kicks",
+    "Description": "Instruct the patient to stand on one leg while kicking the other leg forward or to the side. Have them maintain an upright trunk and avoid leaning excessively, using a target for goal-directed movement.",
+    "Section": "Balance Training",
+    "Downgrade": "Low kicks; 1 LE at a time",
+    "Upgrade/Progression": "Alternating LE; Kick over an obstacle; Kick a target such as punching bag or pillow",
+    "Cues": "Tactile cues at core to activate core muscles for balance; Verbal cues to decrease posterior lean; Visual target to increase height of kick",
+    "PT Goal": "In order to increase hip abduction strength to decrease low back pain",
+    "OT Goal": "In order to promote single leg stance and LE coordination to reduce falls risk with ADL"
+  },
+  {
+    "Activity": "Lateral Side Bends",
+    "Description": "Instruct the patient to stand with feet shoulder-width apart. Have them slowly slide one hand down the side of their leg, bending the trunk laterally, then return to upright without leaning forward or backward.",
+    "Section": "Balance Training",
+    "Downgrade": "Unilateral UE support; Sitting on armless chair and reaching towards cone",
+    "Upgrade/Progression": "Add 2lb weights; Side bend with reach to lateral target; No UE support",
+    "Cues": "Visual cue on side of LE to lean towards; Verbal cues for lateral trunk flexion",
+    "PT Goal": "In order to increase oblique strength to bend and twist without pain or restriction",
+    "OT Goal": "In order to increase stability and lateral trunk flexion to dress LB"
+  },
+  {
+    "Activity": "Marching",
+    "Description": "Instruct the patient to march in place, lifting knees high towards the chest. Encourage a rhythmic pace and opposing arm swings, ensuring they maintain a stable upright posture.",
+    "Section": "Balance Training",
+    "Downgrade": "March with UE support; Seated march",
+    "Upgrade/Progression": "March sequence with punch (overhead, forward, cross); March with cone tap; Walk with march forward; Interval training alternating fast and slow speeds for endurance",
+    "Cues": "Verbal/Tactile cues to increase knee height; Verbal cues for pacing",
+    "PT Goal": "In order to increase hip flexor strength to improve step height during ambulation",
+    "OT Goal": "In order to improve LE coordination and balance for functional mobility to dining room, bathroom, bedroom, etc"
+  },
+  {
+    "Activity": "Mini Squats",
+    "Description": "Instruct the patient to stand with feet hip-width apart and hold a stable surface if needed. Have them slowly bend their knees and hips as if sitting in a chair, then return to standing, keeping weight in their heels.",
+    "Section": "Balance Training",
+    "Downgrade": "Slight bend in knees; BUE support",
+    "Upgrade/Progression": "Add forward punch; Squat hold; Squat with side step",
+    "Cues": "Verbal cues for trunk extension; Verbal cues for body mechanics; Physical assist at pelvic girdle for LOB; Tactile cues at knees to facilitate bend",
+    "PT Goal": "In order to increase LE strength to stand up from a chair",
+    "OT Goal": "In order to increase LE strength and balance for toilet transfers"
+  },
+  {
+    "Activity": "Reactive Balance",
+    "Description": "Stand safely behind or beside the patient and apply gentle, unexpected nudges to their trunk. Instruct the patient to maintain their position and recover their balance without taking a step if possible.",
+    "Section": "Balance Training",
+    "Downgrade": "Standing with BUE or UUE support; Sitting edge of mat or chair; Standing in wide base of support",
+    "Upgrade/Progression": "Sitting on balance disc or pad; Decreasing UE support; Standing on balance disc or pad; Standing in single leg stance; Standing in narrow base of support; Add reach",
+    "Cues": "Tactile facilitation on back/spine/shoulder girdle for postural adjustments; Verbal cues for positioning; Physical A on pelvic girdle of hips for stability; Cues for bracing; Education on ankle strategies",
+    "PT Goal": "In order to improve reactive balance to decrease fall risk with functional activities",
+    "OT Goal": "In order to facilitate righting reactions to prevent falling during ADL"
+  },
+  {
+    "Activity": "Ring Toss",
+    "Description": "Set up a target pole or cone at a distance. Instruct the patient to stand at a designated line and toss rings onto the target, encouraging them to shift their weight and use trunk rotation.",
+    "Section": "Balance Training",
+    "Downgrade": "Seated; Unilateral UE support; Move box/target closer",
+    "Upgrade/Progression": "Increase distance; Add wrist weights; Toss towards cards to add up to",
+    "Cues": "Tactile cues on hand to facilitate drop for improved coordination; Physical assist on UE for follow through",
+    "PT Goal": "In order to improve standing tolerance to stand at the counter without restriction",
+    "OT Goal": "In order to facilitate standing balance, gross motor coordination, and/or UE ROM for meal prep, toileting, dressing, etc "
+  },
+  {
+    "Activity": "Side Step",
+    "Description": "Instruct the patient to take a step to the side with one foot, then bring the other foot to meet it. Have them continue stepping laterally in one direction, then return in the opposite direction, keeping toes forward.",
+    "Section": "Balance Training",
+    "Downgrade": "Standing with UE support on parallel bars or counter ",
+    "Upgrade/Progression": "Side step over theraband; Side step over cone or raised threshold; No UE support; Side step with quarter turn",
+    "Cues": "Physical assist to decrease LOB; Verbal/tactile cues for posture",
+    "PT Goal": "To increase hip abduction strength to improve stability during ambulation",
+    "OT Goal": "To promote hip abduction for improving functional mobility/navigation of bathroom, kitchen, dining room "
+  },
+  {
+    "Activity": "Static Stand with head turns",
+    "Description": "Instruct the patient to stand with feet together or in tandem. Have them turn their head side to side or look up and down while maintaining their foot position and balance.",
+    "Section": "Balance Training",
+    "Downgrade": "Supported standing; Stand in wide base of support (WBOS)",
+    "Upgrade/Progression": "Standing on balance pad; No UE support; Stand in narrow base of support (NBOS); Vision Occluded",
+    "Cues": "Verbal cues for head control; Physical assist for cervical rotation",
+    "PT Goal": "In order to increase neck rotation to look both ways when crossing the street",
+    "OT Goal": "In order to increase awareness with visually scanning environment while maintaining balance to decrease falls risk and maximize safety "
+  },
+  {
+    "Activity": "Trunk Rotation",
+    "Description": "Instruct the patient to stand or sit with arms crossed over their chest. Have them rotate their upper body to look over one shoulder, then rotate to the other side, ensuring the movement comes from the spine.",
+    "Section": "Balance Training",
+    "Downgrade": "Sitting unsupported on mat if unable to stand; Unilateral UE supported",
+    "Upgrade/Progression": "Utilizing 2lb; Trunk rotation with item retrieval/reaching task; Narrow BOS; Single leg stance; Standing on balance pad",
+    "Cues": "Physical Assist on pelvic girl to facilitate rotation; Verbal cues for head movements; Verbal cues for trunk control",
+    "PT Goal": "In order to increase core strength to improve stability during functional tasks",
+    "OT Goal": "In order to increase trunk mobility and cervical rotation for posterior reach for toileting, bathing, or dressing "
+  },
+  {
+    "Activity": "Windmills",
+    "Description": "Instruct the patient to stand with feet wide apart and arms extended to the sides. Have them bend forward and rotate to touch one hand to the opposite foot, then return to standing.",
+    "Section": "Balance Training",
+    "Downgrade": "Reach across midline towards knee; Reach down towards cone or raised threshold on floor; U/UE support",
+    "Upgrade/Progression": "Reach across midline towards floor; Standing on balance pad; Standing with eyes closed; Call out sides; Heel raise between each rep",
+    "Cues": "Tactile cues on shin, ankle, etc. to promote increased ROM; Tactile cues on shoulder girdle to return to \"T\" position; Physical assist on pelvic girdle for stability; Verbal cues for maximizing ROM",
+    "PT Goal": "In order to increase hamstring flexibility to improve pelvic mobility and decrease back pain",
+    "OT Goal": "In order to improve coordination and UE ROM for LB dressing "
+  },
+  {
+    "Activity": "Unsupported Standing",
+    "Description": "Instruct the patient to stand without holding onto any support surface. Have them maintain this position for a set time, focusing on postural alignment and stability.",
+    "Section": "Balance Training",
+    "Downgrade": "Standing with UE supported; Eyes open; Wide base of support (WBOS)",
+    "Upgrade/Progression": "Vision occluded; Add head turns; Narrow base of support (NBOS); Stand on balance pad",
+    "Cues": "Physical assist on pelvic girdle; Verbal cues/tactile cues for posture",
+    "PT Goal": "In order to improve standing tolerance and endurance to perform morning activities without restriction",
+    "OT Goal": "In order to reduce falls risk with dressing, toileting, showering, etc "
+  },
+  {
+    "Activity": "Up and Overs",
+    "Description": "Place a small obstacle or line on the floor. Instruct the patient to step over the obstacle sideways or forwards, lifting the foot high to clear it before transferring weight.",
+    "Section": "Balance Training",
+    "Downgrade": "Seated; Lower or flat threshold; UE support",
+    "Upgrade/Progression": "Increase threshold height; Decrease UE support",
+    "Cues": "Verbal/visual cues for ankle, hip strategies; Physical assist on hips or pelvic girdle for stability; Verbal cues for increasing knee flexion; Verbal cues for increasing hip flexion",
+    "PT Goal": "In order to increase hip/knee/ankle strength to decrease pain/or to improve stability during ambulation",
+    "OT Goal": "In order to step in/out of shower/shower tub; In order to increase LE coordination for car transfers to resume community outing "
+  },
+  {
+    "Activity": "Step to colored spots",
+    "Description": "Place colored markers on the floor in a pattern. Instruct the patient to step onto specific colors as called out, encouraging accurate foot placement and weight shifting.",
+    "Section": "Balance Training",
+    "Downgrade": "Decreased step length (position spots closer together); BUE support",
+    "Upgrade/Progression": "Add more colored spots; Decrease UE support; Increase step length; Add ankle weights; Position spots for diagonal step, cross step to spots or posterior step to spots",
+    "Cues": "Verbal cues to increase step length; Verbal cues for heel strike on spot; Physical assist at hips for stability or weight shift",
+    "PT Goal": "In order to decrease fall risk when changing directions during ambulation",
+    "OT Goal": "In order to facilitate righting reactions for safety with functional mobility in bathroom for toileting "
+  },
+  {
+    "Activity": "Step in Tandem",
+    "Description": "Instruct the patient to place one foot directly in front of the other, heel to toe. Have them walk forward in a straight line maintaining this narrow base of support.",
+    "Section": "Balance Training",
+    "Downgrade": "Forward stepping with heel to toe alignment without touching; Bilateral UE support",
+    "Upgrade/Progression": "Walk in tandem or \"tightrope\" walk; Step on line in tandem; Decrease UE support; Step over lines while in tandem",
+    "Cues": "Verbal/visual cues to touch heel to toe; Physical assist at pelvic girdle or hips for stability",
+    "PT Goal": "In order to decrease fall risk ambulating a narrow space",
+    "OT Goal": "In order to increase safety with functional mobility to resume community outing "
+  },
+  {
+    "Activity": "Ball side to side taps",
+    "Description": "Have the patient hold a ball with both hands. Instruct them to tap the ball to a target on their left, then to a target on their right, encouraging trunk rotation and weight shifting.",
+    "Section": "Balance Training",
+    "Downgrade": "Without ball and tap therapists hand; Wider BOS; Tapping to raised surface",
+    "Upgrade/Progression": "Light weight ball; Using different sized balls; Using a weighted ball; Changing BOS (NBOS, tandem, single leg stance)",
+    "Cues": "Verbal cues to tap floor and come up to erect standing; Tactile cues to engage core",
+    "PT Goal": "In order to increase oblique strength for dynamic functional activities",
+    "OT Goal": "In order to increase trunk mobility for independence with toileting "
+  },
+  {
+    "Activity": "Walk forward and backward while rolling a ball",
+    "Description": "Instruct the patient to walk forward and backward while rolling a ball against a wall with their hands. Encourage them to match their walking speed with the ball movement.",
+    "Section": "Balance Training",
+    "Downgrade": "Only ambulate 1 direction; Static stand; Small ball; Using UE support",
+    "Upgrade/Progression": "Using a larger ball; No UE support; Adding a cognitive task",
+    "Cues": "Verbal cues to not kick the ball but to roll it while walking; Physical assist secondary to LOB laterally while foot was on the ball",
+    "PT Goal": "In order to improve single leg stance to decrease fall risk with stance phase during gait",
+    "OT Goal": "In order to improve single leg stance to donn/doff pants for independence with LB dressing "
+  },
+  {
+    "Activity": "Circle ball around head",
+    "Description": "Instruct the patient to hold a ball with both hands. Have them move the ball in a circular motion around their head, maintaining a stable trunk and head position.",
+    "Section": "Balance Training",
+    "Downgrade": "Using a non-weighted ball; Increased BOS; Keeping the ball close to the head",
+    "Upgrade/Progression": "Adding perturbations; Using a weighted ball; Changing BOS (NBOS, Tandem, SLS); Making the circle bigger to change COG",
+    "Cues": "Verbal cues to not move body but to stay upright; Tactile cues to engage obliques",
+    "PT Goal": "In order to engage core to decrease fall risk with dynamic activities",
+    "OT Goal": "In order to increase stability and UE ROM for independence with grooming "
+  },
+  {
+    "Activity": "LE Sliders",
+    "Description": "Place a slider or towel under one foot. Instruct the patient to slide that foot forward, backward, or sideways while keeping weight on the stationary leg and controlling the return.",
+    "Section": "Balance Training",
+    "Downgrade": "Use towel; Decrease ROM; Slide LE in one direction/plane at a time",
+    "Upgrade/Progression": "Add ankle weights; Stand unilaterally on balance pad while opposite foot is placed over slider or towel on floor; Decrease UE support and hold arms out in \"T\"; Add more planes",
+    "Cues": "Verbal/visual cues for increasing LE ROM, hip mobility; Tactile facilitation at knee on sliding LE to keep extend at end range",
+    "PT Goal": "In order to improve single leg stance to decrease fall risk with stance phase during gait",
+    "OT Goal": "In order to improve balance and LE coordination with tub transfers "
+  },
+  {
+    "Activity": "Reaching high and low",
+    "Description": "Place objects at different heights or call out targets. Instruct the patient to reach up high and then down low in an alternating pattern, encouraging full body extension and flexion.",
+    "Section": "Balance Training",
+    "Downgrade": "Decreased ROM; Reduce squat",
+    "Upgrade/Progression": "Decrease BOS; Use target to reach towards to promote reach outside of BOS; Add item to retrieve in both directions",
+    "Cues": "Physical assistance at hips to promote safety with weight shift to reach outside of BOS; Verbal/visual cues for body mechanics",
+    "PT Goal": "In order to reach in cabinet and retrieve cup",
+    "OT Goal": "In order to put away groceries "
+  },
+  {
+    "Activity": "Ball Roll with Foot",
+    "Description": "Instruct the patient to place one foot on a ball. Have them roll the ball forward, backward, and side-to-side using only that foot, focusing on single-leg stability on the standing leg.",
+    "Section": "Balance Training",
+    "Downgrade": "Decreased ROM; UE support",
+    "Upgrade/Progression": "Larger ROM; With UE movements",
+    "Cues": "Physical assist at hips to weight shift over supporting LE; Tactile cues at core to facilitate activation",
+    "PT Goal": "In order to improve single leg stand to decrease fall risk during ambulation",
+    "OT Goal": "In order to improve righting reactions to decrease falls risk with knee extension while donn/doff pants "
+  },
+  {
+    "Activity": "Lateral Side Bends with Foot on Ball / Trunk Rotation with Foot on Ball",
+    "Description": "Instruct the patient to place one foot on a stable ball or step. Have them perform lateral side bends or trunk rotations while maintaining this staggered stance.",
+    "Section": "Balance Training",
+    "Downgrade": "Foot on Step; With UE support",
+    "Upgrade/Progression": "Increase ROM of UE; Larger ball",
+    "Cues": "Manual facilitation to UE for larger ROM; Tactile cues at hips to keep them straight",
+    "PT Goal": "In order to increase functional core strength to improve balance during dynamic activities",
+    "OT Goal": "In order to improve weight shifting and righting reactions in single leg stance to donn/doff pants "
+  },
+  {
+    "Activity": "Step with Rotation",
+    "Description": "Instruct the patient to take a step forward. As they land, have them rotate their trunk and arms towards the side of the lead leg, then push back to start.",
+    "Section": "Balance Training",
+    "Downgrade": "Decreased step length; With 1 UE support; Without holding a ball",
+    "Upgrade/Progression": "Stepping onto an unsteady surface; Increase trunk rotation; Use a weighted ball",
+    "Cues": "Verbal cues to rotate over front LE; Visual cues on floor to increase step length",
+    "PT Goal": "In order to improve trunk rotation during ambulation",
+    "OT Goal": "In order to improve balance while shopping or meal prep "
+  },
+  {
+    "Activity": "Rowing in Tandem Stance",
+    "Description": "Instruct the patient to stand with one foot in front of the other (tandem). Have them perform a rowing motion with their arms, focusing on maintaining the narrow stance while the upper body moves.",
+    "Section": "Balance Training",
+    "Downgrade": "Wide base of support; Decrease rowing ROM",
+    "Upgrade/Progression": "Vision occluded",
+    "Cues": "Verbal cues to weight bear on B/L full foot; Verbal cues for ankle strategy with loss of balance",
+    "PT Goal": "In order to increase core strength to improve upright posture during ambulation",
+    "OT Goal": "In order to increase safety and balance while reaching overhead to put dishes away "
+  },
+  {
+    "Activity": "Bowling Simulation",
+    "Description": "Instruct the patient to mimic a bowling motion by stepping forward with one foot and swinging the opposite arm forward. Return to the start and repeat, focusing on the fluidity of the movement.",
+    "Section": "Balance Training",
+    "Downgrade": "Decreased step length; Without an object in hand",
+    "Upgrade/Progression": "With a weight in hand; Stepping onto an unsturdy surface; Increase step length",
+    "Cues": "Tactile cues to keep chest elevated; Verbal cues to shift weight onto stepping LE",
+    "PT Goal": "In order to improve coordination of UE swing during ambulation",
+    "OT Goal": "In order to facilitate righting reactions, weight shifting and coordination required for dressing "
+  },
+  {
+    "Activity": "Side Step with Arm Arc",
+    "Description": "Instruct the patient to take a side step while simultaneously sweeping their arms in a large arc overhead. Coordinate the arm and leg movements to challenge dynamic balance.",
+    "Section": "Balance Training",
+    "Downgrade": "Without stepping; Decrease UE ROM",
+    "Upgrade/Progression": "Increase step length; Increase speed",
+    "Cues": "Verbal cues for coordination of UE and LE; Tapping of obliques to facilitate contraction of muscle",
+    "PT Goal": "In order to increase strength of obliques to improve posture during ambulation",
+    "OT Goal": "In order to increase balance and coordination to place items away in cabinet "
+  }
+]
