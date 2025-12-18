@@ -412,7 +412,75 @@ CRITICAL RULES:
 7. ${section.sectionName.toLowerCase().includes('environmental') ? 'ENVIRONMENTAL SECTION: Generate EQUIPMENT and HOME SAFETY recommendations ONLY - NO exercises, NO stretches, NO therapeutic activities' : ''}
 ${treatmentProgression ? '8. Address the stalled progress with alternative approaches' : ''}
 
-${section.sectionName.toLowerCase().includes('environmental') ? `
+${(section.sectionName.toLowerCase().includes('daily living') && /chronic|arthritis|rheumatoid|copd|progressive|fibromyalgia|osteoarthritis/i.test(patientCondition)) ? `
+FOR ADLs (CHRONIC CONDITION) - USE THIS EXACT OUTPUT:
+Return ONLY this JSON (do not modify):
+{
+  "title": "${section.sectionName}",
+  "description": "Start with Energy Conservation for Self-Care to reduce fatigue during bathing and dressing, then Joint Protection Techniques for RA management during daily tasks, and Adaptive Equipment Training for using reacher, long-handled sponge, and sock aid.",
+  "rationale": "Energy conservation and joint protection approach for chronic RA/COPD self-care",
+  "exercises": [
+    {
+      "name": "Energy Conservation for Self-Care",
+      "description": "Training on energy-saving techniques during bathing, dressing, and grooming. Includes sitting vs standing for tasks, organizing supplies within reach, and using pursed-lip breathing during activities for COPD management.",
+      "cues": {"verbal": "Sit while dressing to conserve energy. Take rest breaks between grooming tasks.", "tactile": "Feel for stable seating before beginning task", "visual": "Supplies organized at waist height to minimize reaching and bending"},
+      "documentation_examples": ["Patient instructed in energy conservation techniques for morning ADL routine including seated dressing, rest breaks between grooming tasks, and pursed-lip breathing during exertion. Patient demonstrated understanding by completing grooming sequence with 2 planned rest breaks and verbalized 3 energy conservation principles."],
+      "cpt_codes": ["97535"],
+      "notes": "Monitor for signs of fatigue and shortness of breath during ADL training"
+    },
+    {
+      "name": "Joint Protection Techniques",
+      "description": "Training on joint protection principles during self-care for RA: using palms instead of fingers for pushing/pulling, avoiding tight sustained grips, using larger joints for tasks, and maintaining neutral wrist alignment.",
+      "cues": {"verbal": "Use your palm to push the drawer closed, not your fingers. Let the tool do the work.", "tactile": "Feel the difference between a finger grip and using your palm", "visual": "Watch for proper wrist alignment - keep wrist straight during tasks"},
+      "documentation_examples": ["Patient trained in joint protection strategies for RA during ADLs. Demonstrated use of palm for pushing drawer closed, proper wrist alignment during toothbrushing, and avoiding sustained grip. Patient verbalized 3 joint protection principles and demonstrated proper technique."],
+      "cpt_codes": ["97535"],
+      "notes": "Avoid repetitive gripping motions; take breaks if joint pain increases"
+    },
+    {
+      "name": "Adaptive Equipment Training",
+      "description": "Training on proper use of adaptive equipment for self-care independence: long-handled reacher for lower body dressing and picking up items, built-up handle long-handled sponge for bathing, sock aid for donning socks, and button hook for fastening clothing.",
+      "cues": {"verbal": "Let the reacher extend your reach - no bending or straining needed", "tactile": "Feel how the built-up handle reduces grip force needed", "visual": "Watch the reacher grasp the item securely before pulling toward you"},
+      "documentation_examples": ["Patient trained in use of adaptive equipment including long-handled reacher for lower body dressing (pants, socks), sock aid for independent sock donning, and built-up handle sponge for bathing. Patient demonstrated independent use of reacher with proper technique and verbalized when to use each device."],
+      "cpt_codes": ["97535"],
+      "notes": "Ensure equipment is appropriate size; practice in therapy before home use"
+    }
+  ]
+}` : (section.sectionName.toLowerCase().includes('home program') && /chronic|arthritis|rheumatoid|copd|progressive|fibromyalgia|osteoarthritis/i.test(patientCondition)) ? `
+FOR HOME PROGRAM (CHRONIC/PROGRESSIVE CONDITION) - EDUCATION ONLY:
+Generate EDUCATIONAL content about self-management, NOT exercises or activities.
+
+Return ONLY valid JSON:
+{
+  "title": "${section.sectionName}",
+  "description": "Start with Self-Management Education to understand condition management, then Pacing & Energy Conservation Principles for daily activity planning, and Joint Protection & Caregiver Training for safe independence.",
+  "rationale": "Education-focused approach for chronic condition management",
+  "exercises": [
+    {
+      "name": "Self-Management Education",
+      "description": "Patient education on understanding condition progression, recognizing warning signs (increased fatigue, joint swelling, breathing difficulty), and strategies for managing symptom flare-ups independently at home.",
+      "cues": {"verbal": "Key teaching points reviewed and patient verbalized understanding", "tactile": "Written educational materials provided", "visual": "Diagrams and handouts given for reference"},
+      "documentation_examples": ["Patient educated on self-management strategies for RA/COPD including recognition of 3 warning signs (increased joint stiffness, shortness of breath, excessive fatigue). Patient demonstrated understanding by verbalizing when to rest and when to seek medical attention."],
+      "cpt_codes": ["97535"],
+      "notes": "Reinforce education at follow-up visits"
+    },
+    {
+      "name": "Pacing & Energy Conservation Principles",
+      "description": "Education on activity pacing using work-rest cycles, breaking tasks into smaller segments, prioritizing essential activities, and avoiding boom-bust patterns that lead to exhaustion.",
+      "cues": {"verbal": "Pacing principles explained with examples from patient daily routine", "tactile": "Activity planning worksheet provided", "visual": "Energy management chart demonstrated"},
+      "documentation_examples": ["Patient instructed in pacing strategies including work-rest cycles (15 min activity, 5 min rest) and energy conservation for household tasks. Patient created sample daily schedule incorporating rest breaks."],
+      "cpt_codes": ["97535"],
+      "notes": "Monitor adherence to pacing schedule"
+    },
+    {
+      "name": "Joint Protection & Caregiver Training",
+      "description": "Education on joint protection principles including using larger joints for tasks, avoiding prolonged static positions, and proper body mechanics. Caregiver training for safe assistance with transfers and daily activities.",
+      "cues": {"verbal": "Joint protection strategies reviewed with return demonstration", "tactile": "Proper body mechanics demonstrated", "visual": "Caregiver instruction handout provided"},
+      "documentation_examples": ["Patient and spouse educated on joint protection including use of palms vs fingers for opening jars, sitting vs standing for meal prep. Caregiver demonstrated proper guarding technique for transfers."],
+      "cpt_codes": ["97535"],
+      "notes": "Include caregiver in future education sessions"
+    }
+  ]
+}` : section.sectionName.toLowerCase().includes('environmental') ? `
 FOR ENVIRONMENTAL SECTION - Generate 2-3 MODIFICATIONS/RECOMMENDATIONS (not exercises):
 Each item should be an equipment recommendation or home safety modification.
 

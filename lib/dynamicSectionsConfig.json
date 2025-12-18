@@ -196,7 +196,7 @@
       "sectionName": "Therapeutic Exercise & Strengthening",
       "visibility": "ALWAYS_ON",
       "triggerRule": "Crucial for maintaining function and preventing atrophy.",
-      "contentGuidelines": "General conditioning, functional strengthening."
+      "contentGuidelines": "General whole-body conditioning, low-intensity strengthening for large muscle groups, endurance enhancement. NOT fine motor or hand-only exercises."
     },
     {
       "patientType": "Chronic or Progressive (Neuro/Ortho)",
@@ -214,7 +214,7 @@
       "sectionName": "Functional Activity",
       "visibility": "ALWAYS_ON",
       "triggerRule": "Focus on maintaining independence.",
-      "contentGuidelines": "Sit-to-stand, functional walking, community mobility, navigation."
+      "contentGuidelines": "Sit-to-stand transfers, functional walking/ambulation, community mobility (grocery trips, navigation), NOT fine motor or UE-focused tasks."
     },
     {
       "patientType": "Chronic or Progressive (Neuro/Ortho)",
@@ -223,7 +223,7 @@
       "sectionName": "Activities of Daily Living (ADLs)",
       "visibility": "ALWAYS_ON",
       "triggerRule": "Focus on energy conservation and joint protection.",
-      "contentGuidelines": "Energy conservation (COPD/CHF), Joint protection (RA), Adaptive equipment."
+      "contentGuidelines": "Energy conservation techniques (COPD/CHF), Joint protection strategies (RA), Adaptive equipment (reacher, long-handled sponge, button hook)."
     },
     {
       "patientType": "Chronic or Progressive (Neuro/Ortho)",
@@ -231,8 +231,8 @@
       "discipline": "OT Only",
       "sectionName": "Cognitive & Executive Function",
       "visibility": "CONDITIONAL",
-      "triggerRule": "Trigger if condition has cognitive components (MS, Parkinson's, Dementia).",
-      "contentGuidelines": "OT Focus: Attention, working memory, sequencing, problem solving, initiation, safety awareness."
+      "triggerRule": "SHOW/ON ONLY if Patient_Diagnosis includes: Multiple Sclerosis (MS), Parkinson's Disease, Alzheimer's Disease, Vascular Dementia, Frontotemporal Dementia, or any equivalent cognitive condition mentioned in patient history. Otherwise HIDE.",
+      "contentGuidelines": "OT Focus: Attention, working memory, sequencing, problem solving, initiation, safety awareness (e.g., medication management routines)."
     },
     {
       "patientType": "Chronic or Progressive (Neuro/Ortho)",
@@ -268,7 +268,7 @@
       "sectionName": "Home Program & Education",
       "visibility": "ALWAYS_ON",
       "triggerRule": "Focus on self-management.",
-      "contentGuidelines": "Self-management strategies, Caregiver HEP."
+      "contentGuidelines": "EDUCATION FOCUS (not exercises): Pacing strategies education, energy conservation techniques teaching, joint protection principles, self-management education, Caregiver training and HEP instruction. Must include educational components, NOT just activities."
     },
     {
       "patientType": "Functional or Development Support (Peds)",
@@ -505,4 +505,3 @@
     "cognitive": "Cognitive & Safety Management"
   }
 }
-

@@ -30,7 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (name: string, email: string): Promise<LoginResponse> => {
-    const response = await noteNinjasAPI.login(name, email);
+    const response = await noteNinjasAPI.login(email);
     setUser(response.user);
     return response;
   };

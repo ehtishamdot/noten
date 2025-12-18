@@ -1,5 +1,6 @@
 import { openai } from '@ai-sdk/openai';
 import { generateText } from 'ai';
+import { parseJsonSafe } from '@/lib/jsonUtils';
 
 export const runtime = 'edge';
 
@@ -132,25 +133,20 @@ Return ONLY JSON. Make cues detailed and comprehensive. Documentation examples M
       temperature: 0.8,
     });
 
-    // Parse the generated text as JSON
-    let cleanedText = result.text.trim();
-    if (cleanedText.startsWith('```json')) {
-      cleanedText = cleanedText.replace(/^```json\s*/, '').replace(/```\s*$/, '');
-    } else if (cleanedText.startsWith('```')) {
-      cleanedText = cleanedText.replace(/^```\s*/, '').replace(/```\s*$/, '');
-    }
+    // Parse the generated text as JSON using robust parser
+    const parseResult = parseJsonSafe(result.text);
     
-    try {
-      const parsedData = JSON.parse(cleanedText);
-      return new Response(JSON.stringify(parsedData), {
+    if (parseResult.success) {
+      return new Response(JSON.stringify(parseResult.data), {
         status: 200,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { "Content-Type": "application/json" }
       });
-    } catch (parseError) {
-      console.error('Failed to parse AI response as JSON:', parseError);
-      return new Response(JSON.stringify({ error: 'Failed to parse AI response' }), {
+    } else {
+      console.error("Failed to parse AI response:", parseResult.error);
+      console.error("Raw text:", result.text.substring(0, 500));
+      return new Response(JSON.stringify({ error: "Failed to parse AI response", details: parseResult.error }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { "Content-Type": "application/json" }
       });
     }
   } catch (error: any) {

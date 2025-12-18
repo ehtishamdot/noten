@@ -28,15 +28,15 @@ function SuggestionsContent() {
 
       // Load case data
       const response = await noteNinjasAPI.getCase(caseId!);
-      setCaseData(response.case);
+      setCaseData(response);
 
       // Generate recommendations
-      const recsResponse = await noteNinjasAPI.generateAllRecommendations({
-        patientCondition: response.case.patientCondition,
-        desiredOutcome: response.case.desiredOutcome,
-        treatmentProgression: response.case.treatmentProgression || "",
-        sessionId: caseId!,
-      });
+      const userInputStr = `${response.input_json.patientCondition}. Desired outcome: ${response.input_json.desiredOutcome}. Treatment progression: ${response.input_json.treatmentProgression || ''}`;
+      const recsResponse = await noteNinjasAPI.generateRecommendations(
+        userInputStr,
+        {},
+        caseId!
+      );
 
       setRecommendations(recsResponse);
     } catch (error) {

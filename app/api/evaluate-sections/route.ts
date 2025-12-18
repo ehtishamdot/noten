@@ -1,3 +1,4 @@
+import { parseJsonSafe } from "@/lib/jsonUtils";
 import { openai } from '@ai-sdk/openai';
 import { generateText } from 'ai';
 
@@ -202,7 +203,7 @@ const DYNAMIC_SECTIONS_CONFIG = {
       sectionName: "Therapeutic Exercise & Strengthening",
       visibility: "ALWAYS_ON",
       triggerRule: "Crucial for maintaining function and preventing atrophy.",
-      contentGuidelines: "General conditioning, functional strengthening."
+      contentGuidelines: "General whole-body conditioning, low-intensity strengthening for large muscle groups, endurance enhancement. NOT fine motor or hand-only exercises."
     },
     {
       patientType: "Chronic or Progressive (Neuro/Ortho)",
@@ -220,7 +221,7 @@ const DYNAMIC_SECTIONS_CONFIG = {
       sectionName: "Functional Activity",
       visibility: "ALWAYS_ON",
       triggerRule: "Focus on maintaining independence.",
-      contentGuidelines: "Sit-to-stand, functional walking, community mobility, navigation."
+      contentGuidelines: "Sit-to-stand transfers, functional walking/ambulation, community mobility (grocery trips, navigation), NOT fine motor or UE-focused tasks."
     },
     {
       patientType: "Chronic or Progressive (Neuro/Ortho)",
@@ -229,7 +230,7 @@ const DYNAMIC_SECTIONS_CONFIG = {
       sectionName: "Activities of Daily Living (ADLs)",
       visibility: "ALWAYS_ON",
       triggerRule: "Focus on energy conservation and joint protection.",
-      contentGuidelines: "Energy conservation (COPD/CHF), Joint protection (RA), Adaptive equipment."
+      contentGuidelines: "Energy conservation techniques (COPD/CHF), Joint protection strategies (RA), Adaptive equipment (reacher, long-handled sponge, button hook)."
     },
     {
       patientType: "Chronic or Progressive (Neuro/Ortho)",
@@ -237,8 +238,8 @@ const DYNAMIC_SECTIONS_CONFIG = {
       discipline: "OT Only",
       sectionName: "Cognitive & Executive Function",
       visibility: "CONDITIONAL",
-      triggerRule: "Trigger if condition has cognitive components (MS, Parkinson's, Dementia).",
-      contentGuidelines: "OT Focus: Attention, working memory, sequencing, problem solving, initiation, safety awareness."
+      triggerRule: "SHOW/ON ONLY if Patient_Diagnosis includes: Multiple Sclerosis (MS), Parkinson's Disease, Alzheimer's Disease, Vascular Dementia, Frontotemporal Dementia, or any equivalent cognitive condition mentioned in patient history. Otherwise HIDE.",
+      contentGuidelines: "OT Focus: Attention, working memory, sequencing, problem solving, initiation, safety awareness (e.g., medication management routines)."
     },
     {
       patientType: "Chronic or Progressive (Neuro/Ortho)",
@@ -274,7 +275,7 @@ const DYNAMIC_SECTIONS_CONFIG = {
       sectionName: "Home Program & Education",
       visibility: "ALWAYS_ON",
       triggerRule: "Focus on self-management.",
-      contentGuidelines: "Self-management strategies, Caregiver HEP."
+      contentGuidelines: "EDUCATION FOCUS (not exercises): Pacing strategies education, energy conservation techniques teaching, joint protection principles, self-management education, Caregiver training and HEP instruction. Must include educational components, NOT just activities."
     },
     {
       patientType: "Functional or Development Support (Peds)",
@@ -636,11 +637,24 @@ export async function POST(request: Request) {
 ${JSON.stringify(sectionsInfo, null, 2)}
 
 ## YOUR TASK:
-Evaluate EACH section and decide whether it should be SHOWN or HIDDEN based on:
-1. The visibility setting (ALWAYS_ON = always show, HIDDEN = always hide, TRIGGER/CONDITIONAL = evaluate rule)
-2. The trigger rule for each section
-3. The discipline compatibility (PT sections for PT visits, OT sections for OT visits, "PT | OT" for both)
-4. The age group compatibility (All = any age, <18 = pediatric, >18 = adult)
+Evaluate EACH section and decide whether it should be SHOWN or HIDDEN. Follow these rules STRICTLY in order:
+
+### STEP 1: Check Discipline Compatibility (MANDATORY)
+- "PT | OT" sections -> SHOW for BOTH PT and OT visits
+- "OT Only" sections -> SHOW ONLY if Visit Type is OT, otherwise HIDE
+- "SLP | OT" sections -> SHOW ONLY if Visit Type is OT, otherwise HIDE
+- "PT Only" sections -> SHOW ONLY if Visit Type is PT, otherwise HIDE
+
+### STEP 2: Check Visibility Setting (MANDATORY)
+- ALWAYS_ON = MUST SHOW (do NOT evaluate trigger rules, just show it)
+- HIDDEN = MUST HIDE (never show)
+- TRIGGER/CONDITIONAL = Evaluate the trigger rule to decide
+
+### STEP 3: For TRIGGER/CONDITIONAL only, evaluate the trigger rule
+- Check if patient information matches the trigger conditions
+- Use clinical judgment based on the rule
+
+CRITICAL: If a section has visibility="ALWAYS_ON" AND passes discipline check, you MUST include it. No exceptions.
 
 ## CRITICAL PAIN RULES:
 - If Pain Indicator is "0", "0/10", or explicitly states "no pain" or "denies pain" → HIDE "Pain Management Modalities"
@@ -680,17 +694,13 @@ IMPORTANT: Return ONLY the JSON object, no markdown code blocks, no additional t
       temperature: 0.1, // Low temperature for consistent, deterministic responses
     });
 
-    // Parse the LLM response
+    // Parse the LLM response using robust parser
+    const parseResult = parseJsonSafe(text);
     let result;
-    try {
-      // Clean the response - remove any markdown code blocks if present
-      let cleanedText = text.trim();
-      if (cleanedText.startsWith('```')) {
-        cleanedText = cleanedText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
-      }
-      result = JSON.parse(cleanedText);
-    } catch (parseError) {
-      console.error('Failed to parse LLM response:', text);
+    
+    if (!parseResult.success) {
+      console.error("Failed to parse LLM response:", parseResult.error);
+      console.error("Raw text:", text.substring(0, 500));
       // Fallback: return all ALWAYS_ON sections
       const fallbackSections = relevantSections
         .filter(s => s.visibility === 'ALWAYS_ON')
@@ -715,7 +725,7 @@ IMPORTANT: Return ONLY the JSON object, no markdown code blocks, no additional t
     }
 
     // Format the response
-    const visibleSections = (result.visibleSections || []).map((s: any) => ({
+    const visibleSections = ((parseResult.success ? parseResult.data : {}).visibleSections || []).map((s: any) => ({
       sectionName: s.sectionName,
       contentGuidelines: s.contentGuidelines || sectionsInfo.find(si => si.sectionName === s.sectionName)?.contentGuidelines || '',
       triggerRule: sectionsInfo.find(si => si.sectionName === s.sectionName)?.triggerRule || '',
@@ -724,7 +734,7 @@ IMPORTANT: Return ONLY the JSON object, no markdown code blocks, no additional t
 
     return Response.json({
       sections: visibleSections,
-      hiddenSections: result.hiddenSections || [],
+      hiddenSections: (parseResult.success ? parseResult.data : {}).hiddenSections || [],
       source: 'llm',
       patientType: patientTypeFull
     });

@@ -54,7 +54,7 @@ export default function EmbedPage() {
         } : undefined,
       };
 
-      const response = await noteNinjasAPI.createCase(caseData);
+      const response = await noteNinjasAPI.createCase(caseData, {});
       const caseId = response.id;
 
       // Navigate to suggestions page with case ID

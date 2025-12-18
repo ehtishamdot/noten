@@ -222,7 +222,7 @@ export const DYNAMIC_SECTIONS_CONFIG: PatientTypeConfig[] = [
         discipline: 'PT | OT',
         ageGroup: 'All',
         triggerRule: 'Crucial for maintaining function and preventing atrophy.',
-        contentGuidelines: 'General conditioning, functional strengthening.'
+        contentGuidelines: 'General whole-body conditioning, low-intensity strengthening for large muscle groups, endurance enhancement. NOT fine motor or hand-only exercises.'
       },
       {
         sectionName: 'Balance Training',
@@ -238,7 +238,7 @@ export const DYNAMIC_SECTIONS_CONFIG: PatientTypeConfig[] = [
         discipline: 'PT | OT',
         ageGroup: 'All',
         triggerRule: 'Focus on maintaining independence.',
-        contentGuidelines: 'Sit-to-stand, functional walking, community mobility, navigation.'
+        contentGuidelines: 'Sit-to-stand transfers, functional walking/ambulation, community mobility (grocery trips, navigation), NOT fine motor or UE-focused tasks.'
       },
       {
         sectionName: 'Activities of Daily Living (ADLs)',
@@ -246,7 +246,7 @@ export const DYNAMIC_SECTIONS_CONFIG: PatientTypeConfig[] = [
         discipline: 'OT Only',
         ageGroup: 'All',
         triggerRule: 'Focus on energy conservation and joint protection.',
-        contentGuidelines: 'Energy conservation (COPD/CHF), Joint protection (RA), Adaptive equipment.'
+        contentGuidelines: 'Energy conservation techniques (COPD/CHF), Joint protection strategies (RA), Adaptive equipment (reacher, long-handled sponge, button hook).'
       },
       {
         sectionName: 'Cognitive & Executive Function',
@@ -286,7 +286,7 @@ export const DYNAMIC_SECTIONS_CONFIG: PatientTypeConfig[] = [
         discipline: 'PT | OT',
         ageGroup: 'All',
         triggerRule: 'Focus on self-management.',
-        contentGuidelines: 'Self-management strategies, Caregiver HEP.'
+        contentGuidelines: 'EDUCATION FOCUS (not exercises): Pacing strategies education, energy conservation techniques teaching, joint protection principles, self-management education, Caregiver training and HEP instruction. Must include educational components, NOT just activities.'
       }
     ]
   },
