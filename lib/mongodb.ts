@@ -46,6 +46,7 @@ export async function getCollections() {
     sessions: db.collection('sessions'),
     cases: db.collection('cases'),
     feedback: db.collection('feedback'),
+    otpCodes: db.collection('otp_codes'),
   };
 }
 

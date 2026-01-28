@@ -204,10 +204,22 @@ class NoteNinjasAPI {
   }
 
   // Authentication
-  async login(email: string): Promise<LoginResponse> {
+  async login(email: string, password: string): Promise<LoginResponse> {
     const response = await this.request<LoginResponse>('/api/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, password }),
+    });
+
+    TokenManager.setToken(response.token);
+    TokenManager.setUser(response.user);
+
+    return response;
+  }
+
+  async verifyOtp(email: string, code: string, password: string): Promise<LoginResponse> {
+    const response = await this.request<LoginResponse>('/api/auth/verify-otp', {
+      method: 'POST',
+      body: JSON.stringify({ email, code, password }),
     });
 
     TokenManager.setToken(response.token);

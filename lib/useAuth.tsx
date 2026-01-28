@@ -7,7 +7,8 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (name: string, email: string) => Promise<LoginResponse>;
+  login: (email: string, password: string) => Promise<LoginResponse>;
+  signup: (email: string, code: string, password: string) => Promise<LoginResponse>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -22,15 +23,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Check if user is already logged in
     const storedUser = TokenManager.getUser();
     const token = TokenManager.getToken();
-    
+
     if (storedUser && token) {
       setUser(storedUser);
     }
     setIsLoading(false);
   }, []);
 
-  const login = async (name: string, email: string): Promise<LoginResponse> => {
-    const response = await noteNinjasAPI.login(email);
+  const login = async (email: string, password: string): Promise<LoginResponse> => {
+    const response = await noteNinjasAPI.login(email, password);
+    setUser(response.user);
+    return response;
+  };
+
+  const signup = async (email: string, code: string, password: string): Promise<LoginResponse> => {
+    const response = await noteNinjasAPI.verifyOtp(email, code, password);
     setUser(response.user);
     return response;
   };
@@ -56,6 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAuthenticated: !!user,
     isLoading,
     login,
+    signup,
     logout,
     refreshUser,
   };

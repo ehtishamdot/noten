@@ -161,46 +161,44 @@ export default function NoteNinjas() {
     sessionStorage.setItem("note-ninjas-input-mode", inputMode);
   }, [inputMode]);
 
-  const handleLogin = async (email: string) => {
+  const handleAuthSuccess = async (response: any, email: string) => {
+    const userData = {
+      id: response.user.id,
+      name: response.user.name || email.split('@')[0],
+      email: response.user.email
+    };
+    sessionStorage.setItem("note-ninjas-user", JSON.stringify(userData));
+    setUserName(userData.name);
+    setIsAuthenticated(true);
+
+    // Load case history from backend
     try {
-      // Call backend login API
-      const response = await noteNinjasAPI.login(email);
-
-      // Save user data and token
-      const userData = {
-        id: response.user.id,
-        name: response.user.name || email.split('@')[0], // Use email prefix as fallback name
-        email: response.user.email
-      };
-      sessionStorage.setItem("note-ninjas-user", JSON.stringify(userData));
-      setUserName(userData.name);
-      setIsAuthenticated(true);
-
-      console.log('✅ Logged in successfully:', userData);
-
-      // Load case history from backend
-      try {
-        const cases = await noteNinjasAPI.getCases();
-        const formattedCases = cases.map((c) => ({
-          id: c.id,
-          name: c.name,
-          timestamp: new Date(c.created_at).getTime(),
-          caseData: null
-        }));
-        setCaseHistory(formattedCases);
-      } catch (error) {
-        console.error('Error loading case history:', error);
-        // Fallback to localStorage
-        const historyKey = `note-ninjas-history-${email}`;
-        const storedHistory = localStorage.getItem(historyKey);
-        if (storedHistory) {
-          setCaseHistory(JSON.parse(storedHistory));
-        }
-      }
+      const cases = await noteNinjasAPI.getCases();
+      const formattedCases = cases.map((c) => ({
+        id: c.id,
+        name: c.name,
+        timestamp: new Date(c.created_at).getTime(),
+        caseData: null
+      }));
+      setCaseHistory(formattedCases);
     } catch (error) {
-      console.error('Login error:', error);
-      alert('Login failed. Please try again.');
+      console.error('Error loading case history:', error);
+      const historyKey = `note-ninjas-history-${email}`;
+      const storedHistory = localStorage.getItem(historyKey);
+      if (storedHistory) {
+        setCaseHistory(JSON.parse(storedHistory));
+      }
     }
+  };
+
+  const handleLogin = async (email: string, password: string) => {
+    const response = await noteNinjasAPI.login(email, password);
+    await handleAuthSuccess(response, email);
+  };
+
+  const handleSignup = async (email: string, code: string, password: string) => {
+    const response = await noteNinjasAPI.verifyOtp(email, code, password);
+    await handleAuthSuccess(response, email);
   };
 
   const generateCaseName = (caseData: any): string => {
@@ -655,7 +653,7 @@ export default function NoteNinjas() {
 
   // Show login page if not authenticated
   if (!isAuthenticated) {
-    return <LoginPage onLogin={handleLogin} />;
+    return <LoginPage onLogin={handleLogin} onSignup={handleSignup} />;
   }
 
   return (
