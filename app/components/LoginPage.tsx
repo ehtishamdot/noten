@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Logo from "./Logo";
 
-type AuthMode = "login" | "signup" | "otp";
+type AuthMode = "login" | "signup" | "otp" | "forgot";
 
 interface LoginPageProps {
   onLogin: (email: string, password: string) => Promise<void>;
@@ -18,6 +18,8 @@ export default function LoginPage({ onLogin, onSignup }: LoginPageProps) {
   const [mode, setMode] = useState<AuthMode>("login");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotSent, setForgotSent] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,6 +87,39 @@ export default function LoginPage({ onLogin, onSignup }: LoginPageProps) {
       setError(err.message);
       setIsLoading(false);
     }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotEmail.trim()) return;
+
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail.trim() }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Something went wrong. Please try again.");
+      }
+
+      setForgotSent(true);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const switchToForgot = () => {
+    setMode("forgot");
+    setError("");
+    setForgotEmail("");
+    setForgotSent(false);
   };
 
   const switchToSignup = () => {
@@ -171,6 +206,16 @@ export default function LoginPage({ onLogin, onSignup }: LoginPageProps) {
                     "Log in"
                   )}
                 </button>
+
+                <p className="text-center text-sm text-gray-500">
+                  <button
+                    type="button"
+                    onClick={switchToForgot}
+                    className="text-teal-600 font-medium hover:text-teal-700"
+                  >
+                    Forgot your password?
+                  </button>
+                </p>
 
                 <p className="text-center text-sm text-gray-600">
                   Don&apos;t have an account?{" "}
@@ -324,6 +369,82 @@ export default function LoginPage({ onLogin, onSignup }: LoginPageProps) {
                   Back
                 </button>
               </form>
+            </>
+          )}
+
+          {mode === "forgot" && (
+            <>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2 text-center">
+                Reset your password
+              </h2>
+
+              {forgotSent ? (
+                <div className="space-y-4">
+                  <p className="text-gray-600 text-sm text-center">
+                    Check your email for a reset link. If you don&apos;t receive
+                    it, contact support.
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={switchToLogin}
+                    className="w-full text-gray-600 py-2 text-sm hover:text-gray-900 transition-colors"
+                  >
+                    Back to login
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <p className="text-gray-600 text-sm text-center mb-6">
+                    Enter your email and we&apos;ll send you a link to reset
+                    your password.
+                  </p>
+
+                  <form onSubmit={handleForgotPassword} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                        placeholder="Enter your email"
+                        required
+                        autoFocus
+                      />
+                    </div>
+
+                    {error && (
+                      <p className="text-red-600 text-sm">{error}</p>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={!forgotEmail.trim() || isLoading}
+                      className="w-full bg-teal-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                    >
+                      {isLoading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
+                          Sending...
+                        </>
+                      ) : (
+                        "Send Reset Link"
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={switchToLogin}
+                      className="w-full text-gray-600 py-2 text-sm hover:text-gray-900 transition-colors"
+                    >
+                      Back
+                    </button>
+                  </form>
+                </>
+              )}
             </>
           )}
         </div>

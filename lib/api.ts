@@ -183,19 +183,20 @@ class NoteNinjasAPI {
     });
 
     if (!response.ok) {
-      // Handle 401 Unauthorized - redirect to login
-      if (response.status === 401) {
+      // Handle 401 Unauthorized - redirect to login (but not for auth endpoints)
+      const isAuthEndpoint = endpoint.startsWith('/api/auth/');
+      if (response.status === 401 && !isAuthEndpoint) {
         TokenManager.removeToken();
         TokenManager.removeUser();
-        
+
         // Redirect to login page
         if (typeof window !== 'undefined') {
           window.location.href = '/';
         }
-        
+
         throw new Error('Unauthorized - Please login again');
       }
-      
+
       const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
       throw new Error(error.detail || error.error || `HTTP ${response.status}`);
     }

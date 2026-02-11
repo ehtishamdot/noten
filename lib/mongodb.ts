@@ -47,6 +47,7 @@ export async function getCollections() {
     cases: db.collection('cases'),
     feedback: db.collection('feedback'),
     otpCodes: db.collection('otp_codes'),
+    passwordResetTokens: db.collection('password_reset_tokens'),
   };
 }
 
